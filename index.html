@@ -324,58 +324,56 @@
         </div>
 
         <!-- ── LOGIN CARD ── -->
-        <div class="login-card w-full lg:w-[360px] flex-shrink-0 p-8 anim-4 self-center">
+<div class="login-card w-full lg:w-[360px] flex-shrink-0 anim-4 self-center overflow-hidden">
 
-          <!-- Card header -->
-          <div class="flex flex-col items-center mb-7">
-            <div class="w-10 h-10 rounded-xl flex items-center justify-center mb-4" style="background:var(--maroon)">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F5EFE6" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="3"/>
-                <path d="M6.3 6.3 4.5 4.5M17.7 6.3l1.8-1.8M6.3 17.7l-1.8 1.8M17.7 17.7l1.8 1.8"/>
-                <circle cx="4" cy="4" r="1.5" fill="#F5EFE6" stroke="none"/>
-                <circle cx="20" cy="4" r="1.5" fill="#F5EFE6" stroke="none"/>
-                <circle cx="4" cy="20" r="1.5" fill="#F5EFE6" stroke="none"/>
-                <circle cx="20" cy="20" r="1.5" fill="#F5EFE6" stroke="none"/>
-              </svg>
-            </div>
-            <h2 class="font-bold text-2xl text-center" style="font-family:'Playfair Display',serif; color:var(--maroon-dark);">Welcome Back!</h2>
-            <p class="text-xs mt-1 text-center" style="color:#9a7474;">Sign in with your TUP email to continue</p>
-          </div>
+  <!-- Top maroon section -->
+  <div class="flex flex-col items-center py-5 px-8" style="background:var(--maroon);">
+    <div class="w-10 h-10 rounded-xl flex items-center justify-center mb-4" style="background:rgba(255,255,255,0.15)">
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F5EFE6" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="3"/>
+    <path d="M6.3 6.3 4.5 4.5M17.7 6.3l1.8-1.8M6.3 17.7l-1.8 1.8M17.7 17.7l1.8 1.8"/>
+    <circle cx="4" cy="4" r="1.5" fill="#F5EFE6" stroke="none"/>
+    <circle cx="20" cy="4" r="1.5" fill="#F5EFE6" stroke="none"/>
+    <circle cx="4" cy="20" r="1.5" fill="#F5EFE6" stroke="none"/>
+    <circle cx="20" cy="20" r="1.5" fill="#F5EFE6" stroke="none"/>
+  </svg>
+</div>
+    <h2 class="font-bold text-2xl text-center text-white" style="font-family:'Playfair Display',serif;">Welcome Back!</h2>
+    <p class="text-xs mt-1 text-center" style="color:rgba(255,255,255,0.7);">Sign in with your TUP email to continue</p>
+  </div>
 
-          <!-- Form -->
-          <div class="flex flex-col gap-4">
+  <!-- Bottom cream section -->
+  <div class="p-8" style="background:var(--cream);">
+    <div class="flex flex-col gap-4">
 
-            <div>
-              <label class="block text-xs font-600 mb-1.5" style="color:#5a2426; font-weight:600;">TUP Email</label>
-              <input class="tup-input" type="email" placeholder="yourname@tup.edu.ph" autocomplete="email"/>
-            </div>
-
-            <div>
-              <div class="flex justify-between items-center mb-1.5">
-                <label class="text-xs font-600" style="color:#5a2426; font-weight:600;">Password</label>
-                <a href="#" class="text-xs font-medium hover:underline" style="color:var(--maroon);">Forgot Password?</a>
-              </div>
-              <input class="tup-input" type="password" placeholder="••••••••" autocomplete="current-password"/>
-            </div>
-
-            <button class="btn-signin-main mt-1">Sign In</button>
-
-            <div class="or-divider">or</div>
-
-            <button class="btn-browse-guest">Browse as Guest</button>
-
-          </div>
-
-          <!-- Footer note -->
-          <p class="text-center text-xs mt-6" style="color:#b08d8e;">
-            No account yet?
-            <a href="pages/register.html" style="color:var(--maroon); font-weight:600;" class="hover:underline">Register with your TUP email</a>
-          </p>
-
-        </div>
-        <!-- /login card -->
-
+      <div>
+        <label class="block text-xs mb-1.5" style="color:#5a2426; font-weight:600;">TUP Email</label>
+        <input class="tup-input" type="email" placeholder="yourname@tup.edu.ph" autocomplete="email"/>
       </div>
+
+      <div>
+        <div class="flex justify-between items-center mb-1.5">
+          <label class="text-xs" style="color:#5a2426; font-weight:600;">Password</label>
+          <a href="#" class="text-xs font-medium hover:underline" style="color:var(--maroon);">Forgot Password?</a>
+        </div>
+        <input class="tup-input" type="password" placeholder="••••••••" autocomplete="current-password"/>
+      </div>
+
+      <button class="btn-signin-main mt-1">Sign In</button>
+
+      <div class="or-divider">or</div>
+
+      <button class="btn-browse-guest">Browse as Guest</button>
+
+    </div>
+
+    <p class="text-center text-xs mt-6" style="color:#b08d8e;">
+      No account yet?
+      <a href="pages/register.html" style="color:var(--maroon); font-weight:600;" class="hover:underline">Register with your TUP email</a>
+    </p>
+  </div>
+
+</div>
     </main>
 
     <!-- ═══════════ FOOTER ═══════════ -->
