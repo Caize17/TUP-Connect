@@ -9,7 +9,7 @@ if (signInBtn) {
     const password = document.getElementById('login-password').value;
 
     if (!email || !password) {
-      alert("Please fill in all fields.");
+      showError("Please fill in all fields.");
       return;
     }
 
@@ -18,7 +18,7 @@ if (signInBtn) {
       console.log("Sign-in successful!");
       window.location.href = 'pages/homepage.html';
     } catch (error) {
-      alert("Login failed. Check your credentials.");
+      showError("Login failed. Check your credentials.");
       console.error(error.code);
     }
   });
