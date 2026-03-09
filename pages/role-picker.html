@@ -2,367 +2,61 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=1280, initial-scale=1.0"/>
   <title>TUP Connect — Choose Your Role</title>
-  <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;1,500&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
-  <style>
-    :root {
-      --maroon:       #561C24;
-      --maroon-dark:  #3d1219;
-      --maroon-light: #6e2330;
-      --cream:        #FFF4E7;
-      --cream-dark:   #f0e0c8;
-      --gold:         #C9A84C;
-    }
-
-    * { box-sizing: border-box; }
-
-    body {
-      font-family: 'Montserrat', sans-serif;
-      margin: 0;
-      min-height: 100vh;
-      overflow-x: hidden;
-    }
-
-    /* ── BACKGROUND ── */
-    .hero-bg {
-      position: fixed;
-      inset: 0;
-      z-index: 0;
-      background:
-        linear-gradient(135deg, rgba(91,12,14,0.82) 0%, rgba(20,6,6,0.75) 60%, rgba(0,0,0,0.70) 100%),
-        url('../assets/images/bg.png') center/cover no-repeat;
-      filter: saturate(0.7);
-    }
-    .hero-bg::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
-      opacity: 0.35;
-      pointer-events: none;
-    }
-
-    /* ── MAIN CARD ── */
-    .picker-card {
-      background: var(--cream);
-      border-radius: 24px;
-      box-shadow: 0 24px 80px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.1);
-      width: 100%;
-      max-width: 700px;
-    }
-
-    /* ── ROLE CARDS ── */
-.role-card {
-  border: 2px solid rgba(86,28,36,0.1);
-  border-radius: 16px;
-  padding: 24px 20px;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-  background: rgba(255,255,255,0.5);
-  position: relative;
-  flex: 1;
-  overflow: hidden;
-}
-
-/* shimmer effect on hover */
-.role-card::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, rgba(86,28,36,0.04) 0%, rgba(201,168,76,0.06) 100%);
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  border-radius: 14px;
-}
-.role-card:hover::before { opacity: 1; }
-
-.role-card:hover {
-  border-color: var(--maroon);
-  background: rgba(255,255,255,0.95);
-  transform: translateY(-6px) scale(1.02);
-  box-shadow: 0 20px 40px rgba(86,28,36,0.18), 0 0 0 1px rgba(86,28,36,0.08);
-}
-.role-card.selected {
-  border-color: var(--maroon);
-  background: #fff;
-  transform: translateY(-4px) scale(1.01);
-  box-shadow: 0 16px 40px rgba(86,28,36,0.2), 0 0 0 1px rgba(86,28,36,0.1);
-}
-.role-card.selected .role-check {
-  opacity: 1;
-  transform: scale(1);
-}
-.role-card.selected::before { opacity: 1; }
-
-/* checkmark */
-.role-check {
-  position: absolute;
-  top: 14px;
-  right: 14px;
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, var(--maroon-light), var(--maroon-dark));
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
-  transform: scale(0.3) rotate(-45deg);
-  transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
-  box-shadow: 0 4px 12px rgba(86,28,36,0.4);
-}
-
-/* icon badge hover */
-.role-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: 14px;
-  background: rgba(86,28,36,0.08);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 14px;
-  transition: all 0.3s ease;
-}
-.role-card:hover .role-icon,
-.role-card.selected .role-icon {
-  background: rgba(86,28,36,0.14);
-  transform: scale(1.08);
-}
-
-    /* checkmark */
-    .role-check {
-      position: absolute;
-      top: 12px;
-      right: 12px;
-      width: 22px;
-      height: 22px;
-      border-radius: 50%;
-      background: var(--maroon);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      opacity: 0;
-      transform: scale(0.5);
-      transition: all 0.2s ease;
-    }
-
-    /* ── BADGE ── */
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      font-size: 0.65rem;
-      font-weight: 600;
-      padding: 3px 8px;
-      border-radius: 99px;
-      margin-top: 10px;
-      letter-spacing: 0.03em;
-    }
-    .badge-personal {
-      background: rgba(86,28,36,0.1);
-      color: var(--maroon);
-    }
-    .badge-approval {
-      background: rgba(201,168,76,0.15);
-      color: #8a6a1a;
-    }
-    .badge-restricted {
-      background: rgba(0,0,0,0.08);
-      color: #555;
-    }
-
-    /* ── ICON CIRCLE ── */
-    .role-icon {
-      width: 44px;
-      height: 44px;
-      border-radius: 12px;
-      background: rgba(86,28,36,0.1);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-bottom: 12px;
-      transition: background 0.2s;
-    }
-    .role-card.selected .role-icon {
-      background: rgba(86,28,36,0.15);
-    }
-
-    /* ── CONTINUE BUTTON ── */
-.btn-continue {
-  background: linear-gradient(135deg, var(--maroon-light), var(--maroon-dark));
-  color: #fff;
-  border: none;
-  border-radius: 12px;
-  padding: 14px;
-  font-family: 'Montserrat', sans-serif;
-  font-size: 0.9rem;
-  font-weight: 600;
-  letter-spacing: 0.05em;
-  cursor: pointer;
-  width: 100%;
-  position: relative;
-  overflow: hidden;
-  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-  box-shadow: 0 4px 15px rgba(86,28,36,0.35), 0 1px 3px rgba(86,28,36,0.2);
-}
-
-/* shine sweep on hover */
-.btn-continue::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
-  transition: left 0.5s ease;
-}
-.btn-continue:hover::before { left: 100%; }
-
-.btn-continue:hover {
-  transform: translateY(-3px) scale(1.01);
-  box-shadow: 0 12px 28px rgba(86,28,36,0.45), 0 4px 8px rgba(86,28,36,0.2);
-  background: linear-gradient(135deg, #7e2535, var(--maroon-dark));
-}
-.btn-continue:active {
-  transform: translateY(0px) scale(0.99);
-  box-shadow: 0 4px 12px rgba(86,28,36,0.3);
-}
-.btn-continue:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
-}
-
-/* ── NAV SIGNIN BUTTON ── */
-.btn-nav-signin {
-  background: linear-gradient(135deg, var(--maroon-light), var(--maroon-dark));
-  color: #fff;
-  border: none;
-  border-radius: 10px;
-  padding: 9px 22px;
-  font-family: 'Montserrat', sans-serif;
-  font-size: 0.85rem;
-  font-weight: 600;
-  cursor: pointer;
-  position: relative;
-  overflow: hidden;
-  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-  box-shadow: 0 4px 14px rgba(86,28,36,0.35), 0 1px 3px rgba(86,28,36,0.15);
-}
-.btn-nav-signin::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
-  transition: left 0.5s ease;
-}
-.btn-nav-signin:hover::before { left: 100%; }
-.btn-nav-signin:hover {
-  transform: translateY(-2px) scale(1.02);
-  box-shadow: 0 10px 24px rgba(86,28,36,0.45), 0 3px 6px rgba(86,28,36,0.2);
-}
-.btn-nav-signin:active {
-  transform: translateY(0) scale(0.98);
-  box-shadow: 0 3px 10px rgba(86,28,36,0.3);
-}
-
-    /* ── DIVIDER ── */
-    .divider {
-      height: 1px;
-      background: rgba(86,28,36,0.1);
-      width: 100%;
-    }
-
-    /* ── NAVBAR ── */
-    .btn-nav-signin {
-      background: var(--maroon);
-      color: #fff;
-      border: none;
-      border-radius: 8px;
-      padding: 8px 20px;
-      font-family: 'Montserrat', sans-serif;
-      font-size: 0.85rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background 0.2s, transform 0.15s;
-      box-shadow: 0 2px 10px rgba(86,28,36,0.4);
-    }
-    .btn-nav-signin:hover { background: var(--maroon-light); transform: translateY(-1px); }
-
-    /* ── ANIMATIONS ── */
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(22px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-    .anim-1 { animation: fadeUp 0.55s ease both; }
-    .anim-2 { animation: fadeUp 0.55s 0.1s ease both; }
-    .anim-3 { animation: fadeUp 0.55s 0.2s ease both; }
-
-    ::-webkit-scrollbar { width: 6px; }
-    ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 99px; }
-  </style>
+  <link rel="stylesheet" href="../CSS/role-picker.css"/>
 </head>
-<body class="min-h-screen">
+<body>
 
   <div class="hero-bg"></div>
 
-  <div class="relative z-10 min-h-screen flex flex-col">
+  <div class="page-wrapper">
 
     <!-- ═══════════ NAVBAR ═══════════ -->
-    <nav class="flex items-center justify-between px-6 md:px-10 py-4">
+    <nav class="main-nav">
       <a href="../index.html">
-        <img src="../assets/images/logo.png" alt="TUP Konek Logo" class="w-auto object-contain" style="height:85px;"/>
+        <img src="../assets/images/logo-white.png" alt="TUP Konek Logo" class="nav-logo"/>
       </a>
       <button class="btn-nav-signin" onclick="window.location.href='../index.html'">Sign In</button>
     </nav>
 
     <!-- ═══════════ MAIN CONTENT ═══════════ -->
-    <main class="flex-1 flex items-center justify-center px-6 py-8">
+    <main class="main-content">
 
-      <div class="picker-card p-8 md:p-10 anim-1">
+      <div class="picker-card anim-1">
 
         <!-- Header -->
-        <div class="text-center mb-6 anim-1">
-          <h1 class="font-bold text-2xl md:text-3xl mb-2" style="font-family:'Playfair Display',serif; color:var(--maroon-dark);">
-            What best describes you?
-          </h1>
-          <p class="text-sm leading-relaxed" style="color:#9a7474; max-width:420px; margin:0 auto;">
+        <div style="text-align:center; margin-bottom:8px;" class="anim-1">
+          <h1 class="card-title">What best describes you?</h1>
+          <p class="card-subtitle">
             Choose your account type to get started. This determines what you can do on TUP KONEK.
           </p>
         </div>
 
-        <div class="divider mb-6"></div>
+        <div class="divider"></div>
 
         <!-- Role Cards -->
-        <div class="flex flex-col md:flex-row gap-4 mb-6 anim-2">
+        <div class="roles-row anim-2">
 
           <!-- Student -->
           <div class="role-card" id="role-student" onclick="selectRole('student')">
             <div class="role-check">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="20 6 9 17 4 12"/>
               </svg>
             </div>
             <div class="role-icon">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#561C24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#561C24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/>
               </svg>
             </div>
-            <p class="font-bold text-sm mb-2" style="color:var(--maroon-dark);">Student</p>
-            <p class="text-xs leading-relaxed" style="color:#9a7474;">
+            <p class="role-title">Student</p>
+            <p class="role-desc">
               For current TUP students. Access the community feed, bulletin board, org updates, and more.
             </p>
             <span class="badge badge-personal">
-              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
               Personal Account
             </span>
           </div>
@@ -370,21 +64,21 @@
           <!-- Student Organization -->
           <div class="role-card" id="role-org" onclick="selectRole('org')">
             <div class="role-check">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="20 6 9 17 4 12"/>
               </svg>
             </div>
             <div class="role-icon">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#561C24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#561C24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
               </svg>
             </div>
-            <p class="font-bold text-sm mb-2" style="color:var(--maroon-dark);">Student Organization</p>
-            <p class="text-xs leading-relaxed" style="color:#9a7474;">
+            <p class="role-title">Student Organization</p>
+            <p class="role-desc">
               For TUP-accredited student organizations. Post announcements, promote events, and manage your org page.
             </p>
             <span class="badge badge-approval">
-              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
               Requires Approval
             </span>
           </div>
@@ -392,21 +86,21 @@
           <!-- Admin/USG -->
           <div class="role-card" id="role-admin" onclick="selectRole('admin')">
             <div class="role-check">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="20 6 9 17 4 12"/>
               </svg>
             </div>
             <div class="role-icon">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#561C24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#561C24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
               </svg>
             </div>
-            <p class="font-bold text-sm mb-2" style="color:var(--maroon-dark);">Admin / USG</p>
-            <p class="text-xs leading-relaxed" style="color:#9a7474;">
+            <p class="role-title">Admin / USG</p>
+            <p class="role-desc">
               For university administrators and the University Student Government. Post official announcements and manage platform content.
             </p>
             <span class="badge badge-restricted">
-              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
               Restricted Access
             </span>
           </div>
@@ -418,52 +112,19 @@
           <button class="btn-continue" id="btn-continue" disabled onclick="handleContinue()">
             Continue
           </button>
-          <p class="text-center text-xs mt-3" style="color:#b08d8e;">
-            You can only set this once. Choose carefully.
-          </p>
+          <p class="hint-text">You can only set this once. Choose carefully.</p>
         </div>
 
       </div>
     </main>
 
-    <footer class="text-center py-4 text-xs" style="color:rgba(245,239,230,0.35);">
+    <footer class="footer-text">
       © 2026 TUP Connect · Technological University of the Philippines · Made with ♥ by students, for students
     </footer>
 
   </div>
 
-  <script>
-    let selectedRole = null;
-
-    function selectRole(role) {
-      // deselect all
-      ['student', 'org', 'admin'].forEach(r => {
-        document.getElementById(`role-${r}`).classList.remove('selected');
-      });
-
-      // select clicked
-      selectedRole = role;
-      document.getElementById(`role-${role}`).classList.add('selected');
-
-      // enable continue button
-      document.getElementById('btn-continue').disabled = false;
-    }
-
-    function handleContinue() {
-      if (!selectedRole) return;
-
-      // BACKEND TEAM: save the selected role to Firestore here
-      // e.g. await updateDoc(userRef, { role: selectedRole });
-      // then redirect based on role:
-      if (selectedRole === 'student') {
-        window.location.href = 'homepage.html';
-      } else if (selectedRole === 'org') {
-        window.location.href = 'homepage.html'; // or org-setup.html
-      } else if (selectedRole === 'admin') {
-        window.location.href = 'homepage.html'; // or admin-setup.html
-      }
-    }
-  </script>
+  <script src="../JS/role-picker.js"></script>
 
 </body>
 </html>

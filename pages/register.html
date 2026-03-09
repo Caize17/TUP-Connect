@@ -2,505 +2,186 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=1280, initial-scale=1.0"/>
   <title>TUP Connect — Create Account</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;1,500&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet"/>
-  <style>
-    :root {
-  --maroon:       #561C24;
-  --maroon-dark:  #3d1219;
-  --maroon-light: #6e2330;
-  --cream:        #FFF4E7;
-  --cream-dark:   #f0e0c8;
-  --gold:         #C9A84C;
-}
-
-    * { box-sizing: border-box; }
-
-    body {
-      font-family: 'Montserrat', sans-serif;
-      margin: 0;
-      min-height: 100vh;
-      overflow-x: hidden;
-    }
-
-    .hero-bg {
-      position: fixed;
-      inset: 0;
-      z-index: 0;
-      background:
-        linear-gradient(135deg, rgba(91,12,14,0.82) 0%, rgba(20,6,6,0.75) 60%, rgba(0,0,0,0.70) 100%),
-        url('../assets/images/bg.png') center/cover no-repeat;
-      filter: saturate(0.7);
-    }
-    .hero-bg::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
-      opacity: 0.35;
-      pointer-events: none;
-    }
-
-    .glass-card {
-      background: rgba(255,255,255,0.07);
-      backdrop-filter: blur(14px) saturate(1.4);
-      -webkit-backdrop-filter: blur(14px) saturate(1.4);
-      border: 1px solid rgba(255,255,255,0.14);
-      border-radius: 14px;
-      transition: background 0.25s, transform 0.25s, box-shadow 0.25s;
-    }
-    .glass-card:hover {
-      background: rgba(255,255,255,0.12);
-      transform: translateY(-3px);
-      box-shadow: 0 12px 40px rgba(0,0,0,0.35);
-    }
-
-    .login-card {
-      background: var(--cream);
-      border-radius: 20px;
-      box-shadow: 0 24px 80px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.1);
-    }
-
-    .btn-register-main {
-  background: linear-gradient(135deg, var(--maroon-light), var(--maroon-dark));
-  color: #fff;
-  border: none;
-  border-radius: 10px;
-  padding: 12px;
-  font-family: 'Montserrat', sans-serif;
-  font-size: 0.9rem;
-  font-weight: 600;
-  letter-spacing: 0.05em;
-  cursor: pointer;
-  width: 100%;
-  position: relative;
-  overflow: hidden;
-  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-  box-shadow: 0 4px 15px rgba(86,28,36,0.35), 0 1px 3px rgba(86,28,36,0.2);
-}
-.btn-register-main::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
-  transition: left 0.5s ease;
-}
-.btn-register-main:hover::before { left: 100%; }
-.btn-register-main:hover {
-  transform: translateY(-3px) scale(1.01);
-  box-shadow: 0 12px 28px rgba(86,28,36,0.45), 0 4px 8px rgba(86,28,36,0.2);
-  background: linear-gradient(135deg, #7e2535, var(--maroon-dark));
-}
-.btn-register-main:active {
-  transform: translateY(0px) scale(0.99);
-  box-shadow: 0 4px 12px rgba(86,28,36,0.3);
-}
-
-  .btn-browse-guest {
-  background: transparent;
-  color: var(--maroon);
-  border: 1.5px solid var(--maroon);
-  border-radius: 10px;
-  padding: 11px;
-  font-family: 'Montserrat', sans-serif;
-  font-size: 0.85rem;
-  font-weight: 500;
-  cursor: pointer;
-  width: 100%;
-  position: relative;
-  overflow: hidden;
-  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-.btn-browse-guest::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(86,28,36,0.06), transparent);
-  transition: left 0.5s ease;
-}
-.btn-browse-guest:hover::before { left: 100%; }
-.btn-browse-guest:hover {
-  background: rgba(86,28,36,0.06);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(86,28,36,0.15);
-  border-color: var(--maroon-light);
-}
-.btn-browse-guest:active {
-  transform: translateY(0) scale(0.98);
-  box-shadow: none;
-}
-.or-divider {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  color: #b08d8e;
-  font-size: 0.75rem;
-}
-.or-divider::before, .or-divider::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background: rgba(123,17,19,0.15);
-}
-
-    .tup-input {
-      background: rgba(255,255,255,0.85);
-      border: 1.5px solid rgba(123,17,19,0.2);
-      border-radius: 8px;
-      padding: 10px 14px;
-      font-family: 'Montserrat', sans-serif;
-      font-size: 0.875rem;
-      color: #2a0a0b;
-      width: 100%;
-      transition: border-color 0.2s, box-shadow 0.2s;
-      outline: none;
-    }
-    .tup-input:focus {
-      border-color: var(--maroon);
-      box-shadow: 0 0 0 3px rgba(123,17,19,0.15);
-      background: #fff;
-    }
-    .tup-input::placeholder { color: #b08d8e; }
-    .tup-input.error {
-      border-color: var(--maroon);
-      background: rgba(123,17,19,0.04);
-    }
-
-    .input-wrapper { position: relative; }
-    .input-wrapper .tup-input { padding-right: 40px; }
-    .toggle-pw {
-      position: absolute;
-      right: 12px;
-      top: 50%;
-      transform: translateY(-50%);
-      background: none;
-      border: none;
-      cursor: pointer;
-      padding: 0;
-      color: #b08d8e;
-      display: flex;
-      align-items: center;
-    }
-    .toggle-pw:hover { color: var(--maroon); }
-
-    .btn-register-main {
-      background: linear-gradient(135deg, var(--maroon-light), var(--maroon-dark));
-      color: #fff;
-      border: none;
-      border-radius: 8px;
-      padding: 11px;
-      font-family: 'Montserrat', sans-serif;
-      font-size: 0.9rem;
-      font-weight: 600;
-      letter-spacing: 0.04em;
-      cursor: pointer;
-      width: 100%;
-      transition: opacity 0.2s, transform 0.15s, box-shadow 0.2s;
-      box-shadow: 0 4px 18px rgba(123,17,19,0.45);
-    }
-    .btn-register-main:hover {
-      opacity: 0.92;
-      transform: translateY(-1px);
-      box-shadow: 0 8px 24px rgba(123,17,19,0.55);
-    }
-
-    .btn-guest {
-      background: transparent;
-      color: var(--cream);
-      border: 1.5px solid rgba(245,239,230,0.55);
-      border-radius: 8px;
-      padding: 8px 18px;
-      font-family: 'Montserrat', sans-serif;
-      font-size: 0.85rem;
-      font-weight: 500;
-      cursor: pointer;
-      transition: background 0.2s, border-color 0.2s;
-    }
-    .btn-guest:hover { background: rgba(245,239,230,0.1); border-color: var(--cream); }
-
-    .btn-nav-signin {
-      background: var(--maroon);
-      color: #fff;
-      border: none;
-      border-radius: 8px;
-      padding: 8px 20px;
-      font-family: 'Montserrat', sans-serif;
-      font-size: 0.85rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background 0.2s, transform 0.15s;
-      box-shadow: 0 2px 10px rgba(123,17,19,0.4);
-    }
-    .btn-nav-signin:hover { background: var(--maroon-light); transform: translateY(-1px); }
-
-    .field-error {
-      color: var(--maroon);
-      font-size: 0.72rem;
-      margin-top: 4px;
-      display: none;
-    }
-    .field-error.visible { display: block; }
-
-    .icon-badge {
-      width: 36px;
-      height: 36px;
-      border-radius: 10px;
-      background: rgba(123,17,19,0.18);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-    }
-
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(22px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-    .anim-1 { animation: fadeUp 0.65s ease both; }
-    .anim-2 { animation: fadeUp 0.65s 0.12s ease both; }
-    .anim-3 { animation: fadeUp 0.65s 0.22s ease both; }
-    .anim-4 { animation: fadeUp 0.65s 0.32s ease both; }
-
-    .gold-line {
-      width: 48px;
-      height: 3px;
-      background: linear-gradient(90deg, var(--gold), transparent);
-      border-radius: 99px;
-    }
-
-    ::-webkit-scrollbar { width: 6px; }
-    ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 99px; }
-  </style>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;1,500&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="../CSS/register.css"/>
 </head>
-<body class="min-h-screen">
+<body>
 
   <div class="hero-bg"></div>
 
-  <div class="relative z-10 min-h-screen flex flex-col">
+  <div class="page-wrapper">
 
     <!-- ═══════════ NAVBAR ═══════════ -->
-    <nav class="flex items-center justify-between px-6 md:px-10 py-4">
+    <nav class="main-nav">
       <a href="../index.html">
-        <img src="../assets/images/logo.png" alt="TUP Konek Logo" class="w-auto object-contain" style="height:85px;"/>
+        <img src="../assets/images/logo-white.png" alt="TUP Konek Logo" style="height:90px; width:auto; object-fit:contain;"/>
       </a>
-      <div class="flex items-center gap-3">
+      <div style="display:flex; align-items:center; gap:14px;">
         <button class="btn-guest" onclick="window.location.href='../index.html'">Guest Mode</button>
         <button class="btn-nav-signin" onclick="window.location.href='../index.html'">Sign In</button>
       </div>
     </nav>
 
     <!-- ═══════════ MAIN CONTENT ═══════════ -->
-    <main class="flex-1 flex items-center px-6 md:px-10 py-8 md:py-10">
-      <div class="w-full max-w-6xl mx-auto flex flex-col lg:flex-row gap-10 lg:gap-14 items-center lg:items-stretch">
+    <main class="main-content">
+      <div class="content-inner">
 
         <!-- ── LEFT SIDE ── -->
-        <div class="flex-1 flex flex-col justify-center max-w-xl">
-          <div class="anim-1">
-            <div class="gold-line mb-5"></div>
-           <h1 class="text-white leading-tight mb-4" style="font-family:'Playfair Display',serif; font-size:clamp(1.9rem,4vw,2.9rem); font-weight:500; letter-spacing:-0.01em;">
-  TUP Campus,<br/>
-  <span style="font-style:italic; color:#FFF4E7;">Your Campus,</span><br/>
-  Our Campus— Connected.
-</h1>
-            <p class="text-sm md:text-base leading-relaxed mb-8" style="color:rgba(245,239,230,0.72); max-width:380px;">
-              Announcements, communities, organizations, and everything TUP — in one place, made for you.
-            </p>
-          </div>
+        <div class="left-side anim-1">
+          <div class="gold-line"></div>
+          <h1 class="hero-title">
+            TUP Campus,<br/>
+            <em>Your Campus,</em><br/>
+            Our Campus— Connected.
+          </h1>
+          <p class="hero-sub">
+            Announcements, communities, organizations, and everything TUP — in one place, made for you.
+          </p>
 
-          <div class="grid grid-cols-2 gap-3 anim-2">
-            <div class="glass-card p-4">
-              <div class="icon-badge mb-3">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F5C2C3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <div class="features-grid anim-2">
+
+            <div class="glass-card" style="padding:20px;">
+              <div class="icon-badge">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F5C2C3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <rect x="3" y="3" width="18" height="18" rx="2"/><line x1="8" y1="8" x2="16" y2="8"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="8" y1="16" x2="12" y2="16"/>
                 </svg>
               </div>
-              <p class="text-white font-semibold text-sm mb-1">Bulletin Board</p>
-              <p class="text-xs leading-relaxed" style="color:rgba(245,239,230,0.58);">Official announcements from Admin &amp; Student Council</p>
+              <p class="glass-card-title">Bulletin Board</p>
+              <p class="glass-card-desc">Official announcements from Admin &amp; Student Council</p>
             </div>
-            <div class="glass-card p-4">
-              <div class="icon-badge mb-3">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F5C2C3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+
+            <div class="glass-card" style="padding:20px;">
+              <div class="icon-badge">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F5C2C3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
                 </svg>
               </div>
-              <p class="text-white font-semibold text-sm mb-1">Freedom Wall</p>
-              <p class="text-xs leading-relaxed" style="color:rgba(245,239,230,0.58);">Post openly or anonymously — your voice matters</p>
+              <p class="glass-card-title">Freedom Wall</p>
+              <p class="glass-card-desc">Post openly or anonymously — your voice matters</p>
             </div>
-            <div class="glass-card p-4">
-              <div class="icon-badge mb-3">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F5C2C3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+
+            <div class="glass-card" style="padding:20px;">
+              <div class="icon-badge">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F5C2C3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
                 </svg>
               </div>
-              <p class="text-white font-semibold text-sm mb-1">Organization Feed</p>
-              <p class="text-xs leading-relaxed" style="color:rgba(245,239,230,0.58);">Follow TUP-accredited orgs and their events</p>
+              <p class="glass-card-title">Organization Feed</p>
+              <p class="glass-card-desc">Follow TUP-accredited orgs and their events</p>
             </div>
-            <div class="glass-card p-4">
-              <div class="icon-badge mb-3">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F5C2C3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+
+            <div class="glass-card" style="padding:20px;">
+              <div class="icon-badge">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F5C2C3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
                 </svg>
               </div>
-              <p class="text-white font-semibold text-sm mb-1">University Directory</p>
-              <p class="text-xs leading-relaxed" style="color:rgba(245,239,230,0.58);">Find TUP offices, orgs, and contact info fast</p>
+              <p class="glass-card-title">University Directory</p>
+              <p class="glass-card-desc">Find TUP offices, orgs, and contact info fast</p>
             </div>
+
           </div>
 
-          <div class="glass-card p-4 mt-3 flex items-center gap-4 anim-3" style="border-color:rgba(201,168,76,0.25);">
-            <div class="icon-badge" style="background:rgba(201,168,76,0.2); width:40px; height:40px; border-radius:12px;">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <!-- AI Chatbot -->
+          <div class="glass-card chatbot-card anim-3">
+            <div class="chatbot-icon">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M12 2a8 8 0 1 0 0 16A8 8 0 0 0 12 2z"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/>
               </svg>
             </div>
             <div>
-              <p class="text-white font-semibold text-sm">AI Chatbot</p>
-              <p class="text-xs" style="color:rgba(245,239,230,0.58);">Ask anything about TUP — instant answers, 24/7</p>
+              <p class="glass-card-title" style="margin-bottom:4px;">AI Chatbot</p>
+              <p class="glass-card-desc">Ask anything about TUP — instant answers, 24/7</p>
             </div>
-            <div class="ml-auto flex items-center gap-1">
-              <span class="w-2 h-2 rounded-full animate-pulse" style="background:var(--gold)"></span>
-              <span class="text-xs font-medium" style="color:var(--gold);">Live</span>
+            <div class="live-badge">
+              <div class="live-dot"></div>
+              <span class="live-text">Live</span>
             </div>
           </div>
+
         </div>
 
         <!-- ── REGISTER CARD ── -->
-<div class="login-card w-full lg:w-[360px] flex-shrink-0 anim-4 self-center overflow-hidden">
+        <div class="register-card anim-4">
 
-  <!-- Top maroon section -->
-  <div class="flex flex-col items-center py-5 px-8" style="background:var(--maroon);">
-    <div class="w-10 h-10 rounded-xl flex items-center justify-center mb-4" style="background:rgba(255,255,255,0.15)">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F5EFE6" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="12" cy="12" r="3"/>
-        <path d="M6.3 6.3 4.5 4.5M17.7 6.3l1.8-1.8M6.3 17.7l-1.8 1.8M17.7 17.7l1.8 1.8"/>
-        <circle cx="4" cy="4" r="1.5" fill="#F5EFE6" stroke="none"/>
-        <circle cx="20" cy="4" r="1.5" fill="#F5EFE6" stroke="none"/>
-        <circle cx="4" cy="20" r="1.5" fill="#F5EFE6" stroke="none"/>
-        <circle cx="20" cy="20" r="1.5" fill="#F5EFE6" stroke="none"/>
-      </svg>
-    </div>
-    <h2 class="font-bold text-2xl text-center text-white" style="font-family:'Playfair Display',serif;">Welcome!</h2>
-    <p class="text-xs mt-1 text-center" style="color:rgba(255,255,255,0.7);">Verify your TUP account to get started</p>
-  </div>
+          <div class="register-top">
+            <div class="register-icon-wrap">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#F5EFE6" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="3"/>
+                <path d="M6.3 6.3 4.5 4.5M17.7 6.3l1.8-1.8M6.3 17.7l-1.8 1.8M17.7 17.7l1.8 1.8"/>
+                <circle cx="4" cy="4" r="1.5" fill="#F5EFE6" stroke="none"/>
+                <circle cx="20" cy="4" r="1.5" fill="#F5EFE6" stroke="none"/>
+                <circle cx="4" cy="20" r="1.5" fill="#F5EFE6" stroke="none"/>
+                <circle cx="20" cy="20" r="1.5" fill="#F5EFE6" stroke="none"/>
+              </svg>
+            </div>
+            <div class="register-title">Welcome!</div>
+            <p class="register-subtitle">Verify your TUP account to get started</p>
+          </div>
 
-  <!-- Bottom cream section -->
-  <div class="p-8" style="background:var(--cream);">
-    <div class="flex flex-col gap-4">
+          <div class="register-bottom">
+            <div class="register-fields">
 
-      <!-- Full Name -->
-      <div>
-        <label class="block text-xs mb-1.5" style="color:#5a2426; font-weight:600;">Full Name</label>
-        <input id="input-name" class="tup-input" type="text" placeholder="Juan dela Cruz" autocomplete="name"/>
-        <p id="err-name" class="field-error">Please enter your full name.</p>
-      </div>
+              <!-- Full Name -->
+              <div>
+                <label class="field-label">Full Name</label>
+                <input id="input-name" class="tup-input" type="text" placeholder="Juan dela Cruz" autocomplete="name"/>
+                <p id="err-name" class="field-error">Please enter your full name.</p>
+              </div>
 
-      <!-- TUP Email -->
-      <div>
-        <label class="block text-xs mb-1.5" style="color:#5a2426; font-weight:600;">TUP Email</label>
-        <input id="input-email" class="tup-input" type="email" placeholder="yourname@tup.edu.ph" autocomplete="email"/>
-        <p id="err-email" class="field-error">Please enter a valid @tup.edu.ph email.</p>
-      </div>
+              <!-- TUP Email -->
+              <div>
+                <label class="field-label">TUP Email</label>
+                <input id="input-email" class="tup-input" type="email" placeholder="yourname@tup.edu.ph" autocomplete="email"/>
+                <p id="err-email" class="field-error">Please enter a valid @tup.edu.ph email.</p>
+              </div>
 
-      <!-- TUP SSO Password -->
-      <div>
-        <label class="block text-xs mb-1.5" style="color:#5a2426; font-weight:600;">TUP Password</label>
-        <div class="input-wrapper">
-          <input id="input-password" class="tup-input" type="password" placeholder="Your existing TUP password" autocomplete="current-password"/>
-          <button type="button" class="toggle-pw" onclick="togglePassword(this)">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
-            </svg>
-          </button>
+              <!-- TUP Password -->
+              <div>
+                <label class="field-label">TUP Password</label>
+                <div class="input-wrapper">
+                  <input id="input-password" class="tup-input" type="password" placeholder="Your existing TUP password" autocomplete="current-password"/>
+                  <button type="button" class="toggle-pw" onclick="togglePassword(this)">
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+                    </svg>
+                  </button>
+                </div>
+                <p id="err-password" class="field-error">Please enter your TUP password.</p>
+              </div>
+
+              <button class="btn-register-main" style="margin-top:4px;" onclick="handleRegister()">Verify &amp; Continue</button>
+
+              <div class="or-divider">or</div>
+
+              <button class="btn-browse-guest" onclick="window.location.href='homepage.html'">Browse as Guest</button>
+
+            </div>
+
+            <p class="hint-text">
+              Use the same password you use to log in to TUP's official portals.
+            </p>
+
+            <div class="signin-row">
+              Already have an account?
+              <a href="../index.html">Sign In</a>
+            </div>
+          </div>
+
         </div>
-        <p id="err-password" class="field-error">Please enter your TUP password.</p>
+
       </div>
-
-      <button class="btn-register-main mt-1" onclick="handleRegister()">Verify &amp; Continue</button>
-
-      <div class="or-divider">or</div>
-
-      <button class="btn-browse-guest" onclick="window.location.href='homepage.html'">Browse as Guest</button>
-
-    </div>
-
-    <p class="text-center text-xs mt-4 leading-relaxed" style="color:#b08d8e;">
-      Use the same password you use to log in to TUP's official portals.
-    </p>
-
-    <p class="text-center text-xs mt-3" style="color:#b08d8e;">
-      Already have an account?
-      <a href="../index.html" style="color:var(--maroon); font-weight:600;" class="hover:underline">Sign In</a>
-    </p>
-  </div>
-
-</div>
-<!-- /register card -->
     </main>
 
-    <footer class="text-center py-4 text-xs" style="color:rgba(245,239,230,0.35);">
+    <footer class="footer-text">
       © 2026 TUP Connect · Technological University of the Philippines · Made with ♥ by students, for students
     </footer>
 
   </div>
 
-  <script>
-    function togglePassword(btn) {
-      const input = document.getElementById('input-password');
-      const isHidden = input.type === 'password';
-      input.type = isHidden ? 'text' : 'password';
-      btn.innerHTML = isHidden
-        ? `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>`
-        : `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`;
-    }
-
-    function handleRegister() {
-      const name     = document.getElementById('input-name');
-      const email    = document.getElementById('input-email');
-      const password = document.getElementById('input-password');
-
-      let valid = true;
-
-      // Reset all errors
-      ['name', 'email', 'password'].forEach(f => {
-        document.getElementById(`input-${f}`).classList.remove('error');
-        document.getElementById(`err-${f}`).classList.remove('visible');
-      });
-
-      if (name.value.trim() === '') {
-        name.classList.add('error');
-        document.getElementById('err-name').classList.add('visible');
-        valid = false;
-      }
-
-      if (!email.value.trim().endsWith('@tup.edu.ph')) {
-        email.classList.add('error');
-        document.getElementById('err-email').classList.add('visible');
-        valid = false;
-      }
-
-      if (password.value.trim() === '') {
-        password.classList.add('error');
-        document.getElementById('err-password').classList.add('visible');
-        valid = false;
-      }
-
-      // BACKEND TEAM: replace this block with your SSO verification API call.
-      // Send: name, email, password to your endpoint.
-      // On success  → redirect to role-picker.html
-      // On failure  → show an error on the card (e.g. "Invalid TUP credentials")
-      if (valid) {
-        window.location.href = 'role-picker.html';
-      }
-    }
-  </script>
+  <script src="../JS/register.js"></script>
 
 </body>
 </html>
