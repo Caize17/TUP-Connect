@@ -553,7 +553,12 @@ body {
   gap: 350px;
   padding-top: 4px;
   padding-bottom: -50px;
-  border-top: 1.5px solid rgba(107,26,26,0.07);
+  border-top: 1.5px solid rgba(0, 0, 0, 0.5);
+  margin-left: -26px;   /* match your post-card padding */
+  margin-right: -26px;  /* match your post-card padding */
+  padding-left: 26px;   /* add padding back so buttons stay aligned */
+  padding-right: 26px;
+  margin-bottom: -7px;
   margin-bottom: -7px;
 }
 
@@ -1335,3 +1340,4 @@ body {
   color: var(--text-dark);
   line-height: 1.6;
 }
+
