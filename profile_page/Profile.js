@@ -402,4 +402,19 @@ document.addEventListener('DOMContentLoaded', () => {
   commentInput.addEventListener('input', () => {
     commentSubmit.style.opacity = commentInput.value.trim() ? '1' : '0.35';
   });
+
+  const navBtns = document.querySelectorAll('.nav-btn');
+
+  navBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      navBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    });
+  });
+    btn.addEventListener('mouseleave', () => {
+      updateNav(navBtns);
+    });
+    
+  // set third button active by default
+  navBtns[2].classList.add('active');
 });
