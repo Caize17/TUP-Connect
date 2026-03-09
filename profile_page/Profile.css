@@ -37,7 +37,6 @@ body {
   left: 14px;
   z-index: 100;
   border-radius: 60px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.22);
   overflow: visible;
 }
 
@@ -76,21 +75,70 @@ body {
 .nav-btn {
   width: 90px;
   height: 100px;
-  border-radius: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: background 0.18s, transform 0.13s;
+  transition: background 0.18s, width 0.18s;
   border: none;
   background: transparent;
   padding: 12px;
+  position: relative;
 }
 
 .nav-btn img {
   width: 120px;
   height: 120px;
   object-fit: contain;
+  transition: filter 0.18s;
+  position: relative;
+  z-index: 6;
+}
+
+.nav-icon-wrap {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  transition: background 0.18s;
+  position: relative;
+  z-index: 5;
+  flex-shrink: 0;
+}
+
+.nav-btn:hover .nav-icon-wrap,
+.nav-btn.active .nav-icon-wrap {
+  background: var(--maroon-dark);  /* dark maroon circle */
+  z-index: 10;
+}
+
+.nav-btn:hover .nav-icon-wrap img,
+.nav-btn.active .nav-icon-wrap img {
+  width: 80px;
+  height: 80px;
+  filter: brightness(0) invert(0.9) sepia(0.2)/* white icon on dark circle */
+}
+
+.nav-btn::after {
+  content: '';
+  position: absolute;
+  left: 5px;
+  top: 10px;
+  width: 110px;
+  height: 90px;
+  background: #FFF4E7;
+  clip-path: path('M40 0 C18 0, 0 18, 0 40 C0 62, 18 80, 40 80 C60 80, 120 52, 120 40 C120 28, 60 0, 40 0 Z');
+  opacity: 0;
+  transition: top .35s cubic-bezier(.65,0,.35,1);
+  z-index: 1;
+  pointer-events: none;
+}
+.nav-btn:hover::after,
+.nav-btn.active::after {
+  opacity: 1;
 }
 
 .sidebar-avatar {
@@ -113,6 +161,7 @@ body {
   height: 100%;
   object-fit: cover;
 }
+
 
 /* ========================
    MAIN
@@ -558,7 +607,6 @@ body {
   margin-right: -26px;  /* match your post-card padding */
   padding-left: 26px;   /* add padding back so buttons stay aligned */
   padding-right: 26px;
-  margin-bottom: -7px;
   margin-bottom: -7px;
 }
 
@@ -1340,4 +1388,3 @@ body {
   color: var(--text-dark);
   line-height: 1.6;
 }
-
