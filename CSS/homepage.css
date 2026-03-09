@@ -174,6 +174,17 @@ body {
   z-index: 6;
 }
 
+.nav-btn[data-route="home"] img {
+  width: 102px;
+  height: 102px;
+}
+
+.nav-btn[data-route="home"].active .nav-icon-wrap img,
+.nav-btn[data-route="home"]:hover .nav-icon-wrap img {
+  width: 64px;
+  height: 64px;
+}
+
 .nav-btn-profile.active .nav-profile-avatar,
 .nav-btn-profile:hover .nav-profile-avatar {
   background: var(--maroon-dk);
@@ -778,6 +789,104 @@ body {
 #feed-posts { display: flex; flex-direction: column; gap: 18px; }
 
 /* ════════════════════════════════════════
+   THREE-DOT POST MENU
+════════════════════════════════════════ */
+.feed-post-header {
+  position: relative;
+}
+
+.post-menu-btn {
+  margin-left: auto;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px 10px;
+  border-radius: 8px;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, color 0.15s;
+  flex-shrink: 0;
+}
+.post-menu-btn:hover {
+  background: var(--cream-md);
+  color: var(--maroon-dk);
+}
+.post-menu-btn svg {
+  width: 22px;
+  height: 22px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.post-menu-dropdown {
+  display: none;
+  position: absolute;
+  top: 44px;
+  right: 0;
+  background: var(--white);
+  border: 1.5px solid var(--cream-md);
+  border-radius: 14px;
+  box-shadow: 0 8px 28px rgba(0,0,0,0.13), 0 2px 8px rgba(0,0,0,0.07);
+  z-index: 100;
+  min-width: 160px;
+  overflow: hidden;
+  animation: dropIn 0.18s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+@keyframes dropIn {
+  from { opacity: 0; transform: scale(0.9) translateY(-6px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+.post-menu-dropdown.open { display: block; }
+
+.post-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 11px 16px;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: #c0392b;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.13s;
+}
+.post-menu-item:hover { background: rgba(192, 57, 43, 0.07); }
+.post-menu-item svg {
+  width: 15px;
+  height: 15px;
+  stroke: #c0392b;
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  flex-shrink: 0;
+}
+
+/* ════════════════════════════════════════
+   SAVE / BOOKMARK BUTTON
+════════════════════════════════════════ */
+.feed-reaction-btn.save-active { color: var(--maroon); }
+.feed-reaction-btn.save-active svg { fill: var(--maroon); stroke: var(--maroon); }
+@keyframes bookmarkPop {
+  0%   { transform: scale(1); }
+  35%  { transform: scale(1.45); }
+  60%  { transform: scale(0.88); }
+  80%  { transform: scale(1.15); }
+  100% { transform: scale(1); }
+}
+.feed-reaction-btn.save-active svg {
+  animation: bookmarkPop 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+/* ════════════════════════════════════════
    RIGHT PANEL
 ════════════════════════════════════════ */
 .right-panel {
@@ -870,3 +979,4 @@ body {
 .feed-post    { animation: fadeUp .45s .18s ease both; }
 .profile-card { animation: fadeUp .45s .05s ease both; }
 .quick-card   { animation: fadeUp .45s .12s ease both; }
+

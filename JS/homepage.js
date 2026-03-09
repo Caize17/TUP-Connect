@@ -215,6 +215,19 @@
         <div class="feed-post-header">
           ${avatarHtml}
           ${headerMeta}
+          <button class="post-menu-btn" data-post="${idx}" title="More options">
+            <svg viewBox="0 0 24 24">
+                <circle cx="5"  cy="12" r="1.5" fill="currentColor" stroke="none"/>
+                <circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/>
+                <circle cx="19" cy="12" r="1.5" fill="currentColor" stroke="none"/>
+            </svg>
+            </button>
+          <div class="post-menu-dropdown" id="post-menu-${idx}">
+            <button class="post-menu-item" data-post="${idx}" data-action="report">
+              <svg viewBox="0 0 24 24"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
+              Report Post
+            </button>
+          </div>
         </div>
         ${bodyHtml}
         ${quoteHtml}
@@ -230,6 +243,10 @@
           <button class="feed-reaction-btn" data-post="${idx}" data-type="repost">
             <svg viewBox="0 0 24 24"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
             ${fp.reposts} Repost
+          </button>
+          <button class="feed-reaction-btn" data-post="${idx}" data-type="save">
+            <svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+            Save
           </button>
         </div>
         ${commentPreviewHtml}
@@ -308,12 +325,57 @@
           } else {
             label.textContent = ` ${fmt(base)} Repost`;
           }
+
+        } else if (type === 'save') {
+          const isActive = this.classList.toggle('save-active');
+          const svg      = this.querySelector('svg');
+          svg.style.animation = 'none';
+          svg.offsetHeight; // reflow
+          svg.style.animation = '';
+          this.innerHTML = isActive
+            ? `<svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg> Saved`
+            : `<svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg> Save`;
+          // re-apply data attributes lost on innerHTML reset
+          this.dataset.post = btn.dataset.post;
+          this.dataset.type = 'save';
+          if (isActive) showToast('Post saved!');
+          // BACKEND TEAM: toggle saved state in Firebase here
+          console.log('Save post:', this.dataset.post, '| saved:', isActive);
         }
+      });
+    });
+
+    /* Three-dot menu toggle */
+    document.querySelectorAll('.post-menu-btn').forEach(btn => {
+      btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        const idx      = this.dataset.post;
+        const dropdown = document.getElementById(`post-menu-${idx}`);
+        const isOpen   = dropdown.classList.contains('open');
+        // close all others first
+        document.querySelectorAll('.post-menu-dropdown').forEach(d => d.classList.remove('open'));
+        if (!isOpen) dropdown.classList.add('open');
+      });
+    });
+
+    /* Report action */
+    document.querySelectorAll('.post-menu-item[data-action="report"]').forEach(btn => {
+      btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        document.querySelectorAll('.post-menu-dropdown').forEach(d => d.classList.remove('open'));
+        showToast('Post reported. Thank you for keeping TUP Konek safe.');
+        // BACKEND TEAM: send report to Firebase here
+        console.log('Report post:', this.dataset.post);
       });
     });
   }
 
   renderFeedPosts();
+
+  /* Close any open dropdown when clicking outside */
+  document.addEventListener('click', () => {
+    document.querySelectorAll('.post-menu-dropdown').forEach(d => d.classList.remove('open'));
+  });
 
   /* ════════════════════════════════════════
      LIGHTBOX
@@ -470,7 +532,7 @@
   ════════════════════════════════════════ */
 
   document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') { closeLB(); closeModal(); }
+    if (e.key === 'Escape') { closeLB(); closeModal(); closeCommentModal(); }
   });
 
   /* ════════════════════════════════════════
