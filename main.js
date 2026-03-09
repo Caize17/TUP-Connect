@@ -1,7 +1,6 @@
 import { auth } from "./firebaseConfig";
 import { signInWithEmailAndPassword, signInAnonymously } from "firebase/auth";
 
-// --- 1. Traditional Login ---
 const signInBtn = document.getElementById('btn-sign-in');
 if (signInBtn) {
   signInBtn.addEventListener('click', async () => {
@@ -24,7 +23,6 @@ if (signInBtn) {
   });
 }
 
-// --- 2. Guest Login ---
 const guestBtn = document.getElementById('btn-guest-login');
 if (guestBtn) {
   guestBtn.addEventListener('click', async () => {
