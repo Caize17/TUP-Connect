@@ -841,7 +841,7 @@ const USER = {
   email:     null,   /* auth.currentUser.email */
   studentId: null,   /* Firestore: users/{uid}.studentId */
   photoSrc:  null,   /* auth.currentUser.photoURL */
-  logoSrc:   "../profile_page/images/logo.png",
+  logoSrc:   "../assets/images/logo.png",
 };
 
 /* 🔥 onSnapshot(doc(db,'announcements','pinned')) → populate POST */
@@ -862,16 +862,16 @@ const FEED_POSTS = []; /* empty = no posts yet */
 
     <!-- 🔥 Firebase: data-route used by JS router -->
     <div class="nav-item active" data-index="0" data-route="home" title="Home">
-      <img src="../profile_page/images/campus_directory.png" alt="Home" class="nav-icon">
+      <img src="../assets/images/campus_directory.png" alt="Home" class="nav-icon">
     </div>
     <div class="nav-item" data-index="1" data-route="announcements" title="Announcements">
-      <img src="../profile_page/images/announcement.png" alt="Announcements" class="nav-icon" style="width:90px;height:65px;margin-left:9px;">
+      <img src="../assets/images/announcement.png" alt="Announcements" class="nav-icon" style="width:90px;height:65px;margin-left:9px;">
     </div>
     <div class="nav-item" data-index="2" data-route="community" title="Community">
-      <img src="../profile_page/images/org_feed.png" alt="Community" class="nav-icon">
+      <img src="../assets/images/org_feed.png" alt="Community" class="nav-icon">
     </div>
     <div class="nav-item" data-index="3" data-route="campus" title="Campus">
-      <img src="../profile_page/images/campus_directory.png" alt="Campus" class="nav-icon" style="margin-left:8px;">
+      <img src="../assets/images/campus_directory.png" alt="Campus" class="nav-icon" style="margin-left:8px;">
     </div>
 
     <div class="nav-spacer"></div>
