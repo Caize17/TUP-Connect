@@ -14,18 +14,60 @@
 ════════════════════════════════════════ -->
 <script>
 const USER = {
-  name:      null,
-  email:     null,
-  studentId: null,
+  name:      "Juan dela Cruz",
+  email:     "juan.delacruz@tup.edu.ph",
+  studentId: "TUPM-21-1234",
   photoSrc:  null,
   logoSrc:   "../assets/images/logo.png",
 };
 
 const POST = null;
-const FEED_POSTS = [];
+
+const FEED_POSTS = [
+  {
+    name:     "Maria Santos",
+    photoSrc: null,
+    time:     "2 minutes ago",
+    body:     "Reminder to everyone: the enrollment period for the next semester starts this Monday. Make sure to coordinate with your advisers early to avoid last-minute issues. Good luck ka-Puto! 💪",
+    likes:    42,
+    comments: 2,
+    reposts:  3,
+    repost:   false,
+    quote:    null,
+    commentList: [
+      { name: "Juan dela Cruz", photoSrc: null, text: "Thanks for the heads up!", time: "1 min ago", isOwn: true },
+      { name: "Carlo Reyes",    photoSrc: null, text: "Same question po!",         time: "3 min ago", isOwn: false }
+    ]
+  },
+  {
+    name:     "Anonymous Puto",
+    photoSrc: null,
+    time:     "1 hour ago",
+    body:     "Sino may alam kung kailan mag-o-open ang library ulit? Kailangan ko na mag-research for our thesis. Salamat!",
+    likes:    18,
+    comments: 0,
+    reposts:  0,
+    repost:   false,
+    quote:    null,
+    commentList: []
+  },
+  {
+    name:     "TUP COE Student Council",
+    photoSrc: null,
+    time:     "3 hours ago",
+    body:     "📣 General Assembly this Friday, 2PM at the covered court. Attendance is required for all COE students. See you there!",
+    likes:    134,
+    comments: 2,
+    reposts:  47,
+    repost:   false,
+    quote:    null,
+    commentList: [
+      { name: "Juan dela Cruz", photoSrc: null, text: "Will there be a live stream po?", time: "2 hrs ago", isOwn: true },
+      { name: "Bianca Lim",     photoSrc: null, text: "Sana may livestream!",            time: "1 hr ago",  isOwn: false }
+    ]
+  }
+];
 </script>
-
-
 
 <!-- ════════════════════════════════════════
      LEFT SIDEBAR
@@ -43,7 +85,6 @@ const FEED_POSTS = [];
         <img src="../assets/images/community_feed.png" alt="Home">
       </div>
     </button>
-
 
     <button class="nav-btn" data-index="2" data-route="campus news" title="Campus News">
       <div class="nav-icon-wrap">
@@ -250,7 +291,7 @@ const FEED_POSTS = [];
 <div class="comment-modal-overlay" id="comment-modal-overlay">
   <div class="comment-modal" id="comment-modal">
     <div class="comment-modal-header">
-      <span class="comment-modal-title">Add a comment</span>
+      <span class="comment-modal-title">Comments</span>
       <button class="comment-modal-close" id="comment-modal-close">✕</button>
     </div>
     <div class="comment-list" id="comment-list"></div>

@@ -196,7 +196,7 @@
       const firstComment = fp.commentList && fp.commentList.length > 0 ? fp.commentList[0] : null;
       const commentPreviewHtml = (fp.comments > 0 && firstComment) ? `
         <div class="feed-comments-section">
-          <button class="feed-view-comments" data-post="${idx}">View more comments</button>
+          <button class="feed-view-comments" data-post="${idx}">View all ${fp.comments} comments</button>
           <div class="feed-comment-preview">
             <div class="feed-comment-avatar">
               ${firstComment.photoSrc
@@ -217,11 +217,11 @@
           ${headerMeta}
           <button class="post-menu-btn" data-post="${idx}" title="More options">
             <svg viewBox="0 0 24 24">
-                <circle cx="5"  cy="12" r="1.5" fill="currentColor" stroke="none"/>
-                <circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/>
-                <circle cx="19" cy="12" r="1.5" fill="currentColor" stroke="none"/>
+              <circle cx="5"  cy="12" r="1.5" fill="currentColor" stroke="none"/>
+              <circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/>
+              <circle cx="19" cy="12" r="1.5" fill="currentColor" stroke="none"/>
             </svg>
-            </button>
+          </button>
           <div class="post-menu-dropdown" id="post-menu-${idx}">
             <button class="post-menu-item" data-post="${idx}" data-action="report">
               <svg viewBox="0 0 24 24"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
@@ -253,7 +253,7 @@
       </div>`;
     }).join('');
 
-    /* View more / less per post */
+    /* ── View more / less per post ── */
     FEED_POSTS.forEach((fp, idx) => {
       if (!fp.body) return;
       const bodyEl = document.getElementById(`feed-body-${idx}`);
@@ -272,12 +272,12 @@
       });
     });
 
-    /* View comments buttons */
+    /* ── View comments buttons ── */
     document.querySelectorAll('.feed-view-comments').forEach(btn => {
       btn.addEventListener('click', () => openCommentModal(parseInt(btn.dataset.post)));
     });
 
-    /* Reaction buttons */
+    /* ── Reaction buttons ── */
     document.querySelectorAll('.feed-reaction-btn').forEach(btn => {
       btn.addEventListener('click', function () {
         const type = this.dataset.type;
@@ -286,14 +286,14 @@
           const isActive = this.classList.toggle('heart-active');
           const svg = this.querySelector('svg');
           svg.style.animation = 'none';
-          svg.offsetHeight; // reflow
+          svg.offsetHeight;
           svg.style.animation = '';
           if (isActive) {
             const rect = this.getBoundingClientRect();
             const cx = rect.left + rect.width / 2;
-            const cy = rect.top + rect.height / 2;
+            const cy = rect.top  + rect.height / 2;
             [0, 45, 90, 135, 180, 225, 270, 315].forEach(angle => {
-              const p = document.createElement('div');
+              const p   = document.createElement('div');
               p.className = 'heart-burst';
               const rad  = angle * Math.PI / 180;
               const dist = 28 + Math.random() * 14;
@@ -312,53 +312,51 @@
 
         } else if (type === 'repost') {
           const isActive = this.classList.toggle('repost-active');
+          const postIdx  = parseInt(this.dataset.post);
+          const base     = FEED_POSTS[postIdx].reposts;
           const svg      = this.querySelector('svg');
-          const label    = this.lastChild;
           svg.style.animation = 'none';
-          svg.offsetHeight; // reflow
+          svg.offsetHeight;
           svg.style.animation = '';
-          const postIdx = parseInt(this.dataset.post);
-          const base    = FEED_POSTS[postIdx].reposts;
-          if (isActive) {
-            label.textContent = ` Reposted`;
-            showToast('You Reposted!');
-          } else {
-            label.textContent = ` ${fmt(base)} Repost`;
-          }
+          this.innerHTML = isActive
+            ? `<svg viewBox="0 0 24 24"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg> Reposted`
+            : `<svg viewBox="0 0 24 24"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg> ${fmt(base)} Repost`;
+          this.dataset.post = postIdx;
+          this.dataset.type = 'repost';
+          if (isActive) showToast('You Reposted!');
 
         } else if (type === 'save') {
           const isActive = this.classList.toggle('save-active');
+          const postIdx  = this.dataset.post;
           const svg      = this.querySelector('svg');
           svg.style.animation = 'none';
-          svg.offsetHeight; // reflow
+          svg.offsetHeight;
           svg.style.animation = '';
           this.innerHTML = isActive
             ? `<svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg> Saved`
             : `<svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg> Save`;
-          // re-apply data attributes lost on innerHTML reset
-          this.dataset.post = btn.dataset.post;
+          this.dataset.post = postIdx;
           this.dataset.type = 'save';
           if (isActive) showToast('Post saved!');
           // BACKEND TEAM: toggle saved state in Firebase here
-          console.log('Save post:', this.dataset.post, '| saved:', isActive);
+          console.log('Save post:', postIdx, '| saved:', isActive);
         }
       });
     });
 
-    /* Three-dot menu toggle */
+    /* ── Three-dot menu toggle ── */
     document.querySelectorAll('.post-menu-btn').forEach(btn => {
       btn.addEventListener('click', function (e) {
         e.stopPropagation();
         const idx      = this.dataset.post;
         const dropdown = document.getElementById(`post-menu-${idx}`);
         const isOpen   = dropdown.classList.contains('open');
-        // close all others first
         document.querySelectorAll('.post-menu-dropdown').forEach(d => d.classList.remove('open'));
         if (!isOpen) dropdown.classList.add('open');
       });
     });
 
-    /* Report action */
+    /* ── Report action ── */
     document.querySelectorAll('.post-menu-item[data-action="report"]').forEach(btn => {
       btn.addEventListener('click', function (e) {
         e.stopPropagation();
@@ -404,18 +402,99 @@
 
   function openCommentModal(postIdx) {
     const fp = FEED_POSTS[postIdx];
-    commentList.innerHTML = (fp.commentList || []).map(c => `
-      <div class="comment-item">
+
+    commentList.innerHTML = (fp.commentList || []).map((c, cIdx) => `
+      <div class="comment-item" id="comment-item-${postIdx}-${cIdx}">
         <div class="comment-item-avatar">${avatarHtmlFor(c.photoSrc, c.name)}</div>
         <div class="comment-item-content">
-          <div class="comment-item-bubble">
+          <div class="comment-item-bubble" id="comment-bubble-${postIdx}-${cIdx}">
             <div class="comment-item-name">${c.name}</div>
-            <div class="comment-item-text">${c.text}</div>
+            <div class="comment-item-text" id="comment-text-${postIdx}-${cIdx}">${c.text}</div>
+          </div>
+          <div class="comment-edit-wrap" id="comment-edit-${postIdx}-${cIdx}">
+            <input class="comment-edit-input" id="comment-edit-input-${postIdx}-${cIdx}" value="${c.text}"/>
+            <button class="comment-edit-save" data-post="${postIdx}" data-comment="${cIdx}">
+              <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            </button>
+            <button class="comment-edit-cancel" data-post="${postIdx}" data-comment="${cIdx}">✕</button>
           </div>
           <div class="comment-item-time">${c.time}</div>
+          ${c.isOwn ? `
+          <div class="comment-item-actions">
+            <button class="comment-action-btn edit-btn" data-post="${postIdx}" data-comment="${cIdx}">
+              <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              Edit
+            </button>
+            <button class="comment-action-btn delete-btn" data-post="${postIdx}" data-comment="${cIdx}">
+              <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+              Delete
+            </button>
+          </div>` : ''}
         </div>
       </div>`).join('');
 
+    /* Edit button — show inline input */
+    commentList.querySelectorAll('.edit-btn').forEach(btn => {
+      btn.addEventListener('click', function () {
+        const p        = this.dataset.post;
+        const c        = this.dataset.comment;
+        const bubble   = document.getElementById(`comment-bubble-${p}-${c}`);
+        const editWrap = document.getElementById(`comment-edit-${p}-${c}`);
+        bubble.style.display = 'none';
+        editWrap.classList.add('open');
+        document.getElementById(`comment-edit-input-${p}-${c}`).focus();
+      });
+    });
+
+    /* Cancel edit */
+    commentList.querySelectorAll('.comment-edit-cancel').forEach(btn => {
+      btn.addEventListener('click', function () {
+        const p        = this.dataset.post;
+        const c        = this.dataset.comment;
+        const bubble   = document.getElementById(`comment-bubble-${p}-${c}`);
+        const editWrap = document.getElementById(`comment-edit-${p}-${c}`);
+        bubble.style.display = '';
+        editWrap.classList.remove('open');
+      });
+    });
+
+    /* Save edit */
+    commentList.querySelectorAll('.comment-edit-save').forEach(btn => {
+      btn.addEventListener('click', function () {
+        const p       = this.dataset.post;
+        const c       = this.dataset.comment;
+        const input   = document.getElementById(`comment-edit-input-${p}-${c}`);
+        const newText = input.value.trim();
+        if (!newText) return;
+        const textEl   = document.getElementById(`comment-text-${p}-${c}`);
+        const bubble   = document.getElementById(`comment-bubble-${p}-${c}`);
+        const editWrap = document.getElementById(`comment-edit-${p}-${c}`);
+        textEl.textContent   = newText;
+        bubble.style.display = '';
+        editWrap.classList.remove('open');
+        // BACKEND TEAM: update comment in Firebase here
+        console.log('Edit comment:', { post: p, comment: c, newText });
+        showToast('Comment updated.');
+      });
+    });
+
+    /* Delete button */
+    commentList.querySelectorAll('.delete-btn').forEach(btn => {
+      btn.addEventListener('click', function () {
+        const p    = this.dataset.post;
+        const c    = this.dataset.comment;
+        const item = document.getElementById(`comment-item-${p}-${c}`);
+        item.style.transition = 'opacity 0.2s, transform 0.2s';
+        item.style.opacity    = '0';
+        item.style.transform  = 'translateX(12px)';
+        setTimeout(() => item.remove(), 200);
+        // BACKEND TEAM: delete comment from Firebase here
+        console.log('Delete comment:', { post: p, comment: c });
+        showToast('Comment deleted.');
+      });
+    });
+
+    /* Set current user avatar in comment input */
     const inputAvatar = document.getElementById('comment-input-avatar');
     inputAvatar.innerHTML = USER.photoSrc
       ? `<img src="${USER.photoSrc}" alt="Me" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`
@@ -485,7 +564,7 @@
     Array.from(this.files).forEach(file => {
       const reader = new FileReader();
       reader.onload = e => {
-        const thumb = document.createElement('img');
+        const thumb     = document.createElement('img');
         thumb.src       = e.target.result;
         thumb.className = 'modal-attach-thumb';
         thumb.title     = 'Click to remove';
@@ -503,10 +582,9 @@
     const isAnon = anonToggle.checked;
     console.log('Post submitted:', { text, isAnonymous: isAnon });
 
-    // Reset modal
-    textarea.value        = '';
-    attachWrap.innerHTML  = '';
-    anonToggle.checked    = false;
+    textarea.value       = '';
+    attachWrap.innerHTML = '';
+    anonToggle.checked   = false;
     document.getElementById('modal-user-name').textContent = USER.name;
     document.getElementById('modal-avatar').innerHTML = USER.photoSrc
       ? `<img src="${USER.photoSrc}" alt="Me" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`

@@ -789,6 +789,123 @@ body {
 #feed-posts { display: flex; flex-direction: column; gap: 18px; }
 
 /* ════════════════════════════════════════
+   COMMENT EDIT / DELETE
+════════════════════════════════════════ */
+.comment-item-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 5px;
+  padding-left: 4px;
+}
+
+.comment-action-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 6px;
+  transition: background 0.15s, color 0.15s;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.comment-action-btn svg {
+  width: 11px;
+  height: 11px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  flex-shrink: 0;
+}
+
+.comment-action-btn.edit-btn {
+  color: var(--muted);
+}
+.comment-action-btn.edit-btn:hover {
+  background: var(--cream-md);
+  color: var(--text);
+}
+
+.comment-action-btn.delete-btn {
+  color: var(--muted);
+}
+.comment-action-btn.delete-btn:hover {
+  background: rgba(192, 57, 43, 0.08);
+  color: #c0392b;
+}
+
+/* edit mode */
+.comment-edit-wrap {
+  display: none;
+  margin-top: 6px;
+}
+.comment-edit-wrap.open { display: flex; gap: 8px; align-items: center; }
+
+.comment-edit-input {
+  flex: 1;
+  background: rgb(222, 194, 198, 0.25);
+  border: 1.5px solid var(--cream-md);
+  border-radius: 10px;
+  padding: 7px 12px;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.15s;
+}
+.comment-edit-input:focus {
+  border-color: var(--maroon);
+}
+
+.comment-edit-save {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--maroon-dk);
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+.comment-edit-save:hover { background: var(--maroon); }
+.comment-edit-save svg {
+  width: 13px;
+  height: 13px;
+  stroke: #fff;
+  fill: none;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.comment-edit-cancel {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--cream-md);
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+  transition: background 0.15s;
+}
+.comment-edit-cancel:hover { background: var(--cream-dk); }
+
+/* ════════════════════════════════════════
    THREE-DOT POST MENU
 ════════════════════════════════════════ */
 .feed-post-header {
