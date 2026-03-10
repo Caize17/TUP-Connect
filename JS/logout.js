@@ -19,7 +19,7 @@ if (logoutBtn) {
     logoutBtn.addEventListener('click', () => {
         signOut(auth).then(() => {
             console.log("User signed out.");
-            window.location.href = 'index.html'; 
+            window.location.href = '../index.html'; 
         }).catch((error) => {
             alert("Error logging out: " + error.message);
         });
