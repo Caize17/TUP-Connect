@@ -81,28 +81,59 @@ if (submitBtn) {
 const q = query(collection(db, "posts"), orderBy("createdAt", "desc"));
 
 onSnapshot(q, (snapshot) => {
-    const firebaseData = [];
-    
-    snapshot.forEach((doc) => {
-        const data = doc.data();
+    let needsFullRender = false;
 
-        const dateObj = data.createdAt ? data.createdAt.toDate() : new Date();
+    snapshot.docChanges().forEach((change) => {
+        const data = change.doc.data();
+        const postId = change.doc.id;
 
-        firebaseData.push({
-            id: doc.id,
-            name: data.author || "Anonymous Puto",
-            body: data.text,
-            time: dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-            likes: data.likedBy ? data.likedBy.length : 0,
-            isLikedByMe: auth.currentUser ? (data.likedBy || []).includes(auth.currentUser.uid) : false,
-            comments: data.comments || 0,
-            reposts: data.reposts || 0,
-            photoSrc: data.isAnonymous ? "../assets/images/anon_avatar.jpg" : (data.photoURL || null)
-        });
+        if (change.type === "modified") {
+            const btn = document.querySelector(`.feed-reaction-btn[data-id="${postId}"]`);
+            if (btn) {
+                const countSpan = btn.querySelector('.likes-count');
+                const likes = data.likedBy ? data.likedBy.length : 0;
+                const isLiked = auth.currentUser ? (data.likedBy || []).includes(auth.currentUser.uid) : false;
+
+                if (countSpan) countSpan.textContent = typeof fmt === 'function' ? fmt(likes) : likes;
+
+                if (isLiked) {
+                    btn.classList.add('heart-active');
+                } else {
+                    btn.classList.remove('heart-active');
+                }
+                // We do NOT set needsFullRender here, so it stays smooth!
+            } else {
+                // If the post isn't on screen yet but was modified, render it
+                needsFullRender = true;
+            }
+        } else {
+            // If a post is ADDED or REMOVED, we must do a full render
+            needsFullRender = true;
+        }
     });
 
-    window.FEED_POSTS = firebaseData;
-    if (window.renderFeedPosts) window.renderFeedPosts();
+    // Only rebuild and re-render if it's a new post or initial load
+    if (needsFullRender || !window.FEED_POSTS || window.FEED_POSTS.length === 0) {
+        const firebaseData = [];
+        snapshot.forEach((doc) => {
+            const data = doc.data();
+            const dateObj = data.createdAt ? data.createdAt.toDate() : new Date();
+            firebaseData.push({
+                id: doc.id,
+                name: data.author || "Anonymous Puto",
+                body: data.text,
+                time: dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                likes: data.likedBy ? data.likedBy.length : 0,
+                isLikedByMe: auth.currentUser ? (data.likedBy || []).includes(auth.currentUser.uid) : false,
+                comments: data.comments || 0,
+                reposts: data.reposts || 0,
+                photoSrc: data.isAnonymous ? "../assets/images/anon_avatar.jpg" : (data.photoURL || null)
+            });
+        });
+
+        window.FEED_POSTS = firebaseData;
+        if (window.renderFeedPosts) window.renderFeedPosts();
+    }
 });
 
 onAuthStateChanged(auth, (user) => {
