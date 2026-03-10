@@ -10,66 +10,6 @@
 <body>
 
 <!-- ════════════════════════════════════════
-     DATA — BACKEND TEAM: populate from Firebase
-════════════════════════════════════════ -->
-<script>
-const USER = {
-  name:      "Juan dela Cruz",
-  email:     "juan.delacruz@tup.edu.ph",
-  studentId: "TUPM-21-1234",
-  photoSrc:  null,
-  logoSrc:   "../assets/images/logo.png",
-};
-
-const POST = null;
-
-const FEED_POSTS = [
-  {
-    name:     "Maria Santos",
-    photoSrc: null,
-    time:     "2 minutes ago",
-    body:     "Reminder to everyone: the enrollment period for the next semester starts this Monday. Make sure to coordinate with your advisers early to avoid last-minute issues. Good luck ka-Puto! 💪",
-    likes:    42,
-    comments: 2,
-    reposts:  3,
-    repost:   false,
-    quote:    null,
-    commentList: [
-      { name: "Juan dela Cruz", photoSrc: null, text: "Thanks for the heads up!", time: "1 min ago", isOwn: true },
-      { name: "Carlo Reyes",    photoSrc: null, text: "Same question po!",         time: "3 min ago", isOwn: false }
-    ]
-  },
-  {
-    name:     "Anonymous Puto",
-    photoSrc: null,
-    time:     "1 hour ago",
-    body:     "Sino may alam kung kailan mag-o-open ang library ulit? Kailangan ko na mag-research for our thesis. Salamat!",
-    likes:    18,
-    comments: 0,
-    reposts:  0,
-    repost:   false,
-    quote:    null,
-    commentList: []
-  },
-  {
-    name:     "TUP COE Student Council",
-    photoSrc: null,
-    time:     "3 hours ago",
-    body:     "📣 General Assembly this Friday, 2PM at the covered court. Attendance is required for all COE students. See you there!",
-    likes:    134,
-    comments: 2,
-    reposts:  47,
-    repost:   false,
-    quote:    null,
-    commentList: [
-      { name: "Juan dela Cruz", photoSrc: null, text: "Will there be a live stream po?", time: "2 hrs ago", isOwn: true },
-      { name: "Bianca Lim",     photoSrc: null, text: "Sana may livestream!",            time: "1 hr ago",  isOwn: false }
-    ]
-  }
-];
-</script>
-
-<!-- ════════════════════════════════════════
      LEFT SIDEBAR
 ════════════════════════════════════════ -->
 <nav class="sidebar" id="nav-pill">
