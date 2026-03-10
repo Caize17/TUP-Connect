@@ -140,19 +140,16 @@ if (feedContainer) {
       return;
     }
 
-    // Check if the user has already liked it (based on CSS class)
     const isLiked = btn.classList.contains('heart-active');
     const postRef = doc(db, "posts", postId);
 
     try {
       if (!isLiked) {
-        // ADD LIKE: Put User ID into the array
         await updateDoc(postRef, {
           likedBy: arrayUnion(user.uid)
         });
         btn.classList.add('heart-active');
       } else {
-        // REMOVE LIKE: Take User ID out of the array
         await updateDoc(postRef, {
           likedBy: arrayRemove(user.uid)
         });
