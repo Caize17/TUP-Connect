@@ -248,15 +248,14 @@
         
         // Update Firestore
         await updateDoc(userRef, {
-          fullName: orgNameInput.value.trim(), // In-update ang name sa Org Name
+          fullName: orgNameInput.value.trim(), 
           college: collegeSelect.value,
           isSetupComplete: true, // Mark setup as done
           status: 'pending',     // For your admin approval logic
           setupTimestamp: new Date()
         });
 
-        // Redirect sa pending page base sa HTML note mo
-        window.location.href = 'homepage.html'; 
+        window.location.href = 'org_profile.html'; 
 
       } catch (error) {
         console.error("Org Setup Error:", error);
