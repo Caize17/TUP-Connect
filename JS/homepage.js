@@ -1,3 +1,14 @@
+let USER = {
+  name: "Loading...",
+  email: "",
+  studentId: "",
+  photoSrc: null,
+  logoSrc:   "../assets/images/logo.png",
+};
+
+let POST = null;
+let FEED_POSTS = [];
+
 (function () {
 
   /* ════════════════════════════════════════
@@ -142,9 +153,13 @@
      FEED POSTS
   ════════════════════════════════════════ */
 
-  function renderFeedPosts() {
-    if (FEED_POSTS.length === 0) {
-      document.getElementById('feed-posts').innerHTML = `
+function renderFeedPosts() {
+  const posts = window.FEED_POSTS || [];
+  const feed = document.getElementById('feed-posts');
+  if (!feed) return;
+
+  if (posts.length === 0) {
+    feed.innerHTML = `
         <div class="empty-state">
           <div class="empty-state-icon">
             <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
@@ -152,51 +167,50 @@
           <div class="empty-state-title">No posts yet</div>
           <div class="empty-state-sub">Be the first one to share something with your fellow TUPians!</div>
         </div>`;
-      return;
-    }
+    return;
+  }
 
-    document.getElementById('feed-posts').innerHTML = FEED_POSTS.map((fp, idx) => {
-      const avatarHtml = fp.photoSrc
-        ? `<img class="feed-avatar" src="${fp.photoSrc}" alt="${fp.name}"/>`
-        : `<div class="feed-avatar-ph"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>`;
+  feed.innerHTML = posts.map((fp, idx) => {
+    const avatarHtml = fp.photoSrc ?
+      `<img class="feed-avatar" src="${fp.photoSrc}" alt="${fp.name}"/>` :
+      `<div class="feed-avatar-ph"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>`;
 
-      const headerMeta = fp.repost
-        ? `<div class="feed-meta">
+    // Safety: Header / Repost logic
+    const headerMeta = fp.repost ?
+      `<div class="feed-meta">
             <div class="feed-name">
               <svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:var(--muted);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;vertical-align:middle;margin-right:3px;"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
               ${fp.name} <span style="font-weight:600;color:var(--muted);">reposted</span>
             </div>
             <div class="feed-time">${fp.time}</div>
-           </div>`
-        : `<div class="feed-meta">
+           </div>` :
+      `<div class="feed-meta">
             <div class="feed-name">${fp.name}</div>
             <div class="feed-time">${fp.time}</div>
            </div>`;
 
-      const quoteHtml = fp.quote ? `
+    // Safety Check for Quote
+    const quoteHtml = (fp.quote && fp.quote.body) ? `
         <div class="feed-quote">
           <div class="feed-quote-header">
-            ${fp.quote.photoSrc
-              ? `<div class="feed-quote-avatar"><img src="${fp.quote.photoSrc}" alt="${fp.quote.name}"/></div>`
-              : `<div class="feed-quote-avatar"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>`}
+            ${fp.quote.photoSrc ? `<div class="feed-quote-avatar"><img src="${fp.quote.photoSrc}"/></div>` : `<div class="feed-quote-avatar"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>`}
             <span class="feed-quote-name">${fp.quote.name}</span>
           </div>
           <div class="feed-quote-body">${fp.quote.body.replace(/\n/g, '<br>')}</div>
         </div>` : '';
 
-      const bodyHtml = fp.body ? `
+    const bodyHtml = fp.body ? `
         <div class="feed-body" id="feed-body-${idx}">${fp.body}</div>
         <button class="feed-view-more" id="feed-vm-${idx}">View more ▾</button>` : '';
 
-      const firstComment = fp.commentList && fp.commentList.length > 0 ? fp.commentList[0] : null;
-      const commentPreviewHtml = (fp.comments > 0 && firstComment) ? `
+    // Safety Check for Comments
+    const firstComment = (fp.commentList && fp.commentList.length > 0) ? fp.commentList[0] : null;
+    const commentPreviewHtml = (fp.comments > 0 && firstComment) ? `
         <div class="feed-comments-section">
           <button class="feed-view-comments" data-post="${idx}">View all ${fp.comments} comments</button>
           <div class="feed-comment-preview">
             <div class="feed-comment-avatar">
-              ${firstComment.photoSrc
-                ? `<img src="${firstComment.photoSrc}" alt="${firstComment.name}"/>`
-                : `<svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`}
+              ${firstComment.photoSrc ? `<img src="${firstComment.photoSrc}"/>` : `<svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`}
             </div>
             <div class="feed-comment-bubble">
               <div class="feed-comment-name">${firstComment.name}</div>
@@ -205,170 +219,55 @@
           </div>
         </div>` : '';
 
-      return `
+    return `
       <div class="feed-post">
         <div class="feed-post-header">
           ${avatarHtml}
           ${headerMeta}
-          <button class="post-menu-btn" data-post="${idx}" title="More options">
-            <svg viewBox="0 0 24 24">
-              <circle cx="5"  cy="12" r="1.5" fill="currentColor" stroke="none"/>
-              <circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/>
-              <circle cx="19" cy="12" r="1.5" fill="currentColor" stroke="none"/>
-            </svg>
+          <button class="post-menu-btn" data-post="${idx}">
+            <svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg>
           </button>
           <div class="post-menu-dropdown" id="post-menu-${idx}">
-            <button class="post-menu-item" data-post="${idx}" data-action="report">
-              <svg viewBox="0 0 24 24"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
-              Report Post
-            </button>
+            <button class="post-menu-item" data-post="${idx}" data-action="report">Report Post</button>
           </div>
         </div>
         ${bodyHtml}
         ${quoteHtml}
         <div class="feed-reactions">
-          <button class="feed-reaction-btn" data-post="${idx}" data-type="like">
+          <button class="feed-reaction-btn ${fp.isLikedByMe ? 'heart-active' : ''}" data-id="${fp.id}" data-type="like">
             <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
             ${fmt(fp.likes)} Heart
           </button>
           <button class="feed-reaction-btn" data-post="${idx}" data-type="comment">
             <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-            ${fp.comments} Comment
+            ${fp.comments || 0} Comment
           </button>
           <button class="feed-reaction-btn" data-post="${idx}" data-type="repost">
             <svg viewBox="0 0 24 24"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
-            ${fp.reposts} Repost
-          </button>
-          <button class="feed-reaction-btn" data-post="${idx}" data-type="save">
-            <svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
-            Save
+            ${fp.reposts || 0} Repost
           </button>
         </div>
         ${commentPreviewHtml}
       </div>`;
-    }).join('');
+  }).join('');
 
-    /* ── View more / less per post ── */
-    FEED_POSTS.forEach((fp, idx) => {
-      if (!fp.body) return;
-      const bodyEl = document.getElementById(`feed-body-${idx}`);
-      const vmBtn  = document.getElementById(`feed-vm-${idx}`);
-      if (!bodyEl || !vmBtn) return;
-      let expanded = false;
-      bodyEl.classList.add('is-clamped');
-      requestAnimationFrame(() => {
-        if (bodyEl.scrollHeight > bodyEl.clientHeight) vmBtn.classList.add('visible');
-        else bodyEl.classList.remove('is-clamped');
-      });
-      vmBtn.addEventListener('click', () => {
-        expanded = !expanded;
-        bodyEl.classList.toggle('is-clamped', !expanded);
-        vmBtn.textContent = expanded ? 'View less ▴' : 'View more ▾';
-      });
-    });
-
-    /* ── View comments buttons ── */
-    document.querySelectorAll('.feed-view-comments').forEach(btn => {
-      btn.addEventListener('click', () => openCommentModal(parseInt(btn.dataset.post)));
-    });
-
-    /* ── Reaction buttons ── */
-    document.querySelectorAll('.feed-reaction-btn').forEach(btn => {
-      btn.addEventListener('click', function () {
-        const type = this.dataset.type;
-
-        if (type === 'like') {
-          const isActive = this.classList.toggle('heart-active');
-          const svg = this.querySelector('svg');
-          svg.style.animation = 'none';
-          svg.offsetHeight;
-          svg.style.animation = '';
-          if (isActive) {
-            const rect = this.getBoundingClientRect();
-            const cx = rect.left + rect.width / 2;
-            const cy = rect.top  + rect.height / 2;
-            [0, 45, 90, 135, 180, 225, 270, 315].forEach(angle => {
-              const p   = document.createElement('div');
-              p.className = 'heart-burst';
-              const rad  = angle * Math.PI / 180;
-              const dist = 28 + Math.random() * 14;
-              p.style.setProperty('--dx', `${Math.cos(rad) * dist}px`);
-              p.style.setProperty('--dy', `${Math.sin(rad) * dist}px`);
-              p.style.left     = `${cx - 3}px`;
-              p.style.top      = `${cy - 3}px`;
-              p.style.position = 'fixed';
-              document.body.appendChild(p);
-              setTimeout(() => p.remove(), 600);
-            });
-          }
-
-        } else if (type === 'comment') {
-          openCommentModal(parseInt(this.dataset.post));
-
-        } else if (type === 'repost') {
-          const isActive = this.classList.toggle('repost-active');
-          const postIdx  = parseInt(this.dataset.post);
-          const base     = FEED_POSTS[postIdx].reposts;
-          const svg      = this.querySelector('svg');
-          svg.style.animation = 'none';
-          svg.offsetHeight;
-          svg.style.animation = '';
-          this.innerHTML = isActive
-            ? `<svg viewBox="0 0 24 24"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg> Reposted`
-            : `<svg viewBox="0 0 24 24"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg> ${fmt(base)} Repost`;
-          this.dataset.post = postIdx;
-          this.dataset.type = 'repost';
-          if (isActive) showToast('You Reposted!');
-
-        } else if (type === 'save') {
-          const isActive = this.classList.toggle('save-active');
-          const postIdx  = this.dataset.post;
-          const svg      = this.querySelector('svg');
-          svg.style.animation = 'none';
-          svg.offsetHeight;
-          svg.style.animation = '';
-          this.innerHTML = isActive
-            ? `<svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg> Saved`
-            : `<svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg> Save`;
-          this.dataset.post = postIdx;
-          this.dataset.type = 'save';
-          if (isActive) showToast('Post saved!');
-          // BACKEND TEAM: toggle saved state in Firebase here
-          console.log('Save post:', postIdx, '| saved:', isActive);
-        }
-      });
-    });
-
-    /* ── Three-dot menu toggle ── */
-    document.querySelectorAll('.post-menu-btn').forEach(btn => {
-      btn.addEventListener('click', function (e) {
-        e.stopPropagation();
-        const idx      = this.dataset.post;
-        const dropdown = document.getElementById(`post-menu-${idx}`);
-        const isOpen   = dropdown.classList.contains('open');
-        document.querySelectorAll('.post-menu-dropdown').forEach(d => d.classList.remove('open'));
-        if (!isOpen) dropdown.classList.add('open');
-      });
-    });
-
-    /* ── Report action ── */
-    document.querySelectorAll('.post-menu-item[data-action="report"]').forEach(btn => {
-      btn.addEventListener('click', function (e) {
-        e.stopPropagation();
-        document.querySelectorAll('.post-menu-dropdown').forEach(d => d.classList.remove('open'));
-        showToast('Post reported. Thank you for keeping TUP Konek safe.');
-        // BACKEND TEAM: send report to Firebase here
-        console.log('Report post:', this.dataset.post);
-      });
-    });
-  }
-
-  window.renderFeedPosts = renderFeedPosts;
-
-  /* Close any open dropdown when clicking outside */
-  document.addEventListener('click', () => {
-    document.querySelectorAll('.post-menu-dropdown').forEach(d => d.classList.remove('open'));
+  posts.forEach((fp, idx) => {
+    if (!fp.body) return;
+    const bodyEl = document.getElementById(`feed-body-${idx}`);
+    const vmBtn = document.getElementById(`feed-vm-${idx}`);
+    if (!bodyEl || !vmBtn) return;
+    bodyEl.classList.add('is-clamped');
+    if (bodyEl.scrollHeight > bodyEl.clientHeight) {
+      vmBtn.classList.add('visible');
+    }
+    vmBtn.onclick = () => {
+      const isExpanded = bodyEl.classList.toggle('is-clamped');
+      vmBtn.textContent = isExpanded ? 'View more ▾' : 'View less ▴';
+    };
   });
+}
+
+window.renderFeedPosts = renderFeedPosts;
 
   /* ════════════════════════════════════════
      LIGHTBOX
@@ -570,25 +469,6 @@
     });
   });
 
-  // BACKEND TEAM: wire submit to Firebase
-  submitBtn.addEventListener('click', function () {
-    const text = textarea.value.trim();
-    if (!text) return;
-    const isAnon = anonToggle.checked;
-    console.log('Post submitted:', { text, isAnonymous: isAnon });
-
-    textarea.value       = '';
-    attachWrap.innerHTML = '';
-    anonToggle.checked   = false;
-    document.getElementById('modal-user-name').textContent = USER.name;
-    document.getElementById('modal-avatar').innerHTML = USER.photoSrc
-      ? `<img src="${USER.photoSrc}" alt="Me" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`
-      : `<svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`;
-    submitBtn.disabled = true;
-    closeModal();
-    showToast('Post Shared!');
-  });
-
   /* ════════════════════════════════════════
      QUICK ACTION BUTTONS
   ════════════════════════════════════════ */
@@ -654,3 +534,6 @@
   })();
 
 })();
+
+window.renderFeedPosts = renderFeedPosts;
+window.FEED_POSTS = FEED_POSTS;
