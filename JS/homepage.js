@@ -154,12 +154,10 @@ let FEED_POSTS = [];
   ════════════════════════════════════════ */
 
 function renderFeedPosts() {
-  // 1. Get the data from the window bridge
   const posts = window.FEED_POSTS || [];
   const feed = document.getElementById('feed-posts');
   if (!feed) return;
 
-  // 2. Handle Empty State
   if (posts.length === 0) {
     feed.innerHTML = `
         <div class="empty-state">
@@ -172,9 +170,7 @@ function renderFeedPosts() {
     return;
   }
 
-  // 3. Render the Posts
   feed.innerHTML = posts.map((fp, idx) => {
-    // Safety: Avatar logic
     const avatarHtml = fp.photoSrc ?
       `<img class="feed-avatar" src="${fp.photoSrc}" alt="${fp.name}"/>` :
       `<div class="feed-avatar-ph"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>`;
@@ -238,7 +234,7 @@ function renderFeedPosts() {
         ${bodyHtml}
         ${quoteHtml}
         <div class="feed-reactions">
-          <button class="feed-reaction-btn" data-id="${fp.id}" data-type="like">
+          <button class="feed-reaction-btn ${fp.isLikedByMe ? 'heart-active' : ''}" data-id="${fp.id}" data-type="like">
             <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
             ${fmt(fp.likes)} Heart
           </button>
@@ -255,8 +251,6 @@ function renderFeedPosts() {
       </div>`;
   }).join('');
 
-  // 4. Re-attach Listeners (View More, Reactions, etc.)
-  // Note: Use 'posts' instead of 'FEED_POSTS' here
   posts.forEach((fp, idx) => {
     if (!fp.body) return;
     const bodyEl = document.getElementById(`feed-body-${idx}`);
@@ -273,7 +267,6 @@ function renderFeedPosts() {
   });
 }
 
-// Ensure this is at the end
 window.renderFeedPosts = renderFeedPosts;
 
   /* ════════════════════════════════════════

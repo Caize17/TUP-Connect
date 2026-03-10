@@ -1,34 +1,46 @@
 document.addEventListener('DOMContentLoaded', () => {
 
- const navBtns = document.querySelectorAll('.nav-btn');
+    (function () {
+    const navWrap  = document.getElementById('sidebar-nav');
+    const teardrop = document.getElementById('nav-teardrop');
+    const navBtns  = Array.from(navWrap.querySelectorAll('.nav-btn'));
+    const profBtn  = document.getElementById('sidebar-avatar-wrap');
+    const allBtns  = [...navBtns, profBtn];
+    const TD_BASE_H = 66;
 
-  navBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-      navBtns.forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
+    function moveTo(item) {
+      const wrapRect = navWrap.getBoundingClientRect();
+      const itemRect = item.getBoundingClientRect();
+      const centerY  = itemRect.top + itemRect.height / 2 - wrapRect.top;
+      teardrop.style.top = (centerY - TD_BASE_H / 2) + 'px';
+    }
+
+    navBtns.forEach(item => {
+      item.addEventListener('click', function () {
+        allBtns.forEach(i => i.classList.remove('active'));
+        this.classList.add('active');
+        moveTo(this);
+        console.log('Navigate to:', this.dataset.route);
+      });
     });
 
-    btn.addEventListener('mouseleave', () => {
-      navBtns.forEach(b => b.classList.remove('active'));
-      navBtns[2].classList.add('active');
-    });
-     navBtns[2].classList.add('active');
-  });
-
-    const track    = document.querySelector('.carousel-images');
-    const btnLeft  = document.querySelector('.carousel-arrow.left');
-    const btnRight = document.querySelector('.carousel-arrow.right');
-
-    const scrollAmount = 270;
-
-    btnRight.addEventListener('click', () => {
-        track.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+    profBtn.addEventListener('click', function () {
+      allBtns.forEach(i => i.classList.remove('active'));
+      this.classList.add('active');
+      moveTo(this);
+      console.log('Navigate to: profile');
     });
 
-    btnLeft.addEventListener('click', () => {
-        track.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
-  });
-});
+    /* Snap to active button on load (no transition) */
+    const active = navWrap.querySelector('.nav-btn.active');
+    if (active) {
+      teardrop.style.transition = 'none';
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        moveTo(active);
+        teardrop.style.transition = '';
+      }));
+    }
+  })();
 
 // ========================
   // SEARCH BAR
@@ -150,3 +162,4 @@ document.addEventListener('DOMContentLoaded', () => {
       list.scrollBy({ top: e.deltaY, behavior: 'smooth' });
     }, { passive: false });
   });
+});

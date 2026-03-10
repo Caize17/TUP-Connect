@@ -1,5 +1,18 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, collection, addDoc, serverTimestamp, query, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { 
+    getFirestore, 
+    collection, 
+    addDoc, 
+    serverTimestamp, 
+    query, 
+    orderBy, 
+    onSnapshot ,
+    doc, 
+    updateDoc, 
+    arrayUnion, 
+    arrayRemove,
+    increment 
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 const firebaseConfig = {
@@ -36,7 +49,6 @@ if (submitBtn) {
     const user = auth.currentUser;
 
     try {
-      // Disable button so user doesn't click twice
       submitBtn.disabled = true;
       submitBtn.textContent = "Posting...";
 
@@ -51,11 +63,9 @@ if (submitBtn) {
 
       console.log("✅ Success! ID:", docRef.id);
       
-      // NOW we clear the UI since the database has the data
       liveTextarea.value = '';
       if (overlay) overlay.classList.remove('open');
       
-      // If you have the showToast function available:
       if (typeof showToast === 'function') showToast('Post Shared!');
 
     } catch (err) {
@@ -75,48 +85,78 @@ onSnapshot(q, (snapshot) => {
     
     snapshot.forEach((doc) => {
         const data = doc.data();
+
+        // 1. DEFINE dateObj HERE (This is what's missing!)
         const dateObj = data.createdAt ? data.createdAt.toDate() : new Date();
 
         firebaseData.push({
             id: doc.id,
             name: data.author || "Anonymous Puto",
-            body: data.text, // Must be 'body' for homepage.js
+            body: data.text,
+            // 2. Now dateObj is available for use
             time: dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-            likes: data.likes || 0,
+            likes: data.likedBy ? data.likedBy.length : 0,
+            isLikedByMe: auth.currentUser ? (data.likedBy || []).includes(auth.currentUser.uid) : false,
             comments: data.comments || 0,
             reposts: data.reposts || 0,
-            isAnonymous: data.isAnonymous || false
+            photoSrc: data.isAnonymous ? "../assets/images/anon_avatar.jpg" : (data.photoURL || null)
         });
     });
 
-    // CRITICAL: homepage.js is looking for a variable named 'FEED_POSTS'
-    // We must define it on the window so homepage.js can see it
     window.FEED_POSTS = firebaseData;
-    
-    // Check if the function exists and run it
-    if (typeof window.renderFeedPosts === 'function') {
-        console.log("Painting " + firebaseData.length + " posts to the screen...");
-        window.renderFeedPosts();
-    }
+    if (window.renderFeedPosts) window.renderFeedPosts();
 });
 
 onAuthStateChanged(auth, (user) => {
   if (user) {
-    // 1. Create the global USER object homepage.js needs
     window.USER = {
       name: user.displayName || user.email.split('@')[0],
       email: user.email,
       photoSrc: user.photoURL || null
     };
 
-    // 2. Manually nudge the sidebar name so it stops saying "Loading"
     const sidebarName = document.querySelector('.profile-card-name'); 
     if (sidebarName) sidebarName.textContent = window.USER.name;
 
-    // 3. Trigger the initial render
     if (window.renderFeedPosts) window.renderFeedPosts();
     
   } else {
     window.location.href = '../index.html';
   }
 });
+
+const feedContainer = document.getElementById('feed-posts');
+
+if (feedContainer) {
+  feedContainer.addEventListener('click', async (e) => {
+    const btn = e.target.closest('.feed-reaction-btn[data-type="like"]');
+    if (!btn) return;
+
+    const postId = btn.dataset.id;
+    const user = auth.currentUser;
+
+    if (!user) {
+      alert("Login to like posts!");
+      return;
+    }
+
+    const isLiked = btn.classList.contains('heart-active');
+    const postRef = doc(db, "posts", postId);
+
+    try {
+      if (!isLiked) {
+        await updateDoc(postRef, {
+          likedBy: arrayUnion(user.uid)
+        });
+        btn.classList.add('heart-active');
+      } else {
+        await updateDoc(postRef, {
+          likedBy: arrayRemove(user.uid)
+        });
+        btn.classList.remove('heart-active');
+      }
+    } catch (err) {
+      console.error("Like failed:", err);
+    }
+  });
+}
