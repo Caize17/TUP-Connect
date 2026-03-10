@@ -1,7 +1,6 @@
-// 1. Imports - Kunin ang auth at db mula sa iyong config file
+// 1. Imports
 import { auth, db } from '../firebaseConfig.js'; 
 import { 
-  getAuth, 
   createUserWithEmailAndPassword, 
   sendEmailVerification, 
   updateProfile
@@ -17,25 +16,22 @@ import {
 let selectedRole = null;
 
 const ROLE_META = {
-  student: { label: 'Student',              redirect: 'setup_student.html' },
+  student: { label: 'Student',            redirect: 'setup_student.html' },
   org:     { label: 'Student Organization', redirect: 'setup_org.html'     },
   admin:   { label: 'Admin / USG',          redirect: 'setup_usg.html'     },
 };
 
-// 3. Expose functions to window
+// 3. UI Functions
 window.selectRole = function(role) {
-  // Remove selection highlight from all cards
   ['student', 'org', 'admin'].forEach(r => {
     const el = document.getElementById(`role-${r}`);
     if (el) el.classList.remove('selected');
   });
 
-  // Set current selection
   selectedRole = role;
   const selectedEl = document.getElementById(`role-${role}`);
   if (selectedEl) selectedEl.classList.add('selected');
 
-  // Update UI Elements
   const meta = ROLE_META[role];
   const pill = document.getElementById('selected-role-pill');
   const subtitle = document.getElementById('reg-subtitle');
@@ -45,7 +41,6 @@ window.selectRole = function(role) {
   if (pill) pill.style.display = 'inline-flex';
   if (pillLabel) pillLabel.textContent = meta.label;
 
-  // Show registration fields with animation
   const fieldsToShow = ['field-name', 'field-email', 'field-password'];
   fieldsToShow.forEach((id, i) => {
     const el = document.getElementById(id);
@@ -55,7 +50,6 @@ window.selectRole = function(role) {
     }
   });
 
-  // Toggle visibility of other elements
   const elements = {
     'role-nudge': 'none',
     'btn-register': 'block',
@@ -69,7 +63,6 @@ window.selectRole = function(role) {
     if (el) el.style.display = display;
   }
 
-  // Update Input Label based on Role
   const labelName = document.getElementById('label-name');
   if (labelName) {
     labelName.textContent = role === 'org' ? 'Organization Name' : role === 'admin' ? 'Name' : 'Full Name';
@@ -86,8 +79,12 @@ window.togglePassword = function(btn) {
     : `<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`;
 };
 
+// 4. MAIN REGISTER FUNCTION
 window.handleRegister = async function() {
-  if (!selectedRole) return;
+  if (!selectedRole) {
+    alert("Please select a role first.");
+    return;
+  }
 
   const nameInput = document.getElementById('input-name');
   const emailInput = document.getElementById('input-email');
@@ -107,10 +104,14 @@ window.handleRegister = async function() {
     }
   });
 
-  // Simple Validation
-  if (nameInput.value.trim() === '') { showFieldError('name'); valid = false; }
-  if (!emailInput.value.trim().endsWith('@tup.edu.ph')) { showFieldError('email'); valid = false; }
-  if (passwordInput.value.trim().length < 6) { showFieldError('password'); valid = false; }
+  // Validation
+  const fullName = nameInput.value.trim();
+  const email = emailInput.value.trim();
+  const password = passwordInput.value;
+
+  if (fullName === '') { showFieldError('name'); valid = false; }
+  if (!email.endsWith('@tup.edu.ph')) { showFieldError('email'); valid = false; }
+  if (password.length < 6) { showFieldError('password'); valid = false; }
 
   if (valid) {
     try {
@@ -118,38 +119,31 @@ window.handleRegister = async function() {
       btn.textContent = "Creating Account...";
 
       // 1. Create User in Firebase Auth
-      const userCredential = await createUserWithEmailAndPassword(auth, emailInput.value.trim(), passwordInput.value);
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
-      const nameToSave = name.value.trim();
-
+      // 2. Update Auth Profile (Display Name)
       await updateProfile(user, {
-        displayName: nameToSave 
+        displayName: fullName
       });
 
-      await setDoc(doc(db, "users", user.uid), {
-        fullName: nameToSave,
-      });
-      
-      // 2. Verification Email
-      await sendEmailVerification(user);
-
-      // 3. Format Role Label for Firestore consistency
+      // 3. Format Role Label
       const roleLabel = selectedRole === 'org' ? 'Organization' : selectedRole === 'admin' ? 'USG' : 'Student';
 
-      // 4. Save User Data to Firestore
+      // 4. Save User Data to Firestore (Isang setDoc lang para malinis)
       await setDoc(doc(db, "users", user.uid), {
-        fullName: nameInput.value.trim(),
-        email: emailInput.value.trim(),
+        fullName: fullName,
+        email: email,
         role: roleLabel,
-        isVerified: false,
-        isSetupComplete: false, // Eto ang trigger para sa setup page redirect
+        isSetupComplete: false,
         createdAt: serverTimestamp()
       });
+      
+      // 5. Send Verification Email
+      await sendEmailVerification(user);
 
       alert("Verification email sent! Please check your TUP inbox and verify your account before logging in.");
       
-      // Redirect back to login page
       window.location.href = "../index.html"; 
 
     } catch (error) {
