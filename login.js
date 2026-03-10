@@ -1,69 +1,49 @@
-import { auth } from "./firebaseConfig";
-import { signInWithEmailAndPassword, signInAnonymously } from "firebase/auth";
+import { auth } from './firebaseConfig.js';
+import { signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-// ⭐ Put the function here
-function showError(message) {
-  const el = document.getElementById('auth-error');
-  if (el) {
-    el.textContent = message;
-    el.style.display = 'block';
-  }
-}
-
-const signInBtn = document.getElementById('btn-sign-in');
-
-if (signInBtn) {
-  signInBtn.addEventListener('click', async () => {
-
+window.handleHomepage = async function() {
     const email = document.getElementById('login-email').value.trim();
     const password = document.getElementById('login-password').value;
+    const btn = document.getElementById('btn-sign-in');
+    const errorEl = document.getElementById('login-error-msg');
+
+    errorEl.style.display = 'none';
+    errorEl.textContent = '';
 
     if (!email || !password) {
-      showError("Please fill in all fields.");
-      return;
-    }
-
-    try {
-
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      const user = userCredential.user;
-
-      // check if verified
-      if (!user.emailVerified) {
-        showError("Please verify your TUP email before logging in.");
+        errorEl.textContent = "Please enter your email and password.";
+        errorEl.style.display = 'block';
         return;
-      }
-
-      console.log("Sign-in successful!");
-      window.location.href = 'pages/homepage.html';
-
-    } catch (error) {
-
-      if (error.code === "auth/user-not-found") {
-        showError("Email is not registered.");
-      } 
-      else if (error.code === "auth/wrong-password") {
-        showError("Incorrect password.");
-      } 
-      else {
-        showError("Login failed. Check your credentials.");
-      }
-
-      console.error(error.code);
     }
-  });
-}
 
-const guestBtn = document.getElementById('btn-guest-login');
-
-if (guestBtn) {
-  guestBtn.addEventListener('click', async () => {
     try {
-      await signInAnonymously(auth);
-      window.location.href = 'pages/homepage.html';
-    } catch (error) {
-      console.error("Guest login error:", error);
-    }
-  });
-}
+        btn.disabled = true;
+        btn.textContent = "Checking...";
 
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+
+        // 2. CHECK VERIFICATION
+        if (user.emailVerified) {
+            window.location.href = "pages/homepage.html";
+        } else {
+            errorEl.textContent = "Your email is not verified yet. Please check your TUP email.";
+            errorEl.style.display = 'block';
+            
+            await signOut(auth);
+            btn.disabled = false;
+            btn.textContent = "Sign In";
+        }
+
+    } catch (error) {
+        btn.disabled = false;
+        btn.textContent = "Sign In";
+        
+        errorEl.style.display = 'block';
+        if (error.code === 'auth/invalid-credential') {
+            errorEl.textContent = "Incorrect email or password.";
+        } else {
+            errorEl.textContent = "Login failed. Please try again.";
+        }
+    }
+};

@@ -128,11 +128,12 @@
                 <label class="field-label">TUP Email</label>
                 <input id="input-email" class="tup-input" type="email" placeholder="name@tup.edu.ph" autocomplete="email"/>
                 <p id="err-email" class="field-error">Please enter a valid @tup.edu.ph email.</p>
+                <p id="err-email-used" class="field-error" style="display:none; color: #ff4d4d;">This email is already registered. <a href="../index.html" style="color: inherit; text-decoration: underline;">Sign in?</a></p>
               </div>
 
               <!-- TUP Password -->
               <div class="field-row" id="field-password" style="display:none;">
-                <label class="field-label">TUP Password</label>
+                <label class="field-label">Create TUP Password</label>
                 <div class="input-wrapper">
                   <input id="input-password" class="tup-input" type="password" placeholder="Your existing TUP account password" autocomplete="current-password"/>
                   <button type="button" class="toggle-pw" onclick="togglePassword(this)">
@@ -141,7 +142,7 @@
                     </svg>
                   </button>
                 </div>
-                <p id="err-password" class="field-error">Please enter your TUP password.</p>
+                <p id="err-password" class="field-error">Create a password.</p>
               </div>
 
               <!-- Submit -->
@@ -175,12 +176,6 @@
 
   </div>
 
-<<<<<<< HEAD
-  <script src="../JS/register.js"></script>
-=======
-  <!-- Firebase Scripts -->
   <script type="module" src="../JS/register.js"></script>
->>>>>>> f6bcf3d3a4ebb9121384d6b36147c4b1a2058ea8
-
 </body>
 </html>
