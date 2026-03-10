@@ -363,7 +363,7 @@
     });
   }
 
-  renderFeedPosts();
+  window.renderFeedPosts = renderFeedPosts;
 
   /* Close any open dropdown when clicking outside */
   document.addEventListener('click', () => {
