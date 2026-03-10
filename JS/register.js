@@ -1,5 +1,5 @@
-// 1. Imports
-import { auth } from '../firebaseConfig.js'; 
+// 1. Imports - Kunin ang auth at db mula sa iyong config file
+import { auth, db } from '../firebaseConfig.js'; 
 import { 
   getAuth, 
   createUserWithEmailAndPassword, 
@@ -8,42 +8,44 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 import { 
-  getFirestore, 
   doc, 
-  setDoc 
+  setDoc,
+  serverTimestamp 
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-const db = getFirestore();
 
 // 2. Global State
 let selectedRole = null;
 
 const ROLE_META = {
-  student: { label: 'Student',            redirect: 'setup_student.html' },
+  student: { label: 'Student',              redirect: 'setup_student.html' },
   org:     { label: 'Student Organization', redirect: 'setup_org.html'     },
   admin:   { label: 'Admin / USG',          redirect: 'setup_usg.html'     },
 };
 
 // 3. Expose functions to window
 window.selectRole = function(role) {
+  // Remove selection highlight from all cards
   ['student', 'org', 'admin'].forEach(r => {
     const el = document.getElementById(`role-${r}`);
     if (el) el.classList.remove('selected');
   });
 
+  // Set current selection
   selectedRole = role;
   const selectedEl = document.getElementById(`role-${role}`);
   if (selectedEl) selectedEl.classList.add('selected');
 
+  // Update UI Elements
   const meta = ROLE_META[role];
   const pill = document.getElementById('selected-role-pill');
   const subtitle = document.getElementById('reg-subtitle');
+  const pillLabel = document.getElementById('pill-label');
 
   if (subtitle) subtitle.textContent = `Registering as: `;
   if (pill) pill.style.display = 'inline-flex';
-  const pillLabel = document.getElementById('pill-label');
   if (pillLabel) pillLabel.textContent = meta.label;
 
+  // Show registration fields with animation
   const fieldsToShow = ['field-name', 'field-email', 'field-password'];
   fieldsToShow.forEach((id, i) => {
     const el = document.getElementById(id);
@@ -53,6 +55,7 @@ window.selectRole = function(role) {
     }
   });
 
+  // Toggle visibility of other elements
   const elements = {
     'role-nudge': 'none',
     'btn-register': 'block',
@@ -66,6 +69,7 @@ window.selectRole = function(role) {
     if (el) el.style.display = display;
   }
 
+  // Update Input Label based on Role
   const labelName = document.getElementById('label-name');
   if (labelName) {
     labelName.textContent = role === 'org' ? 'Organization Name' : role === 'admin' ? 'Name' : 'Full Name';
@@ -85,14 +89,14 @@ window.togglePassword = function(btn) {
 window.handleRegister = async function() {
   if (!selectedRole) return;
 
-  const name = document.getElementById('input-name');
-  const email = document.getElementById('input-email');
-  const password = document.getElementById('input-password');
+  const nameInput = document.getElementById('input-name');
+  const emailInput = document.getElementById('input-email');
+  const passwordInput = document.getElementById('input-password');
   const btn = document.getElementById('btn-register');
 
   let valid = true;
 
-  // RESET ALL ERRORS (including the new one)
+  // Reset errors
   ['name', 'email', 'password', 'email-used'].forEach(f => {
     const input = document.getElementById(`input-${f}`);
     const err = document.getElementById(`err-${f}`);
@@ -103,18 +107,18 @@ window.handleRegister = async function() {
     }
   });
 
-  // Validation checks
-  if (name.value.trim() === '') { showFieldError('name'); valid = false; }
-  if (!email.value.trim().endsWith('@tup.edu.ph')) { showFieldError('email'); valid = false; }
-  if (password.value.trim().length < 6) { showFieldError('password'); valid = false; }
+  // Simple Validation
+  if (nameInput.value.trim() === '') { showFieldError('name'); valid = false; }
+  if (!emailInput.value.trim().endsWith('@tup.edu.ph')) { showFieldError('email'); valid = false; }
+  if (passwordInput.value.trim().length < 6) { showFieldError('password'); valid = false; }
 
   if (valid) {
     try {
       btn.disabled = true;
       btn.textContent = "Creating Account...";
 
-      // 1. Create User
-      const userCredential = await createUserWithEmailAndPassword(auth, email.value, password.value);
+      // 1. Create User in Firebase Auth
+      const userCredential = await createUserWithEmailAndPassword(auth, emailInput.value.trim(), passwordInput.value);
       const user = userCredential.user;
 
       const nameToSave = name.value.trim();
@@ -130,28 +134,31 @@ window.handleRegister = async function() {
       // 2. Verification Email
       await sendEmailVerification(user);
 
-      // 3. Save to Firestore
+      // 3. Format Role Label for Firestore consistency
+      const roleLabel = selectedRole === 'org' ? 'Organization' : selectedRole === 'admin' ? 'USG' : 'Student';
+
+      // 4. Save User Data to Firestore
       await setDoc(doc(db, "users", user.uid), {
-        fullName: name.value.trim(),
-        email: email.value.trim(),
-        role: selectedRole,
+        fullName: nameInput.value.trim(),
+        email: emailInput.value.trim(),
+        role: roleLabel,
         isVerified: false,
-        createdAt: new Date()
+        isSetupComplete: false, // Eto ang trigger para sa setup page redirect
+        createdAt: serverTimestamp()
       });
 
-      alert("Verification email sent! Check your TUP inbox.");
-      window.location.href = `../${ROLE_META[selectedRole].redirect}`;
+      alert("Verification email sent! Please check your TUP inbox and verify your account before logging in.");
+      
+      // Redirect back to login page
+      window.location.href = "../index.html"; 
 
     } catch (error) {
-      console.error("Firebase Error Code:", error.code);
+      console.error("Firebase Error:", error.code, error.message);
       btn.disabled = false;
       btn.textContent = "Verify & Continue";
 
-      // TARGETED ERROR MESSAGE DISPLAY
       if (error.code === 'auth/email-already-in-use') {
-        const emailInput = document.getElementById('input-email');
         const usedEmailErr = document.getElementById('err-email-used');
-        
         emailInput.classList.add('error');
         if (usedEmailErr) {
             usedEmailErr.style.display = 'block';

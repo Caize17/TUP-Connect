@@ -1,5 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBpGOdMpx_Mws2EcCq6rbOWfZ-FFuhhfo0",
@@ -12,16 +13,17 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+const db = getFirestore(app);
 
 async function handleHomepage() {
   const emailField = document.getElementById('login-email');
   const passwordField = document.getElementById('login-password');
-  const errorEl = document.getElementById('login-error-msg'); // Ang bagong element sa HTML
+  const errorEl = document.getElementById('login-error-msg');
+  const btn = document.getElementById('btn-sign-in'); // Siguraduhing may ID ang button mo
 
   const email = emailField.value.trim();
   const password = passwordField.value;
 
-  // 1. RESET
   if (errorEl) {
     errorEl.style.display = 'none';
     errorEl.textContent = '';
@@ -33,45 +35,73 @@ async function handleHomepage() {
   }
 
   try {
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = "Signing in...";
+    }
+
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
 
-    // 2. CHECK IF EMAIL IS VERIFIED
+    // 1. CHECK IF EMAIL IS VERIFIED
     if (!user.emailVerified) {
-      showError("Your email is not verified yet. Please check your TUP email.");
-      
+      showError("Your email is not verified yet. Please check your TUP inbox.");
       await signOut(auth); 
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = "Sign In";
+      }
       return;
     }
 
-    // If verified → proceed
-    window.location.href = 'pages/homepage.html';
+    // 2. CHECK FIRESTORE FOR ROLE & SETUP
+    const userDocRef = doc(db, "users", user.uid);
+    const userDoc = await getDoc(userDocRef);
+
+    if (userDoc.exists()) {
+      const userData = userDoc.data();
+      const role = userData.role;
+      const isSetupComplete = userData.isSetupComplete;
+
+      // --- SILENT REDIRECT LOGIC ---
+      if (isSetupComplete === true) {
+        window.location.href = 'pages/homepage.html';
+      } else {
+        if (role === 'Student') {
+          window.location.href = 'pages/setup_student.html';
+        } else if (role === 'Organization') {
+          window.location.href = 'pages/setup_org.html';
+        } else if (role === 'USG') {
+          window.location.href = 'pages/setup_usg.html';
+        } else {
+          window.location.href = 'pages/homepage.html';
+        }
+      }
+    } else {
+      // Fallback kung walang document pero verified na ang email
+      window.location.href = 'pages/homepage.html';
+    }
 
   } catch (error) {
-    console.error("Firebase Error Code:", error.code);
-
-    // 3. SWITCH ERROR HANDLING
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = "Sign In";
+    }
+    
     switch (error.code) {
       case 'auth/user-not-found':
       case 'auth/invalid-credential':
         showError("Incorrect email or password.");
         break;
-
-      case 'auth/invalid-email':
-        showError("The email address is not formatted correctly.");
-        break;
-
       case 'auth/too-many-requests':
-        showError("Too many failed attempts. Try again later.");
+        showError("Too many attempts. Please try muna later.");
         break;
-
       default:
-        showError("An unexpected error occurred. Please try again.");
+        showError("Login failed. Please try again.");
     }
   }
 }
 
-// Helper function
 function showError(message) {
   const errorEl = document.getElementById('login-error-msg');
   if (errorEl) {

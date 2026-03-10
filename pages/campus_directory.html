@@ -1,47 +1,55 @@
-    <!DOCTYPE html>
-    <html lang="en">
+<!DOCTYPE html>
+  <html lang="en">
     <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TUP Konek</title>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>TUP Konek</title>
 
-    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+      <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 
-    <link rel="stylesheet" href="../CSS/campus_directory.css">
+      <link rel="stylesheet" href="../CSS/campus_directory.css">
     </head>
 
-    <body>
+  <body>
 
     <!-- SIDEBAR -->
-    <aside class="sidebar">
+      <aside class="sidebar">
 
         <div class="sidebar-logo">
-        <img src="../assets/images/logo.png" class="TUP-Konek-logo">
+          <img src="../assets/images/logo.png" class="TUP-Konek-logo">
         </div>
 
-        <nav class="sidebar-nav">
-        <button class="nav-btn">
-            <span class="nav-icon-wrap">
-            <img src="../assets/images/community_feed.png" alt="Home">
-            </span>
-        </button>
-        <button class="nav-btn">
-            <span class="nav-icon-wrap">
-            <img src="../assets/images/campusnews.png" alt="Announcements">
-            </span>
-        </button>
-        <button class="nav-btn">
-            <span class="nav-icon-wrap">
-            <img src="../assets/images/campus_directory.png" alt="Marketplace">
-            </span>
-        </button>
-        </nav>
+        <div class="sidebar-nav" id="sidebar-nav" style="position:relative;">
+            <div class="nav-teardrop" id="nav-teardrop"></div>
 
-        <div class="sidebar-avatar">
-        <img src="../assets/images/anon_avatar.jpg" class="sidebar-avatar-img">
+            <button class="nav-btn" data-index="0" data-route="home" title="Home">
+              <div class="nav-icon-wrap">
+                <img src="../assets/images/community_feed.png" alt="Home">
+              </div>
+            </button>
+
+            <button class="nav-btn" data-index="2" data-route="campus news" title="Campus News">
+              <div class="nav-icon-wrap">
+                <img src="../assets/images/campusnews.png" alt="Campus News">
+              </div>
+            </button>
+
+            <button class="nav-btn active" data-index="3" data-route="campus" title="Campus">
+              <div class="nav-icon-wrap">
+                <img src="../assets/images/campus_directory.png" alt="Campus" style="margin-left:6px;">
+              </div>
+            </button>
+
+            <div class="nav-spacer"></div>
+
+            <button class="nav-btn-profile" data-index="4" data-route="profile" title="My Profile" id="sidebar-avatar-wrap">
+              <div class="nav-profile-avatar" id="nav-profile-avatar">
+                <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              </div>
+            </button>
         </div>
 
-    </aside>
+      </aside>
 
     <!-- ASK ME - fixed, outside feed -->
         <div class="ask-me-wrap">
@@ -226,4 +234,5 @@
         <script src="../JS/campus_directory.js"></script>
 
     </body>
-    </html>
+    
+</html>
