@@ -14,48 +14,58 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 
 async function handleHomepage() {
-  // 1. Get the actual elements from your HTML
+
   const emailField = document.getElementById('login-email');
   const passwordField = document.getElementById('login-password');
 
   const email = emailField.value.trim();
   const password = passwordField.value;
 
-  // 2. Simple check for empty fields
   if (!email || !password) {
     alert("Please fill in both fields.");
     return;
   }
 
   try {
-    // 3. Ask Firebase if this user exists
+
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
-    
-    // 4. Success! Move to homepage
-    console.log("Logged in:", userCredential.user);
-    window.location.href = '../pages/homepage.html'; 
+    const user = userCredential.user;
+
+    // ⭐ CHECK IF EMAIL IS VERIFIED
+    if (!user.emailVerified) {
+      alert("Your email is not verified yet. Please check your TUP email.");
+      return;
+    }
+
+    // If verified → proceed
+    console.log("Logged in:", user);
+    window.location.href = '../pages/homepage.html';
 
   } catch (error) {
+
     console.error("Firebase Error Code:", error.code);
 
     switch (error.code) {
       case 'auth/user-not-found':
         alert("This email is not registered. Please sign up first.");
         break;
+
       case 'auth/wrong-password':
         alert("Incorrect password. Please try again.");
         break;
+
       case 'auth/invalid-email':
         alert("The email address is not formatted correctly.");
         break;
+
       case 'auth/too-many-requests':
-        alert("Too many failed attempts. Account temporarily disabled. Try again later.");
+        alert("Too many failed attempts. Try again later.");
         break;
+
       default:
         alert("An unexpected error occurred: " + error.message);
     }
   }
 }
 
-// 6. IMPORTANT: Make the function global so onclick="" can see it
 window.handleHomepage = handleHomepage;

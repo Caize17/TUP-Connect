@@ -115,7 +115,7 @@
 
         </div>
 
-        <!-- ── LOGIN CARD ── -->
+                <!-- ── LOGIN CARD ── -->
         <div class="login-card anim-4">
 
           <div class="login-top">
@@ -136,11 +136,15 @@
           <div class="login-bottom">
             <div class="login-fields">
 
+              <p id="auth-error" style="color:red; display:none;"></p>
+
+              <!-- TUP Email -->
               <div>
                 <label class="field-label" for="login-email">TUP Email</label>
                 <input id="login-email" class="tup-input" type="email" placeholder="yourname@tup.edu.ph" autocomplete="email"/>
               </div>
 
+              <!-- Password -->
               <div>
                 <div class="field-label-row">
                   <label class="field-label" for="login-password">Password</label>
@@ -149,10 +153,12 @@
                 <input id="login-password" class="tup-input" type="password" placeholder="••••••••" autocomplete="current-password"/>
               </div>
 
+              <!-- SIGN IN BUTTON -->
               <button class="btn-signin-main" id="btn-sign-in" onclick="handleHomepage()">Sign In</button>
 
               <div class="or-divider">or</div>
 
+              <!-- GUEST LOGIN -->
               <button class="btn-browse-guest" id="btn-guest-login">Browse as Guest</button>
 
             </div>
@@ -164,6 +170,7 @@
           </div>
 
         </div>
+
 
       </div>
     </main>
