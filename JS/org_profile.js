@@ -364,34 +364,136 @@ function openCommentModal(el) {
   const list = document.getElementById('commentModalList');
   list.innerHTML = '';
 
-  card.querySelectorAll('.comment-data').forEach(cd => {
+  card.querySelectorAll('.comment-data').forEach((cd, cIdx) => {
     list.appendChild(buildCommentModalItem(
       cd.dataset.author,
       cd.dataset.avatar,
       cd.dataset.text,
-      cd.dataset.time
+      cd.dataset.time,
+      cd.dataset.isOwn === 'true',
+      cIdx
     ));
   });
+
+  bindCommentActions();
 
   document.getElementById('commentModal').classList.add('open');
   setTimeout(() => document.getElementById('commentModalInput').focus(), 120);
 }
 
-function buildCommentModalItem(author, avatar, text, time) {
+function buildCommentModalItem(author, avatar, text, time, isOwn, cIdx) {
   const item = document.createElement('div');
   item.className = 'comment-modal-item';
+  item.id = `comment-modal-item-${cIdx}`;
   item.innerHTML = `
     <div class="comment-modal-item-avatar">
       <img src="${avatar}" alt="${escapeHTML(author)}" onerror="this.parentElement.textContent='👩'">
     </div>
     <div class="comment-modal-item-content">
-      <div class="comment-modal-item-bubble">
+      <div class="comment-modal-item-bubble" id="comment-modal-bubble-${cIdx}">
         <div class="comment-modal-item-author">${escapeHTML(author)}</div>
-        <div class="comment-modal-item-text">${escapeHTML(text)}</div>
+        <div class="comment-modal-item-text" id="comment-modal-text-${cIdx}">${escapeHTML(text)}</div>
+      </div>
+      <div class="comment-edit-wrap" id="comment-modal-edit-${cIdx}">
+        <input class="comment-edit-input" id="comment-modal-edit-input-${cIdx}" value="${escapeHTML(text)}"/>
+        <button class="comment-edit-save" data-comment="${cIdx}">
+          <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        </button>
+        <button class="comment-edit-cancel" data-comment="${cIdx}">✕</button>
       </div>
       <div class="comment-modal-item-time">${time}</div>
+      ${isOwn ? `
+      <div class="comment-item-actions">
+        <button class="comment-action-btn edit-btn" data-comment="${cIdx}">
+          <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          Edit
+        </button>
+        <button class="comment-action-btn delete-btn" data-comment="${cIdx}">
+          <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+          Delete
+        </button>
+      </div>` : ''}
     </div>`;
   return item;
+}
+
+function bindCommentActions() {
+  const list = document.getElementById('commentModalList');
+
+  /* Edit button */
+  list.querySelectorAll('.edit-btn').forEach(btn => {
+    btn.addEventListener('click', function () {
+      const c      = this.dataset.comment;
+      const bubble = document.getElementById(`comment-modal-bubble-${c}`);
+      const edit   = document.getElementById(`comment-modal-edit-${c}`);
+      bubble.style.display = 'none';
+      edit.classList.add('open');
+      document.getElementById(`comment-modal-edit-input-${c}`).focus();
+    });
+  });
+
+  /* Cancel edit */
+  list.querySelectorAll('.comment-edit-cancel').forEach(btn => {
+    btn.addEventListener('click', function () {
+      const c      = this.dataset.comment;
+      const bubble = document.getElementById(`comment-modal-bubble-${c}`);
+      const edit   = document.getElementById(`comment-modal-edit-${c}`);
+      bubble.style.display = '';
+      edit.classList.remove('open');
+    });
+  });
+
+  /* Save edit */
+  list.querySelectorAll('.comment-edit-save').forEach(btn => {
+    btn.addEventListener('click', function () {
+      const c       = this.dataset.comment;
+      const input   = document.getElementById(`comment-modal-edit-input-${c}`);
+      const newText = input.value.trim();
+      if (!newText) return;
+      const textEl = document.getElementById(`comment-modal-text-${c}`);
+      const bubble = document.getElementById(`comment-modal-bubble-${c}`);
+      const edit   = document.getElementById(`comment-modal-edit-${c}`);
+      textEl.textContent = newText;
+      bubble.style.display = '';
+      edit.classList.remove('open');
+
+      /* Sync back to comment-data store */
+      if (_currentPostCard) {
+        const cds = _currentPostCard.querySelectorAll('.comment-data');
+        if (cds[c]) cds[c].dataset.text = newText;
+        updateFeedCommentPreview(_currentPostCard);
+      }
+
+      // BACKEND TEAM: update comment in Firebase here
+      console.log('Edit comment:', { comment: c, newText });
+      showToast('Comment updated.');
+    });
+  });
+
+  /* Delete button */
+  list.querySelectorAll('.delete-btn').forEach(btn => {
+    btn.addEventListener('click', function () {
+      const c    = this.dataset.comment;
+      const item = document.getElementById(`comment-modal-item-${c}`);
+      item.style.transition = 'opacity 0.2s, transform 0.2s';
+      item.style.opacity    = '0';
+      item.style.transform  = 'translateX(12px)';
+      setTimeout(() => item.remove(), 200);
+
+      /* Sync back to comment-data store */
+      if (_currentPostCard) {
+        const cds = _currentPostCard.querySelectorAll('.comment-data');
+        if (cds[c]) cds[c].remove();
+        const countEl = _currentPostCard.querySelector('.reaction-comments-count');
+        if (countEl) countEl.textContent = Math.max(0, parseInt(countEl.textContent) - 1);
+        updateFeedCommentPreview(_currentPostCard);
+      }
+
+      // BACKEND TEAM: delete comment from Firebase here
+      console.log('Delete comment:', { comment: c });
+      showToast('Comment deleted.');
+    });
+  });
 }
 
 function closeCommentModal() {
@@ -413,19 +515,22 @@ function submitModalComment() {
   const text  = input.value.trim();
   if (!text) return;
 
-  const userAvatar = USER.photoSrc || '../assets/images/anon_avatar.jpg';
   const list = document.getElementById('commentModalList');
-  list.appendChild(buildCommentModalItem(USER.name, userAvatar, text, 'Just now'));
+  const cIdx = list.querySelectorAll('.comment-modal-item').length;
+  list.appendChild(buildCommentModalItem('Puto Imnida', '../assets/images/anon_avatar.jpg', text, 'Just now', true, cIdx));
   list.scrollTop = list.scrollHeight;
+
+  bindCommentActions();
 
   if (_currentPostCard) {
     const store = _currentPostCard.querySelector('.comments-data');
     const cd = document.createElement('div');
-    cd.className      = 'comment-data';
-    cd.dataset.author = USER.name;
-    cd.dataset.avatar = userAvatar;
-    cd.dataset.text   = text;
-    cd.dataset.time   = 'Just now';
+    cd.className        = 'comment-data';
+    cd.dataset.author   = 'Puto Imnida';
+    cd.dataset.avatar   = '../assets/images/anon_avatar.jpg';
+    cd.dataset.text     = text;
+    cd.dataset.time     = 'Just now';
+    cd.dataset.isOwn    = 'true';
     store.appendChild(cd);
 
     const countEl = _currentPostCard.querySelector('.reaction-comments-count');
@@ -467,8 +572,11 @@ function updateFeedCommentPreview(card) {
           <div class="comment-modal-item-time">${latest.dataset.time}</div>
         </div>
       </div>`;
+  } else if (preview) {
+    preview.remove();
   }
 }
+
 
 // ========================
 // SUBMIT BUTTON OPACITY
@@ -487,12 +595,52 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // Nav buttons — click sets active, no mouseleave clearing
-  const navBtns = document.querySelectorAll('.nav-btn');
-  navBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-      navBtns.forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-    });
-  });
+    (function () {
+    const navWrap  = document.getElementById('sidebar-nav');
+    const teardrop = document.getElementById('nav-teardrop');
+    const navBtns  = Array.from(navWrap.querySelectorAll('.nav-btn'));
+    const profBtn  = document.getElementById('sidebar-avatar-wrap');
+    const allBtns  = [...navBtns, profBtn];
+    const TD_BASE_H = 66;
 
+    function moveTo(item) {
+      const wrapRect = navWrap.getBoundingClientRect();
+      const itemRect = item.getBoundingClientRect();
+      const centerY  = itemRect.top + itemRect.height / 2 - wrapRect.top;
+      teardrop.style.top = (centerY - TD_BASE_H / 2) + 'px';
+    }
+
+    navBtns.forEach(item => {
+      item.addEventListener('click', function () {
+        allBtns.forEach(i => i.classList.remove('active'));
+        this.classList.add('active');
+        moveTo(this);
+        console.log('Navigate to:', this.dataset.route);
+      });
+    });
+
+    profBtn.addEventListener('click', function () {
+      allBtns.forEach(i => i.classList.remove('active'));
+      this.classList.add('active');
+      moveTo(this);
+      console.log('Navigate to: profile');
+    });
+
+    /* Snap to active button on load (default = profile) */
+    function snapToActive() {
+      let active = navWrap.querySelector('.nav-btn.active, .nav-btn-profile.active');
+
+      if (!active) {
+        active = profBtn; // default position
+        profBtn.classList.add('active');
+      }
+
+      teardrop.style.transition = 'none';
+      moveTo(active);
+      requestAnimationFrame(() => { teardrop.style.transition = ''; });
+    }
+
+    window.addEventListener('load', () => setTimeout(snapToActive, 50));
+
+  })();
 });

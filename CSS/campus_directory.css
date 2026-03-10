@@ -65,16 +65,18 @@ body {
 .sidebar-nav {
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 20px;
   align-items: center;
   flex: 1;
   width: 100%;
-  justify-content: flex-start;
+  justify-content: center;
+  position: relative;
+  padding: 8px 0;
 }
 
 .nav-btn {
   width: 72px;
-  height: 80px;
+  height: 66px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -108,11 +110,12 @@ body {
   position: relative;
   z-index: 5;
   flex-shrink: 0;
+  transform: translateX(-4px);
 }
 
 .nav-btn:hover .nav-icon-wrap,
 .nav-btn.active .nav-icon-wrap {
-  background: var(--maroon-dark);  /* dark maroon circle */
+  background: var(--maroon-dark);
   z-index: 10;
 }
 
@@ -120,50 +123,93 @@ body {
 .nav-btn.active .nav-icon-wrap img {
   width: 64px;
   height: 64px;
-  filter: brightness(0) invert(0.9) sepia(0.2)
+  filter: brightness(0) invert(0.9) sepia(0.2);
 }
 
-.nav-btn::after {
-  content: '';
-  position: absolute;
-  left: -3px;
-  top: 1px;
-  width: 110px;
-  height: 90px;
-  background: #FFF4E7;
-  clip-path: path('M40 0 C18 0, 0 18, 0 40 C0 62, 18 80, 40 80 C60 80, 120 52, 120 40 C120 28, 60 0, 40 0 Z');
-  opacity: 0;
-  transition: top .35s cubic-bezier(.65,0,.35,1);
-  z-index: 1;
-  pointer-events: none;
-}
-.nav-btn:hover::after,
-.nav-btn.active::after {
-  opacity: 1;
-}
-
-.sidebar-avatar {
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  border: 2.5px solid rgba(255,255,255,0.35);
-  overflow: hidden;
+.nav-btn-profile {
+  width: 72px;
+  height: 66px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
-  margin-top: 1px;
-  margin-left: 19px;
-  transition: border-color 0.18s;
+  border: none;
+  background: transparent;
+  padding: 8px;
+  position: relative;
+  flex-shrink: 0;
 }
 
-.sidebar-avatar:hover {
-  border-color: #fff;
+.nav-btn-profile .nav-profile-avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: 2.5px solid rgba(255,255,255,0.75);
+  overflow: hidden;
+  background: rgba(255,255,255,0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.18s, transform 0.18s, background 0.22s;
+  position: relative;
+  z-index: 6;
 }
 
-.sidebar-avatar-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+.nav-btn[data-route="home"] img {
+  width: 102px;
+  height: 102px;
 }
 
+.nav-btn[data-route="home"].active .nav-icon-wrap img,
+.nav-btn[data-route="home"]:hover .nav-icon-wrap img {
+  width: 64px;
+  height: 64px;
+}
+
+.nav-btn-profile.active .nav-profile-avatar,
+.nav-btn-profile:hover .nav-profile-avatar {
+  background: var(--maroon-dark);
+  border-color: rgba(255,255,255,0.9);
+}
+
+.nav-btn-profile .nav-profile-avatar svg {
+  width: 22px; height: 22px;
+  stroke: rgba(255,255,255,0.85); fill: none; stroke-width: 1.8;
+}
+
+.nav-btn-profile .nav-profile-avatar img {
+  width: 100%; height: 100%; object-fit: cover;
+}
+
+.nav-spacer { flex: 1; min-height: 4px; }
+
+.nav-btn[data-route="announcements"] img {
+  width: 102px;
+  height: 102px;
+}
+
+.nav-btn[data-route="announcements"].active .nav-icon-wrap img,
+.nav-btn[data-route="announcements"]:hover .nav-icon-wrap img {
+  width: 64px;
+  height: 64px;
+}
+
+.nav-btn::after { display: none; }
+
+.nav-teardrop {
+  position: absolute;
+  left: 10px;
+  top: 0;
+  width: 116px;
+  height: 66px;
+  background: var(--cream);
+  clip-path: path('M33 0 C14 0, 0 14, 0 33 C0 52, 14 66, 33 66 C49 66, 108 47, 116 33 C108 19, 49 0, 33 0 Z');
+  transform-origin: left center;
+  pointer-events: none;
+  z-index: 1;
+  transition: top 0.42s cubic-bezier(0.34, 1.28, 0.64, 1);
+  will-change: top, transform;
+}
 
 /* ========================
    MAIN
