@@ -1,93 +1,112 @@
-// ── IMPORT FIREBASE ──
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.6.0/firebase-app.js";
-import { getAuth, createUserWithEmailAndPassword, sendEmailVerification } from "https://www.gstatic.com/firebasejs/10.6.0/firebase-auth.js";
+let selectedRole = null;
 
-// ── CONFIG ──
-const firebaseConfig = {
-  apiKey: "AIzaSyBpGOdMpx_Mws2EcCq6rbOWfZ-FFuhhfo0",
-  authDomain: "tup-connect-b162d.firebaseapp.com",
-  projectId: "tup-connect-b162d",
-  storageBucket: "tup-connect-b162d.appspot.com",
-  messagingSenderId: "193141013544",
-  appId: "1:193141013544:web:72b403e84aa4d3313f091d"
+const ROLE_META = {
+  student: { label: 'Student',              redirect: 'setup_student.html' },
+  org:     { label: 'Student Organization', redirect: 'setup_org.html'     },
+  admin:   { label: 'Admin / USG',          redirect: 'setup_usg.html'     },
 };
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
+function selectRole(role) {
+  // Deselect all
+  ['student', 'org', 'admin'].forEach(r => {
+    document.getElementById(`role-${r}`).classList.remove('selected');
+  });
 
-// ── HELPER FUNCTIONS ──
-function showError(id, msg) {
-  const el = document.getElementById(id);
-  el.textContent = msg;
-  el.style.display = "block";
+  selectedRole = role;
+  document.getElementById(`role-${role}`).classList.add('selected');
+
+  // Update card header
+  const meta     = ROLE_META[role];
+  const pill     = document.getElementById('selected-role-pill');
+  const subtitle = document.getElementById('reg-subtitle');
+
+  subtitle.textContent = `Registering as: `;
+  pill.style.display   = 'inline-flex';
+  document.getElementById('pill-label').textContent = meta.label;
+
+  // Reveal fields with a slight stagger
+  const fieldsToShow = ['field-name', 'field-email', 'field-password'];
+  fieldsToShow.forEach((id, i) => {
+    const el = document.getElementById(id);
+    el.style.display = 'flex';
+    el.style.animationDelay = `${i * 0.06}s`;
+  });
+
+  document.getElementById('role-nudge').style.display       = 'none';
+  document.getElementById('btn-register').style.display     = 'block';
+  document.getElementById('or-divider').style.display       = 'flex';
+  document.getElementById('btn-guest-bottom').style.display = 'block';
+  document.getElementById('hint-text').style.display        = 'block';
+
+  // Change label for org name field if org role
+  document.getElementById('label-name').textContent =
+    role === 'org' ? 'Organization Name' : 
+    role === 'admin' ? 'Name' : 'Full Name';
+
+  document.getElementById('input-name').placeholder =
+  role === 'org'   ? 'e.g. TUP Computer Engineering Society' :
+  role === 'admin' ? 'e.g. University Student Government'    :
+                     'Juan dela Cruz';
 }
 
-function clearErrors() {
-  document.querySelectorAll(".field-error").forEach(e => e.style.display = "none");
-  document.getElementById("verification-msg").style.display = "none";
-}
-
-// ── TOGGLE PASSWORD ──
 function togglePassword(btn) {
-  const input = document.getElementById("input-password");
-  if (input.type === "password") {
-    input.type = "text";
-    btn.textContent = "Hide";
-  } else {
-    input.type = "password";
-    btn.textContent = "Show";
-  }
+  const input    = document.getElementById('input-password');
+  const isHidden = input.type === 'password';
+  input.type     = isHidden ? 'text' : 'password';
+  btn.innerHTML  = isHidden
+    ? `<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>`
+    : `<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`;
 }
 
-// ── HANDLE REGISTER ──
 function handleRegister() {
-  const name = document.getElementById("input-name").value.trim();
-  const email = document.getElementById("input-email").value.trim();
-  const password = document.getElementById("input-password").value;
+  if (!selectedRole) return;
 
-  clearErrors();
+  const name     = document.getElementById('input-name');
+  const email    = document.getElementById('input-email');
+  const password = document.getElementById('input-password');
 
-  // ── VALIDATION ──
-  if (!name) {
-    return showError("err-name", "Please enter your full name.");
+  let valid = true;
+
+  ['name', 'email', 'password'].forEach(f => {
+    document.getElementById(`input-${f}`).classList.remove('error');
+    const err = document.getElementById(`err-${f}`);
+    err.classList.remove('visible');
+    err.style.display = 'none';
+  });
+
+  if (name.value.trim() === '') {
+    name.classList.add('error');
+    const e = document.getElementById('err-name');
+    e.style.display = 'block';
+    e.classList.add('visible');
+    valid = false;
   }
-  if (!email || !email.endsWith("@tup.edu.ph")) {
-    return showError("err-email", "Please enter a valid @tup.edu.ph email.");
-  }
-  if (!password) {
-    return showError("err-password", "Please enter your TUP password.");
+
+  if (!email.value.trim().endsWith('@tup.edu.ph')) {
+    email.classList.add('error');
+    const e = document.getElementById('err-email');
+    e.style.display = 'block';
+    e.classList.add('visible');
+    valid = false;
   }
 
-  // ── CREATE USER ──
-  createUserWithEmailAndPassword(auth, email, password)
-    .then(userCredential => {
-      const user = userCredential.user;
+  if (password.value.trim() === '') {
+    password.classList.add('error');
+    const e = document.getElementById('err-password');
+    e.style.display = 'block';
+    e.classList.add('visible');
+    valid = false;
+  }
 
-      // ── SEND VERIFICATION EMAIL ──
-      sendEmailVerification(user)
-        .then(() => {
-          const msg = document.getElementById("verification-msg");
-          msg.textContent = "Verification email sent! Please check your TUP email.";
-          msg.style.display = "block";
-        })
-        .catch(err => {
-          alert("Failed to send verification email: " + err.message);
-        });
-    })
-    .catch(err => {
-      // Handle errors properly
-      if (err.code === "auth/email-already-in-use") {
-        showError("err-email", "Email is already registered.");
-      } else if (err.code === "auth/weak-password") {
-        showError("err-password", "Password should be at least 6 characters.");
-      } else if (err.code === "auth/invalid-email") {
-        showError("err-email", "Invalid email format.");
-      } else {
-        alert(err.message);
-      }
+  if (valid) {
+    // BACKEND TEAM: replace with SSO verification API call.
+    // Pass: name/orgName, email, password, selectedRole
+    // On success → redirect to the correct setup page
+    console.log('Register:', {
+      role:     selectedRole,
+      name:     name.value.trim(),
+      email:    email.value.trim(),
     });
+    window.location.href = ROLE_META[selectedRole].redirect;
+  }
 }
-
-// ── EXPOSE FUNCTIONS TO HTML ──
-window.handleRegister = handleRegister;
-window.togglePassword = togglePassword;

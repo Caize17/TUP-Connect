@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=1280, initial-scale=1.0"/>
+  <title>TUP Konek — Set Up Organization Account</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;1,500&family=Montserrat:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="../CSS/setup.css"/>
+</head>
+<body>
+
+  <div class="hero-bg"></div>
+
+  <div class="page-wrapper">
+
+    <nav class="main-nav">
+      <a href="../index.html">
+        <img src="../assets/images/logo-white.png" alt="TUP Konek" style="height:90px;width:auto;object-fit:contain;"/>
+      </a>
+      <div class="nav-step-label">Step 3 of 3 — Account Setup</div>
+    </nav>
+
+    <main class="main-content">
+      <div class="setup-layout">
+
+        <!-- LEFT -->
+        <div class="left-side anim-1">
+          <div class="gold-line"></div>
+          <h1 class="hero-title">Set up your<br/><em>Organization Profile</em></h1>
+          <p class="hero-sub">Your organization's page will be visible to all TUPians. Posts you make will appear in the Campus News Org Feed.</p>
+
+          <div class="role-badge role-badge-gold">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+            Student Organization Account
+          </div>
+
+
+          <div class="info-cards anim-2">
+            <div class="info-card">
+              <div class="info-card-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#F5C2C3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="3" width="18" height="18" rx="2"/><line x1="8" y1="8" x2="16" y2="8"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="8" y1="16" x2="12" y2="16"/>
+                </svg>
+              </div>
+              <div>
+                <p class="info-card-title">Org Feed</p>
+                <p class="info-card-desc">Post announcements & events under Campus News</p>
+              </div>
+            </div>
+            <div class="info-card">
+              <div class="info-card-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#F5C2C3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                </svg>
+              </div>
+              <div>
+                <p class="info-card-title">Post Management</p>
+                <p class="info-card-desc">Edit and delete your own org posts</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- FORM CARD -->
+        <div class="setup-card anim-3">
+
+          <div class="setup-card-top">
+            <div class="setup-icon-wrap">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#F5EFE6" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+              </svg>
+            </div>
+            <div class="setup-card-title">Organization Profile</div>
+            <p class="setup-card-subtitle">Set up your org's public presence on TUP Konek</p>
+          </div>
+
+          <div class="setup-card-body">
+
+            <!-- COVER PHOTO -->
+            <div class="cover-upload-wrap" id="cover-wrap">
+              <div class="cover-placeholder" id="cover-placeholder">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
+                </svg>
+                <span>Add Cover Photo <span class="optional-tag">optional</span></span>
+              </div>
+              <img id="cover-preview" class="cover-preview" src="" alt="Cover"/>
+              <input type="file" id="cover-input" accept="image/*" style="display:none;"/>
+              <button class="cover-edit-btn" id="cover-btn" title="Change cover photo">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                </svg>
+                Edit
+              </button>
+
+              <!-- PROFILE PHOTO -->
+              <div class="profile-upload-wrap" id="profile-wrap">
+                <div class="profile-placeholder" id="profile-placeholder">
+                  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.7)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+                  </svg>
+                </div>
+                <img id="profile-preview" class="profile-preview" src="" alt="Org Logo"/>
+                <button class="profile-camera-btn" id="profile-btn" title="Add org logo">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>
+                  </svg>
+                </button>
+                <input type="file" id="profile-input" accept="image/*" style="display:none;"/>
+              </div>
+            </div>
+
+            <div class="form-fields">
+
+              <!-- Org Name -->
+              <div class="field-group">
+                <label class="field-label">Organization Name <span class="required-star">*</span></label>
+                <input id="input-orgname" class="tup-input" type="text" placeholder="e.g. TUP Computer Engineering Society" maxlength="100"/>
+                <p class="field-error" id="err-orgname">Please enter your organization name.</p>
+              </div>
+
+              <!-- TUP Email (read-only) -->
+              <div class="field-group">
+                <label class="field-label">TUP Email <span class="lock-tag">from registration</span></label>
+                <div class="tup-input readonly-input" id="display-email">—</div>
+              </div>
+
+              <!-- College Affiliation -->
+              <div class="field-group">
+                <label class="field-label">College Affiliation <span class="required-star">*</span></label>
+                <div class="select-wrap">
+                  <select id="input-college" class="tup-input tup-select">
+                    <option value="" disabled selected>Select college affiliation</option>
+                    <option value="CAFA">College of Architecture and Fine Arts (CAFA)</option>
+                    <option value="CIE">College of Industrial Education (CIE)</option>
+                    <option value="CIT">College of Industrial Technology (CIT)</option>
+                    <option value="CLA">College of Liberal Arts (CLA)</option>
+                    <option value="COE">College of Engineering (COE)</option>
+                    <option value="CS">College of Science (COS)</option>
+                    <option value="UNIVERSITY_WIDE">Not college-specific (University-wide org)</option>
+                  </select>
+                  <svg class="select-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                </div>
+                <p class="field-error" id="err-college">Please select a college affiliation.</p>
+              </div>
+
+              <button class="btn-submit" id="btn-submit" onclick="handleOrgSubmit()">
+                Complete Setup
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+              </button>
+
+              <p class="submit-note">Your account will be inactive until approved by an admin.</p>
+
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+
+    <footer class="footer-text">
+      © 2026 TUP Connect · Technological University of the Philippines · Made with ♥ by students, for students
+    </footer>
+  </div>
+
+  <script>
+    // BACKEND TEAM: populate from the registered user session
+    const REG_USER = {
+      email: null,
+    };
+
+    document.getElementById('display-email').textContent = REG_USER.email || '—';
+
+    // Cover photo
+    const coverBtn   = document.getElementById('cover-btn');
+    const coverInput = document.getElementById('cover-input');
+    const coverPrev  = document.getElementById('cover-preview');
+    const coverPH    = document.getElementById('cover-placeholder');
+
+    coverBtn.addEventListener('click', () => coverInput.click());
+    coverPH.addEventListener('click',  () => coverInput.click());
+    coverInput.addEventListener('change', function () {
+      if (!this.files[0]) return;
+      const reader = new FileReader();
+      reader.onload = e => {
+        coverPrev.src = e.target.result;
+        coverPrev.style.display = 'block';
+        coverPH.style.display   = 'none';
+      };
+      reader.readAsDataURL(this.files[0]);
+    });
+
+    // Profile / logo photo
+    const profileBtn   = document.getElementById('profile-btn');
+    const profileInput = document.getElementById('profile-input');
+    const profilePrev  = document.getElementById('profile-preview');
+    const profilePH    = document.getElementById('profile-placeholder');
+
+    profileBtn.addEventListener('click',  () => profileInput.click());
+    profilePH.addEventListener('click',   () => profileInput.click());
+    profileInput.addEventListener('change', function () {
+      if (!this.files[0]) return;
+      const reader = new FileReader();
+      reader.onload = e => {
+        profilePrev.src = e.target.result;
+        profilePrev.style.display = 'block';
+        profilePH.style.display   = 'none';
+      };
+      reader.readAsDataURL(this.files[0]);
+    });
+
+    function handleOrgSubmit() {
+      let valid = true;
+
+      const orgnameEl = document.getElementById('input-orgname');
+      const collegeEl = document.getElementById('input-college');
+
+      document.querySelectorAll('.field-error').forEach(e => e.style.display = 'none');
+      document.querySelectorAll('.tup-input').forEach(e => e.classList.remove('error'));
+
+      if (!orgnameEl.value.trim()) {
+        orgnameEl.classList.add('error');
+        document.getElementById('err-orgname').style.display = 'block';
+        valid = false;
+      }
+      if (!collegeEl.value) {
+        collegeEl.classList.add('error');
+        document.getElementById('err-college').style.display = 'block';
+        valid = false;
+      }
+
+      if (valid) {
+        // BACKEND TEAM: save to Firebase then redirect to a pending approval page
+        console.log('Org setup submitted:', {
+          email:   REG_USER.email,
+          orgName: orgnameEl.value.trim(),
+          college: collegeEl.value,
+        });
+        window.location.href = 'pending-approval.html';
+      }
+    }
+  </script>
+
+</body>
+</html>
