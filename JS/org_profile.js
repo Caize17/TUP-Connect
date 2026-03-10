@@ -1,6 +1,7 @@
+const avatarImg = document.querySelector('#modal-avatar img');
 const USER = {
   name: document.getElementById('modal-user-name').textContent,
-  photoSrc: document.querySelector('#modal-avatar img').src
+  photoSrc: avatarImg ? avatarImg.src : ''
 };
 
 // ========================
@@ -57,7 +58,6 @@ document.addEventListener('click', function (e) {
 
   // ── LIKE ──
   if (type === 'like') {
-    // Read base BEFORE toggling
     const countEl = btn.querySelector('.reaction-likes-count');
     const postIdx = btn.dataset.post !== undefined ? parseInt(btn.dataset.post) : null;
     const base = (postIdx !== null && FEED_POSTS?.[postIdx])
@@ -100,7 +100,6 @@ document.addEventListener('click', function (e) {
 
   // ── REPOST ──
   else if (type === 'repost') {
-    // Read base BEFORE toggling
     const countSpan = btn.querySelector('.reaction-reposts-count');
     const postIdx = btn.dataset.post !== undefined ? parseInt(btn.dataset.post) : null;
     const base = (postIdx !== null && FEED_POSTS?.[postIdx])
@@ -181,14 +180,15 @@ function createRepostCard(btn) {
   card.className = 'post-card';
   card.id        = repostId;
 
-  // Use getTemplate() to correctly read from <template> elements
+  const userAvatar = USER.photoSrc || '../assets/images/anon_avatar.jpg';
+
   card.innerHTML = `
     <div class="post-header">
       <div class="post-avatar">
-        <img src="../assets/images/anon_avatar.jpg" alt="Samantha" onerror="this.parentElement.textContent='👩'">
+        <img src="${userAvatar}" alt="${escapeHTML(USER.name)}" onerror="this.parentElement.textContent='👩'">
       </div>
       <div class="post-meta">
-        <div class="post-author">Puto Imnida</div>
+        <div class="post-author">${escapeHTML(USER.name)}</div>
         <div class="post-time">${dateStr}</div>
       </div>
       <div class="post-menu" onclick="toggleMenu(event, '${menuId}')">···
@@ -205,10 +205,10 @@ function createRepostCard(btn) {
     <div class="repost-quote-card">
       <div class="repost-quote-header">
         <div class="repost-quote-avatar">
-          ${avatar ? `<img src="${avatar}" alt="${author}">` : '👤'}
+          ${avatar ? `<img src="${avatar}" alt="${escapeHTML(author)}">` : '👤'}
         </div>
         <div class="repost-quote-meta">
-          <div class="repost-quote-author">${author}</div>
+          <div class="repost-quote-author">${escapeHTML(author)}</div>
           <div class="repost-quote-time">${time}</div>
         </div>
       </div>
@@ -223,7 +223,7 @@ function createRepostCard(btn) {
 
     <div class="comment-input-row always-visible" onclick="openCommentModal(this)">
       <div class="comment-avatar">
-        <img src="../assets/images/anon_avatar.jpg" alt="You" onerror="this.parentElement.textContent='👩'">
+        <img src="${userAvatar}" alt="You" onerror="this.parentElement.textContent='👩'">
       </div>
       <input class="comment-input" placeholder="Write a comment..." readonly>
     </div>`;
@@ -254,9 +254,8 @@ function submitPost() {
   const content = document.getElementById('postContent').value.trim();
   if (!content) { showToast('Write something first!'); return; }
 
-  const isAnon  = document.getElementById('anonToggle').checked;
-  const author  = isAnon ? 'Anonymous' : 'Puto Imnida';
-  const avatar  = isAnon ? '../assets/images/anon_avatar.jpg' : '../assets/images/anon_avatar.jpg';
+  const author = USER.name;
+  const avatar = USER.photoSrc || '../assets/images/anon_avatar.jpg';
 
   const now     = new Date();
   const dateStr = now.toLocaleDateString('en-US', {
@@ -269,14 +268,13 @@ function submitPost() {
   const card   = document.createElement('div');
   card.className = 'post-card';
 
-  // Use getTemplate() to correctly read from <template> elements
   card.innerHTML = `
     <div class="post-header">
       <div class="post-avatar">
-        ${avatar ? `<img src="${avatar}" alt="${author}" onerror="this.parentElement.textContent='👩'">` : '👤'}
+        <img src="${avatar}" alt="${escapeHTML(author)}" onerror="this.parentElement.textContent='👩'">
       </div>
       <div class="post-meta">
-        <div class="post-author">${author}</div>
+        <div class="post-author">${escapeHTML(author)}</div>
         <div class="post-time">${dateStr}</div>
       </div>
       <div class="post-menu" onclick="toggleMenu(event, '${menuId}')">···
@@ -296,7 +294,7 @@ function submitPost() {
 
     <div class="comment-input-row always-visible" onclick="openCommentModal(this)">
       <div class="comment-avatar">
-        <img src="../assets/images/anon_avatar.jpg" alt="You" onerror="this.parentElement.textContent='👩'">
+        <img src="${avatar}" alt="You" onerror="this.parentElement.textContent='👩'">
       </div>
       <input class="comment-input" placeholder="Write a comment..." readonly>
     </div>`;
@@ -304,7 +302,6 @@ function submitPost() {
   const feed = document.getElementById('feed');
   feed.insertBefore(card, feed.firstChild);
   document.getElementById('postContent').value = '';
-  document.getElementById('anonToggle').checked = false;
   closePostModal();
   showToast('Post shared!');
 }
@@ -416,16 +413,17 @@ function submitModalComment() {
   const text  = input.value.trim();
   if (!text) return;
 
+  const userAvatar = USER.photoSrc || '../assets/images/anon_avatar.jpg';
   const list = document.getElementById('commentModalList');
-  list.appendChild(buildCommentModalItem('Puto Imnida', '../assets/images/anon_avatar.jpg', text, 'Just now'));
+  list.appendChild(buildCommentModalItem(USER.name, userAvatar, text, 'Just now'));
   list.scrollTop = list.scrollHeight;
 
   if (_currentPostCard) {
     const store = _currentPostCard.querySelector('.comments-data');
     const cd = document.createElement('div');
     cd.className      = 'comment-data';
-    cd.dataset.author = 'Puto Imnida';
-    cd.dataset.avatar = '../assets/images/anon_avatar.jpg';
+    cd.dataset.author = USER.name;
+    cd.dataset.avatar = userAvatar;
     cd.dataset.text   = text;
     cd.dataset.time   = 'Just now';
     store.appendChild(cd);
@@ -488,31 +486,12 @@ document.addEventListener('DOMContentLoaded', () => {
     commentSubmit.style.opacity = commentInput.value.trim() ? '1' : '0.35';
   });
 
-  const anonToggle = document.getElementById('anonToggle');
-  anonToggle.addEventListener('change', function () {
-    const nameEl   = document.getElementById('modal-user-name');
-    const avatarEl = document.getElementById('modal-avatar');
-    if (this.checked) {
-      nameEl.textContent = 'Anonymous Puto';
-      avatarEl.innerHTML = `<img src="../assets/images/anon_avatar.jpg" alt="Anonymous" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
-    } else {
-      nameEl.textContent = USER.name;
-      avatarEl.innerHTML = USER.photoSrc
-        ? `<img src="${USER.photoSrc}" alt="Me" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`
-        : `<svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`;
-    }
-  });
-
+  // Nav buttons — click sets active, no mouseleave clearing
   const navBtns = document.querySelectorAll('.nav-btn');
-
   navBtns.forEach(btn => {
     btn.addEventListener('click', () => {
       navBtns.forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-    });
-
-    btn.addEventListener('mouseleave', () => {
-      navBtns.forEach(b => b.classList.remove('active'));
     });
   });
 

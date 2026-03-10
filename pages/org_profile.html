@@ -7,7 +7,7 @@
 
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 
-<link rel="stylesheet" href="../CSS/Profile.css">
+<link rel="stylesheet" href="../CSS/org_profile.css">
 </head>
 
 <body>
@@ -20,22 +20,16 @@
     </div>
 
     <nav class="sidebar-nav">
-      <button class="nav-btn">
-        <span class="nav-icon-wrap">
-          <img src="../assets/images/community_feed.png" alt="Home">
+      <button class="nav-btn" id="btn-logout">
+        <span class="quick-btn-icon">
+            <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
         </span>
       </button>
-      <button class="nav-btn">
-        <span class="nav-icon-wrap">
-          <img src="../assets/images/announcement.png" alt="Announcements">
+      <button class="nav-btn" id="btn-settings">
+        <span class="quick-btn-icon">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
         </span>
       </button>
-      <button class="nav-btn">
-        <span class="nav-icon-wrap">
-          <img src="../assets/images/campus_directory.png" alt="Marketplace">
-        </span>
-      </button>
-    </nav>
 
     <div class="sidebar-avatar">
       <img src="../assets/images/anon_avatar.jpg" class="sidebar-avatar-img">
@@ -74,16 +68,9 @@
         </div>
       </div>
       <div class="profile-info">
-        <div class="profile-name">Puto Imnida</div>
-        <div class="profile-id">TUPM-23-1234</div>
-        <div class="profile-email-logo">✉ <span class="profile-email">puto.imnida@tup.edu.ph</span></div>
+        <div class="profile-name">Puto-Manila Organization</div>
+        <div class="profile-email-logo">✉ <span class="profile-email">putomanila.org@tup.edu.ph</span></div>
       </div>
-      <button class="logout-btn" id="btn-logout">
-      <span class="quick-btn-icon">
-        <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-      </span>
-      <span class="quick-btn-label">Logout</span>
-    </button>
     </div>
 
     <!-- POST INPUT -->
@@ -100,11 +87,6 @@
 
     <!-- FEED -->
     <div class="feed" id="feed"></div>
-
-    <!-- ASK ME - fixed, outside feed -->
-    <div class="ask-me-wrap">
-      <img src="../assets/images/Tupee.png" class="ask-me-img">
-    </div>
 
   </main>
 
@@ -153,14 +135,7 @@
 
         <div class="modal-user-info">
           <!-- ✅ id="modal-user-name" added -->
-          <div class="modal-user-name" id="modal-user-name">Puto Imnida</div>
-          <div class="modal-anon-row">
-            <span class="modal-anon-label">Post Anonymously</span>
-            <label class="toggle-switch">
-              <input type="checkbox" id="anonToggle">
-              <span class="toggle-slider"></span>
-            </label>
-          </div>
+          <div class="modal-user-name" id="modal-user-name">Puto-Manila Organization</div>
         </div>
       </div>
 
@@ -199,7 +174,7 @@
                 </div>
 
                 <div class="comment-modal-bubble-input">
-                    <div class="comment-modal-input-name">Puto Imnida</div>
+                    <div class="comment-modal-input-name">Puto-Manila Organization</div>
 
                     <input
                         class="comment-modal-input"
@@ -221,7 +196,7 @@
   <!-- TOAST -->
   <div class="toast" id="toast"></div>
 
-  <script src="../JS/Profile.js"></script>
+  <script src="../JS/org_profile.js"></script>
 
 </body>
 </html>
