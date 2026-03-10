@@ -1,7 +1,18 @@
-/**
- * BACKEND TEAM: Fill in USER, POST, and FEED_POSTS from Firebase before this runs.
- * All console.log() calls are Firebase integration placeholders.
- */
+import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+const auth = getAuth();
+const logoutBtn = document.getElementById('quick-btn-label');
+
+logoutBtn.addEventListener('click', () => {
+  signOut(auth).then(() => {
+    // Sign-out successful.
+    console.log("User signed out.");
+    window.location.href = './index.html'; // Redirect to login page
+  }).catch((error) => {
+    // An error happened.
+    alert("Error logging out: " + error.message);
+  });
+});
 
 (function () {
 

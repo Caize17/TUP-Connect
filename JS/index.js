@@ -33,15 +33,29 @@ async function handleHomepage() {
     
     // 4. Success! Move to homepage
     console.log("Logged in:", userCredential.user);
-    window.location.href = 'homepage.html'; 
+    window.location.href = '../pages/homepage.html'; 
 
   } catch (error) {
-    // 5. If account is not in DB or password is wrong
-    console.error("Error code:", error.code);
-    alert("Login failed: Account not found or wrong password.");
+    console.error("Firebase Error Code:", error.code);
+
+    switch (error.code) {
+      case 'auth/user-not-found':
+        alert("This email is not registered. Please sign up first.");
+        break;
+      case 'auth/wrong-password':
+        alert("Incorrect password. Please try again.");
+        break;
+      case 'auth/invalid-email':
+        alert("The email address is not formatted correctly.");
+        break;
+      case 'auth/too-many-requests':
+        alert("Too many failed attempts. Account temporarily disabled. Try again later.");
+        break;
+      default:
+        alert("An unexpected error occurred: " + error.message);
+    }
   }
 }
 
 // 6. IMPORTANT: Make the function global so onclick="" can see it
-window.location.href = '../pages/homepage.html';
 window.handleHomepage = handleHomepage;
