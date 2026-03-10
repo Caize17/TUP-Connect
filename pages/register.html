@@ -102,22 +102,11 @@
           </div>
 
         </div>
-
-        <!-- ── REGISTER CARD ── -->
-        <div class="register-card anim-4">
+                <!-- REGISTER CARD -->
+        <div class="register-card">
 
           <div class="register-top">
-            <div class="register-icon-wrap">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#F5EFE6" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="3"/>
-                <path d="M6.3 6.3 4.5 4.5M17.7 6.3l1.8-1.8M6.3 17.7l-1.8 1.8M17.7 17.7l1.8 1.8"/>
-                <circle cx="4" cy="4" r="1.5" fill="#F5EFE6" stroke="none"/>
-                <circle cx="20" cy="4" r="1.5" fill="#F5EFE6" stroke="none"/>
-                <circle cx="4" cy="20" r="1.5" fill="#F5EFE6" stroke="none"/>
-                <circle cx="20" cy="20" r="1.5" fill="#F5EFE6" stroke="none"/>
-              </svg>
-            </div>
-            <div class="register-title">Welcome!</div>
+            <h1 class="register-title">Welcome!</h1>
             <p class="register-subtitle">Verify your TUP account to get started</p>
           </div>
 
@@ -128,14 +117,14 @@
               <div>
                 <label class="field-label">Full Name</label>
                 <input id="input-name" class="tup-input" type="text" placeholder="Juan dela Cruz" autocomplete="name"/>
-                <p id="err-name" class="field-error">Please enter your full name.</p>
+                <p id="err-name" class="field-error" style="display:none;"></p>
               </div>
 
               <!-- TUP Email -->
               <div>
                 <label class="field-label">TUP Email</label>
                 <input id="input-email" class="tup-input" type="email" placeholder="yourname@tup.edu.ph" autocomplete="email"/>
-                <p id="err-email" class="field-error">Please enter a valid @tup.edu.ph email.</p>
+                <p id="err-email" class="field-error" style="display:none;"></p>
               </div>
 
               <!-- TUP Password -->
@@ -152,10 +141,13 @@
                 <p id="err-password" class="field-error">Please enter your TUP password.</p>
               </div>
 
-              <button class="btn-register-main" style="margin-top:4px;" onclick="handleRegister()">Verify &amp; Continue</button>
+              <!-- Verification message -->
+              <p id="verification-msg" style="color:green; display:none; margin-top:8px;"></p>
+
+              <!-- Register Button -->
+              <button class="btn-register-main" onclick="handleRegister()">Verify & Continue</button>
 
               <div class="or-divider">or</div>
-
               <button class="btn-browse-guest" onclick="window.location.href='homepage.html'">Browse as Guest</button>
 
             </div>
@@ -171,17 +163,16 @@
           </div>
 
         </div>
-
       </div>
     </main>
 
     <footer class="footer-text">
-      © 2026 TUP Connect · Technological University of the Philippines · Made with ♥ by students, for students
+      © 2026 TUP Connect · Technological University of the Philippines · Made with ♥ by students
     </footer>
-
   </div>
 
-  <script src="../JS/register.js"></script>
+  <!-- Firebase Scripts -->
+  <script type="module" src="../register.js"></script>
 
 </body>
 </html>
