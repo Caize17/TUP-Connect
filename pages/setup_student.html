@@ -194,7 +194,6 @@
         console.error("Error fetching user data:", err);
       }
     } else {
-      // Proteksyon: Kung walang user session, balik sa login page
       window.location.href = "../index.html";
     }
   });
@@ -250,16 +249,14 @@
         btnSubmit.disabled = true;
         btnSubmit.textContent = "Finalizing Account...";
 
-        // I-update ang Firestore document ng user
         const userRef = doc(db, "users", user.uid);
         await updateDoc(userRef, {
           studentID: idInput.value.trim(),
           college: collegeSelect.value,
-          isSetupComplete: true, // Eto ang 'key' para hindi na bumalik sa setup page
+          isSetupComplete: true, 
           setupDate: new Date()
         });
 
-        // Redirect sa homepage pagkatapos ng setup
         window.location.href = 'homepage.html';
 
       } catch (error) {

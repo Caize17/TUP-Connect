@@ -238,16 +238,14 @@
         btnSubmit.disabled = true;
         btnSubmit.textContent = "Saving Profile...";
 
-        // I-update ang Firestore document
         const userRef = doc(db, "users", user.uid);
         await updateDoc(userRef, {
           position: positionInput.value.trim(),
           department: departmentInput.value.trim(),
-          isSetupComplete: true, // Eto ang pinaka-importante para sa one-time setup
+          isSetupComplete: true,
           setupTimestamp: new Date()
         });
 
-        // Redirect sa homepage
         window.location.href = 'org_profile.html';
 
       } catch (error) {

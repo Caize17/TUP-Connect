@@ -19,7 +19,7 @@ async function handleHomepage() {
   const emailField = document.getElementById('login-email');
   const passwordField = document.getElementById('login-password');
   const errorEl = document.getElementById('login-error-msg');
-  const btn = document.getElementById('btn-sign-in'); // Siguraduhing may ID ang button mo
+  const btn = document.getElementById('btn-sign-in'); 
 
   const email = emailField.value.trim();
   const password = passwordField.value;
@@ -63,10 +63,18 @@ async function handleHomepage() {
       const role = userData.role;
       const isSetupComplete = userData.isSetupComplete;
 
-      // --- SILENT REDIRECT LOGIC ---
+      // --- REDIRECT LOGIC ---
       if (isSetupComplete === true) {
-        window.location.href = 'pages/homepage.html';
+        // BAGONG LOGIC: Redirect based on role
+        if (role === 'Organization' || role === 'USG') {
+          console.log("Redirecting Org/USG to Profile Page");
+          window.location.href = 'pages/org_profile.html';
+        } else {
+          console.log("Redirecting Student to Homepage");
+          window.location.href = 'pages/homepage.html';
+        }
       } else {
+        // Redirect kung hindi pa tapos ang setup
         if (role === 'Student') {
           window.location.href = 'pages/setup_student.html';
         } else if (role === 'Organization') {
@@ -78,7 +86,7 @@ async function handleHomepage() {
         }
       }
     } else {
-      // Fallback kung walang document pero verified na ang email
+      console.error("No user document found!");
       window.location.href = 'pages/homepage.html';
     }
 
@@ -94,7 +102,7 @@ async function handleHomepage() {
         showError("Incorrect email or password.");
         break;
       case 'auth/too-many-requests':
-        showError("Too many attempts. Please try muna later.");
+        showError("Too many attempts. Please try again later.");
         break;
       default:
         showError("Login failed. Please try again.");
