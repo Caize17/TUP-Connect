@@ -11,7 +11,8 @@ import {
     updateDoc, 
     arrayUnion, 
     arrayRemove,
-    increment 
+    increment,
+    deleteDoc,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
@@ -33,9 +34,10 @@ const textarea = document.querySelector('#post-textarea textarea') || document.q
 const anonToggle = document.getElementById('modal-anon-toggle');
 const overlay    = document.getElementById('create-post-overlay');
 
+let unsubscribeComments = null;
+
 if (submitBtn) {
   submitBtn.addEventListener('click', async (e) => {
-    // Prevent any other conflicting scripts from firing
     e.stopImmediatePropagation(); 
 
     const liveTextarea = document.getElementById('post-textarea');
@@ -60,8 +62,6 @@ if (submitBtn) {
         createdAt: serverTimestamp(),
         likes: 0
       });
-
-      console.log("✅ Success! ID:", docRef.id);
       
       liveTextarea.value = '';
       if (overlay) overlay.classList.remove('open');
@@ -86,14 +86,12 @@ onSnapshot(q, (snapshot) => {
     snapshot.forEach((doc) => {
         const data = doc.data();
 
-        // 1. DEFINE dateObj HERE (This is what's missing!)
         const dateObj = data.createdAt ? data.createdAt.toDate() : new Date();
 
         firebaseData.push({
             id: doc.id,
             name: data.author || "Anonymous Puto",
             body: data.text,
-            // 2. Now dateObj is available for use
             time: dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
             likes: data.likedBy ? data.likedBy.length : 0,
             isLikedByMe: auth.currentUser ? (data.likedBy || []).includes(auth.currentUser.uid) : false,
@@ -109,19 +107,32 @@ onSnapshot(q, (snapshot) => {
 
 onAuthStateChanged(auth, (user) => {
   if (user) {
-    window.USER = {
-      name: user.displayName || user.email.split('@')[0],
-      email: user.email,
-      photoSrc: user.photoURL || null
-    };
 
-    const sidebarName = document.querySelector('.profile-card-name'); 
-    if (sidebarName) sidebarName.textContent = window.USER.name;
+    const currentName = user.displayName || user.email.split('@')[0];
 
-    if (window.renderFeedPosts) window.renderFeedPosts();
-    
+    USER.name = currentName;
+    USER.photoSrc = user.photoURL;
+
+    const nameEl = document.getElementById('modal-user-name');
+    const sidebarName = document.querySelector('.user-name'); 
+    const postBoxName = document.querySelector('.post-creator-info h4'); 
+
+    if (nameEl) nameEl.textContent = USER.name;
+    if (sidebarName) sidebarName.textContent = USER.name;
+    if (postBoxName) postBoxName.textContent = USER.name;
+
+    const rightBarName = document.getElementById('profile-name');
+    if (rightBarName) {
+      rightBarName.textContent = USER.name;
+    }
+
+    const rightBarAvatar = document.querySelector('.right-sidebar .profile-pic img') || 
+                           document.querySelector('#profile-name-container img');
+    if (rightBarAvatar && user.photoURL) {
+      rightBarAvatar.src = user.photoURL;
+    }
   } else {
-    window.location.href = '../index.html';
+    window.location.href = "../index.html";
   }
 });
 
@@ -157,6 +168,87 @@ if (feedContainer) {
       }
     } catch (err) {
       console.error("Like failed:", err);
+    }
+  });
+}
+
+if (feedContainer) {
+  feedContainer.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-type="comment"]');
+    if (!btn) return;
+
+    const postId = btn.dataset.id;
+    const postIdx = window.FEED_POSTS.findIndex(p => p.id === postId);
+
+    if (postIdx !== -1 && window.FEED_POSTS[postIdx]) {
+      listenForComments(postId); 
+      window.openCommentModal(postIdx);
+    } else {
+      console.error("Post not found in FEED_POSTS array!");
+    }
+  });
+}
+
+function listenForComments(postId) {
+  if (unsubscribeComments) unsubscribeComments();
+    
+  const q = query(
+    collection(db, "posts", postId, "comments"),
+    orderBy("createdAt", "asc")
+  );
+
+  unsubscribeComments = onSnapshot(q, (snapshot) => {
+    const comments = snapshot.docs.map(doc => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        ...data,
+        isOwn: auth.currentUser ? (data.userId === auth.currentUser.uid) : false,
+        time: data.createdAt ? data.createdAt.toDate().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'Just now'
+      };
+    });
+
+    const postIdx = window.FEED_POSTS.findIndex(p => p.id === postId);
+    if (postIdx !== -1) {
+      window.FEED_POSTS[postIdx].commentList = comments;
+      if (window.openCommentModal) window.openCommentModal(postIdx);
+    }
+  });
+}
+
+const sendBtn = document.getElementById('comment-send-btn');
+const inputField = document.getElementById('comment-input-field');
+
+if (sendBtn) {
+  sendBtn.addEventListener('click', async () => {
+    const overlay = document.getElementById('comment-modal-overlay');
+    const postIdx = overlay.dataset.post;
+    
+    const post = window.FEED_POSTS ? window.FEED_POSTS[postIdx] : null;
+
+    const text = inputField.value.trim();
+
+    if (!text || !post || !auth.currentUser) {
+        console.error("Missing data:", { text, post, user: auth.currentUser });
+        return;
+    }
+
+    try {
+      await addDoc(collection(db, "posts", post.id, "comments"), {
+        text: text,
+        author: auth.currentUser.displayName || "Anonymous User",
+        userId: auth.currentUser.uid,
+        photoSrc: auth.currentUser.photoURL || null,
+        createdAt: serverTimestamp()
+      });
+
+      await updateDoc(doc(db, "posts", post.id), {
+        comments: increment(1)
+      });
+
+      inputField.value = '';
+    } catch (err) {
+      console.error("Firebase Error:", err);
     }
   });
 }

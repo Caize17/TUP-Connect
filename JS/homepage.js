@@ -238,7 +238,7 @@ function renderFeedPosts() {
             <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
             ${fmt(fp.likes)} Heart
           </button>
-          <button class="feed-reaction-btn" data-post="${idx}" data-type="comment">
+          <button class="feed-reaction-btn" data-id="${fp.id}" data-type="comment">
             <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
             ${fp.comments || 0} Comment
           </button>
@@ -294,15 +294,16 @@ window.renderFeedPosts = renderFeedPosts;
   const commentOverlay = document.getElementById('comment-modal-overlay');
   const commentList    = document.getElementById('comment-list');
 
-  function openCommentModal(postIdx) {
-    const fp = FEED_POSTS[postIdx];
+  window.openCommentModal = function(postIdx) {
+    const fp = window.FEED_POSTS ? window.FEED_POSTS[postIdx] : null;
+    if (!fp) return;
 
     commentList.innerHTML = (fp.commentList || []).map((c, cIdx) => `
-      <div class="comment-item" id="comment-item-${postIdx}-${cIdx}">
-        <div class="comment-item-avatar">${avatarHtmlFor(c.photoSrc, c.name)}</div>
+    <div class="comment-item" id="comment-item-${postIdx}-${cIdx}">
+      <div class="comment-item-avatar">${avatarHtmlFor(c.photoSrc, c.name)}</div>
         <div class="comment-item-content">
           <div class="comment-item-bubble" id="comment-bubble-${postIdx}-${cIdx}">
-            <div class="comment-item-name">${c.name}</div>
+            <div class="comment-item-name">${c.author || "Anonymous User"}</div>
             <div class="comment-item-text" id="comment-text-${postIdx}-${cIdx}">${c.text}</div>
           </div>
           <div class="comment-edit-wrap" id="comment-edit-${postIdx}-${cIdx}">
@@ -326,6 +327,7 @@ window.renderFeedPosts = renderFeedPosts;
           </div>` : ''}
         </div>
       </div>`).join('');
+
 
     /* Edit button — show inline input */
     commentList.querySelectorAll('.edit-btn').forEach(btn => {
@@ -404,10 +406,6 @@ window.renderFeedPosts = renderFeedPosts;
   document.getElementById('comment-modal-close').addEventListener('click', closeCommentModal);
   commentOverlay.addEventListener('click', e => { if (e.target === commentOverlay) closeCommentModal(); });
 
-  // BACKEND TEAM: wire this to Firebase
-  document.getElementById('comment-send-btn').addEventListener('click', () => {
-    console.log('Comment — wire to Firebase');
-  });
 
   /* ════════════════════════════════════════
      CREATE POST MODAL

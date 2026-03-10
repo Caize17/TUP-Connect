@@ -1,8 +1,10 @@
 // 1. Imports
 import { auth } from '../firebaseConfig.js'; 
 import { 
+  getAuth, 
   createUserWithEmailAndPassword, 
   sendEmailVerification, 
+  updateProfile
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 import { 
@@ -115,6 +117,16 @@ window.handleRegister = async function() {
       const userCredential = await createUserWithEmailAndPassword(auth, email.value, password.value);
       const user = userCredential.user;
 
+      const nameToSave = name.value.trim();
+
+      await updateProfile(user, {
+        displayName: nameToSave 
+      });
+
+      await setDoc(doc(db, "users", user.uid), {
+        fullName: nameToSave,
+      });
+      
       // 2. Verification Email
       await sendEmailVerification(user);
 
