@@ -94,20 +94,28 @@ onSnapshot(q, (snapshot) => {
                 const likes = data.likedBy ? data.likedBy.length : 0;
                 const isLiked = auth.currentUser ? (data.likedBy || []).includes(auth.currentUser.uid) : false;
 
+
                 if (countSpan) countSpan.textContent = typeof fmt === 'function' ? fmt(likes) : likes;
+
+                const commentBtn = document.querySelector(`.feed-reaction-btn[data-id="${postId}"][data-type="comment"]`);
+                if (commentBtn) {
+                    const commentSpan = commentBtn.querySelector('.comments-count');
+                    const commentCount = data.comments || 0; // Or data.commentsList.length depending on your DB
+                    
+                    if (commentSpan) {
+                        commentSpan.textContent = typeof fmt === 'function' ? fmt(commentCount) : commentCount;
+                    }
+                }
 
                 if (isLiked) {
                     btn.classList.add('heart-active');
                 } else {
                     btn.classList.remove('heart-active');
                 }
-                // We do NOT set needsFullRender here, so it stays smooth!
             } else {
-                // If the post isn't on screen yet but was modified, render it
                 needsFullRender = true;
             }
         } else {
-            // If a post is ADDED or REMOVED, we must do a full render
             needsFullRender = true;
         }
     });

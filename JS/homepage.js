@@ -240,7 +240,7 @@ function renderFeedPosts() {
           </button>
           <button class="feed-reaction-btn" data-id="${fp.id}" data-type="comment">
             <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-            ${fp.comments || 0} Comment
+            <span class="comments-count">${fmt(fp.comments)}</span> Comments
           </button>
           <button class="feed-reaction-btn" data-post="${idx}" data-type="repost">
             <svg viewBox="0 0 24 24"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
