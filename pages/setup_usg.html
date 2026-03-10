@@ -165,80 +165,100 @@
     </footer>
   </div>
 
-  <script>
-    // BACKEND TEAM: populate from the registered user session
-    const REG_USER = {
-      name:  null,
-      email: null,
-    };
+<script type="module">
+  // 1. Imports
+  import { auth, db } from '../firebaseConfig.js';
+  import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+  import { doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    document.getElementById('display-name').textContent  = REG_USER.name  || '—';
-    document.getElementById('display-email').textContent = REG_USER.email || '—';
+  // 2. DOM Elements
+  const displayNameEl = document.getElementById('display-name');
+  const displayEmailEl = document.getElementById('display-email');
+  const btnSubmit = document.getElementById('btn-submit');
+  const positionInput = document.getElementById('input-position');
+  const departmentInput = document.getElementById('input-department');
 
-    // Cover photo
-    const coverBtn   = document.getElementById('cover-btn');
-    const coverInput = document.getElementById('cover-input');
-    const coverPrev  = document.getElementById('cover-preview');
-    const coverPH    = document.getElementById('cover-placeholder');
-
-    coverBtn.addEventListener('click', () => coverInput.click());
-    coverPH.addEventListener('click',  () => coverInput.click());
-    coverInput.addEventListener('change', function () {
-      if (!this.files[0]) return;
-      const reader = new FileReader();
-      reader.onload = e => {
-        coverPrev.src = e.target.result;
-        coverPrev.style.display = 'block';
-        coverPH.style.display   = 'none';
-      };
-      reader.readAsDataURL(this.files[0]);
-    });
-
-    // Profile photo
-    const profileBtn   = document.getElementById('profile-btn');
-    const profileInput = document.getElementById('profile-input');
-    const profilePrev  = document.getElementById('profile-preview');
-    const profilePH    = document.getElementById('profile-placeholder');
-
-    profileBtn.addEventListener('click',  () => profileInput.click());
-    profilePH.addEventListener('click',   () => profileInput.click());
-    profileInput.addEventListener('change', function () {
-      if (!this.files[0]) return;
-      const reader = new FileReader();
-      reader.onload = e => {
-        profilePrev.src = e.target.result;
-        profilePrev.style.display = 'block';
-        profilePH.style.display   = 'none';
-      };
-      reader.readAsDataURL(this.files[0]);
-    });
-
-    function handleUSGSubmit() {
-      let valid = true;
-
-      const positionEl = document.getElementById('input-position');
-
-      document.querySelectorAll('.field-error').forEach(e => e.style.display = 'none');
-      document.querySelectorAll('.tup-input').forEach(e => e.classList.remove('error'));
-
-      if (!positionEl.value.trim()) {
-        positionEl.classList.add('error');
-        document.getElementById('err-position').style.display = 'block';
-        valid = false;
+  // 3. Populate User Data upon loading
+  onAuthStateChanged(auth, async (user) => {
+    if (user) {
+      const userDoc = await getDoc(doc(db, "users", user.uid));
+      if (userDoc.exists()) {
+        const data = userDoc.data();
+        displayNameEl.textContent = data.fullName || '—';
+        displayEmailEl.textContent = data.email || '—';
       }
+    } else {
+      // Kung walang user, ibalik sa login
+      window.location.href = "../index.html";
+    }
+  });
 
-      if (valid) {
-        // BACKEND TEAM: save to Firebase then redirect
-        console.log('USG setup:', {
-          name:       REG_USER.name,
-          email:      REG_USER.email,
-          position:   positionEl.value.trim(),
-          department: document.getElementById('input-department').value.trim(),
+  // 4. Handle Image Previews (Existing logic inside module)
+  setupImageUpload('cover');
+  setupImageUpload('profile');
+
+  function setupImageUpload(type) {
+    const btn = document.getElementById(`${type}-btn`);
+    const input = document.getElementById(`${type}-input`);
+    const prev = document.getElementById(`${type}-preview`);
+    const ph = document.getElementById(`${type}-placeholder`);
+
+    btn.addEventListener('click', () => input.click());
+    if(ph) ph.addEventListener('click', () => input.click());
+    
+    input.addEventListener('change', function() {
+      if (!this.files[0]) return;
+      const reader = new FileReader();
+      reader.onload = e => {
+        prev.src = e.target.result;
+        prev.style.display = 'block';
+        if(ph) ph.style.display = 'none';
+      };
+      reader.readAsDataURL(this.files[0]);
+    });
+  }
+
+  // 5. Submit Function (Integrated with Firebase)
+  window.handleUSGSubmit = async function() {
+    let valid = true;
+    const user = auth.currentUser;
+
+    // Validation
+    document.querySelectorAll('.field-error').forEach(e => e.style.display = 'none');
+    document.querySelectorAll('.tup-input').forEach(e => e.classList.remove('error'));
+
+    if (!positionInput.value.trim()) {
+      positionInput.classList.add('error');
+      document.getElementById('err-position').style.display = 'block';
+      valid = false;
+    }
+
+    if (valid && user) {
+      try {
+        btnSubmit.disabled = true;
+        btnSubmit.textContent = "Saving Profile...";
+
+        // I-update ang Firestore document
+        const userRef = doc(db, "users", user.uid);
+        await updateDoc(userRef, {
+          position: positionInput.value.trim(),
+          department: departmentInput.value.trim(),
+          isSetupComplete: true, // Eto ang pinaka-importante para sa one-time setup
+          setupTimestamp: new Date()
         });
+
+        // Redirect sa homepage
         window.location.href = 'homepage.html';
+
+      } catch (error) {
+        console.error("Setup Error:", error);
+        alert("Failed to save profile: " + error.message);
+        btnSubmit.disabled = false;
+        btnSubmit.textContent = "Complete Setup";
       }
     }
-  </script>
+  };
+</script>
 
 </body>
 </html>

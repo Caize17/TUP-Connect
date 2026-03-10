@@ -167,86 +167,110 @@
     </footer>
   </div>
 
-  <script>
-    // BACKEND TEAM: populate from the registered user session
-    const REG_USER = {
-      name:  null,
-      email: null,
-    };
+<script type="module">
+  // 1. Imports mula sa Firebase
+  import { auth, db } from '../firebaseConfig.js';
+  import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+  import { doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    document.getElementById('display-name').textContent  = REG_USER.name  || '—';
-    document.getElementById('display-email').textContent = REG_USER.email || '—';
+  // 2. DOM Elements
+  const displayNameEl = document.getElementById('display-name');
+  const displayEmailEl = document.getElementById('display-email');
+  const btnSubmit     = document.getElementById('btn-submit');
+  const idInput       = document.getElementById('input-id');
+  const collegeSelect = document.getElementById('input-college');
 
-    // Cover photo
-    const coverBtn   = document.getElementById('cover-btn');
-    const coverInput = document.getElementById('cover-input');
-    const coverPrev  = document.getElementById('cover-preview');
-    const coverPH    = document.getElementById('cover-placeholder');
+  // 3. Populate User Data (Full Name & Email)
+  onAuthStateChanged(auth, async (user) => {
+    if (user) {
+      try {
+        const userDoc = await getDoc(doc(db, "users", user.uid));
+        if (userDoc.exists()) {
+          const data = userDoc.data();
+          displayNameEl.textContent = data.fullName || '—';
+          displayEmailEl.textContent = data.email || '—';
+        }
+      } catch (err) {
+        console.error("Error fetching user data:", err);
+      }
+    } else {
+      // Proteksyon: Kung walang user session, balik sa login page
+      window.location.href = "../index.html";
+    }
+  });
 
-    coverBtn.addEventListener('click', () => coverInput.click());
-    coverPH.addEventListener('click',  () => coverInput.click());
-    coverInput.addEventListener('change', function () {
+  // 4. Image Upload Previews Logic
+  setupImageHandlers('cover');
+  setupImageHandlers('profile');
+
+  function setupImageHandlers(type) {
+    const btn   = document.getElementById(`${type}-btn`);
+    const input = document.getElementById(`${type}-input`);
+    const prev  = document.getElementById(`${type}-preview`);
+    const ph    = document.getElementById(`${type}-placeholder`);
+
+    btn.addEventListener('click', () => input.click());
+    if(ph) ph.addEventListener('click', () => input.click());
+
+    input.addEventListener('change', function() {
       if (!this.files[0]) return;
       const reader = new FileReader();
       reader.onload = e => {
-        coverPrev.src = e.target.result;
-        coverPrev.style.display = 'block';
-        coverPH.style.display   = 'none';
+        prev.src = e.target.result;
+        prev.style.display = 'block';
+        if(ph) ph.style.display = 'none';
       };
       reader.readAsDataURL(this.files[0]);
     });
+  }
 
-    // Profile photo
-    const profileBtn   = document.getElementById('profile-btn');
-    const profileInput = document.getElementById('profile-input');
-    const profilePrev  = document.getElementById('profile-preview');
-    const profilePH    = document.getElementById('profile-placeholder');
+  // 5. Submit Function (Firestore Integration)
+  window.handleStudentSubmit = async function() {
+    let valid = true;
+    const user = auth.currentUser;
 
-    profileBtn.addEventListener('click',  () => profileInput.click());
-    profilePH.addEventListener('click',   () => profileInput.click());
-    profileInput.addEventListener('change', function () {
-      if (!this.files[0]) return;
-      const reader = new FileReader();
-      reader.onload = e => {
-        profilePrev.src = e.target.result;
-        profilePrev.style.display = 'block';
-        profilePH.style.display   = 'none';
-      };
-      reader.readAsDataURL(this.files[0]);
-    });
+    // Reset errors
+    document.querySelectorAll('.field-error').forEach(e => e.style.display = 'none');
+    document.querySelectorAll('.tup-input').forEach(e => e.classList.remove('error'));
 
-    function handleStudentSubmit() {
-      let valid = true;
+    // Basic Validation
+    if (!idInput.value.trim()) {
+      idInput.classList.add('error');
+      document.getElementById('err-id').style.display = 'block';
+      valid = false;
+    }
+    if (!collegeSelect.value) {
+      collegeSelect.classList.add('error');
+      document.getElementById('err-college').style.display = 'block';
+      valid = false;
+    }
 
-      const idEl      = document.getElementById('input-id');
-      const collegeEl = document.getElementById('input-college');
+    if (valid && user) {
+      try {
+        btnSubmit.disabled = true;
+        btnSubmit.textContent = "Finalizing Account...";
 
-      document.querySelectorAll('.field-error').forEach(e => e.style.display = 'none');
-      document.querySelectorAll('.tup-input').forEach(e => e.classList.remove('error'));
-
-      if (!idEl.value.trim()) {
-        idEl.classList.add('error');
-        document.getElementById('err-id').style.display = 'block';
-        valid = false;
-      }
-      if (!collegeEl.value) {
-        collegeEl.classList.add('error');
-        document.getElementById('err-college').style.display = 'block';
-        valid = false;
-      }
-
-      if (valid) {
-        // BACKEND TEAM: save to Firebase then redirect
-        console.log('Student setup:', {
-          name:    REG_USER.name,
-          email:   REG_USER.email,
-          id:      idEl.value.trim(),
-          college: collegeEl.value,
+        // I-update ang Firestore document ng user
+        const userRef = doc(db, "users", user.uid);
+        await updateDoc(userRef, {
+          studentID: idInput.value.trim(),
+          college: collegeSelect.value,
+          isSetupComplete: true, // Eto ang 'key' para hindi na bumalik sa setup page
+          setupDate: new Date()
         });
+
+        // Redirect sa homepage pagkatapos ng setup
         window.location.href = 'homepage.html';
+
+      } catch (error) {
+        console.error("Setup Update Error:", error);
+        alert("Failed to complete setup: " + error.message);
+        btnSubmit.disabled = false;
+        btnSubmit.textContent = "Complete Setup";
       }
     }
-  </script>
+  };
+</script>
 
 </body>
 </html>

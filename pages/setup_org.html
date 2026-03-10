@@ -145,6 +145,7 @@
                 </div>
                 <p class="field-error" id="err-college">Please select a college affiliation.</p>
               </div>
+          
 
               <button class="btn-submit" id="btn-submit" onclick="handleOrgSubmit()">
                 Complete Setup
@@ -165,83 +166,107 @@
     </footer>
   </div>
 
-  <script>
-    // BACKEND TEAM: populate from the registered user session
-    const REG_USER = {
-      email: null,
-    };
+<script type="module">
+  // 1. Firebase Imports
+  import { auth, db } from '../firebaseConfig.js';
+  import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+  import { doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    document.getElementById('display-email').textContent = REG_USER.email || '—';
+  // 2. DOM Elements
+  const displayEmailEl = document.getElementById('display-email');
+  const btnSubmit      = document.getElementById('btn-submit');
+  const orgNameInput   = document.getElementById('input-orgname');
+  const collegeSelect  = document.getElementById('input-college');
 
-    // Cover photo
-    const coverBtn   = document.getElementById('cover-btn');
-    const coverInput = document.getElementById('cover-input');
-    const coverPrev  = document.getElementById('cover-preview');
-    const coverPH    = document.getElementById('cover-placeholder');
+  // 3. Populate Email from Auth/Firestore
+  onAuthStateChanged(auth, async (user) => {
+    if (user) {
+      try {
+        const userDoc = await getDoc(doc(db, "users", user.uid));
+        if (userDoc.exists()) {
+          displayEmailEl.textContent = userDoc.data().email || user.email;
+        }
+      } catch (err) {
+        console.error("Error fetching org data:", err);
+      }
+    } else {
+      window.location.href = "../index.html";
+    }
+  });
 
-    coverBtn.addEventListener('click', () => coverInput.click());
-    coverPH.addEventListener('click',  () => coverInput.click());
-    coverInput.addEventListener('change', function () {
+  // 4. Image Previews (Cover & Logo)
+  setupImageHandlers('cover');
+  setupImageHandlers('profile');
+
+  function setupImageHandlers(type) {
+    const btn   = document.getElementById(`${type}-btn`);
+    const input = document.getElementById(`${type}-input`);
+    const prev  = document.getElementById(`${type}-preview`);
+    const ph    = document.getElementById(`${type}-placeholder`);
+
+    btn.addEventListener('click', () => input.click());
+    if(ph) ph.addEventListener('click', () => input.click());
+
+    input.addEventListener('change', function() {
       if (!this.files[0]) return;
       const reader = new FileReader();
       reader.onload = e => {
-        coverPrev.src = e.target.result;
-        coverPrev.style.display = 'block';
-        coverPH.style.display   = 'none';
+        prev.src = e.target.result;
+        prev.style.display = 'block';
+        if(ph) ph.style.display = 'none';
       };
       reader.readAsDataURL(this.files[0]);
     });
+  }
 
-    // Profile / logo photo
-    const profileBtn   = document.getElementById('profile-btn');
-    const profileInput = document.getElementById('profile-input');
-    const profilePrev  = document.getElementById('profile-preview');
-    const profilePH    = document.getElementById('profile-placeholder');
+  // 5. Submit Function (Firestore Integration)
+  window.handleOrgSubmit = async function() {
+    let valid = true;
+    const user = auth.currentUser;
 
-    profileBtn.addEventListener('click',  () => profileInput.click());
-    profilePH.addEventListener('click',   () => profileInput.click());
-    profileInput.addEventListener('change', function () {
-      if (!this.files[0]) return;
-      const reader = new FileReader();
-      reader.onload = e => {
-        profilePrev.src = e.target.result;
-        profilePrev.style.display = 'block';
-        profilePH.style.display   = 'none';
-      };
-      reader.readAsDataURL(this.files[0]);
-    });
+    // Reset validations
+    document.querySelectorAll('.field-error').forEach(e => e.style.display = 'none');
+    document.querySelectorAll('.tup-input').forEach(e => e.classList.remove('error'));
 
-    function handleOrgSubmit() {
-      let valid = true;
+    if (!orgNameInput.value.trim()) {
+      orgNameInput.classList.add('error');
+      document.getElementById('err-orgname').style.display = 'block';
+      valid = false;
+    }
+    if (!collegeSelect.value) {
+      collegeSelect.classList.add('error');
+      document.getElementById('err-college').style.display = 'block';
+      valid = false;
+    }
 
-      const orgnameEl = document.getElementById('input-orgname');
-      const collegeEl = document.getElementById('input-college');
+    if (valid && user) {
+      try {
+        btnSubmit.disabled = true;
+        btnSubmit.textContent = "Saving Organization Profile...";
 
-      document.querySelectorAll('.field-error').forEach(e => e.style.display = 'none');
-      document.querySelectorAll('.tup-input').forEach(e => e.classList.remove('error'));
-
-      if (!orgnameEl.value.trim()) {
-        orgnameEl.classList.add('error');
-        document.getElementById('err-orgname').style.display = 'block';
-        valid = false;
-      }
-      if (!collegeEl.value) {
-        collegeEl.classList.add('error');
-        document.getElementById('err-college').style.display = 'block';
-        valid = false;
-      }
-
-      if (valid) {
-        // BACKEND TEAM: save to Firebase then redirect to a pending approval page
-        console.log('Org setup submitted:', {
-          email:   REG_USER.email,
-          orgName: orgnameEl.value.trim(),
-          college: collegeEl.value,
+        const userRef = doc(db, "users", user.uid);
+        
+        // Update Firestore
+        await updateDoc(userRef, {
+          fullName: orgNameInput.value.trim(), // In-update ang name sa Org Name
+          college: collegeSelect.value,
+          isSetupComplete: true, // Mark setup as done
+          status: 'pending',     // For your admin approval logic
+          setupTimestamp: new Date()
         });
-        window.location.href = 'pending-approval.html';
+
+        // Redirect sa pending page base sa HTML note mo
+        window.location.href = 'homepage.html'; 
+
+      } catch (error) {
+        console.error("Org Setup Error:", error);
+        alert("Failed to save organization profile: " + error.message);
+        btnSubmit.disabled = false;
+        btnSubmit.textContent = "Complete Setup";
       }
     }
-  </script>
+  };
+</script>
 
 </body>
 </html>
