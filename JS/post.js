@@ -208,47 +208,65 @@ const q = query(collection(db, "posts"), orderBy("createdAt", "desc"));
 onSnapshot(q, (snapshot) => {
     let needsFullRender = false;
 
-    snapshot.docChanges().forEach((change) => {
-        const data = change.doc.data();
-        const postId = change.doc.id;
-        const currentUid = auth.currentUser?.uid;
+snapshot.docChanges().forEach((change) => {
+    const data = change.doc.data();
+    const postId = change.doc.id;
+    const currentUid = auth.currentUser?.uid;
 
-        if (change.type === "modified") {
-            const localPost = window.FEED_POSTS?.find(p => p.id === postId);
+    if (change.type === "modified") {
+        const localPost = window.FEED_POSTS?.find(p => p.id === postId);
 
-            const repostBtn = document.querySelector(`.feed-reaction-btn[data-id="${postId}"][data-type="repost"]`);
-            if (repostBtn) {
-                const repostSpan = repostBtn.querySelector('.reposts-count');
+        const likeBtn = document.querySelector(`.feed-reaction-btn[data-id="${postId}"][data-type="like"]`);
+        if (likeBtn) {
+            const likeSpan = likeBtn.querySelector('.likes-count');
+            const likedArray = data.likedBy || [];
+            const newLikeCount = likedArray.length;
 
-                const repostArray = data.repostedBy || [];
-                const newCount = repostArray.length;
-                
-                if (repostSpan) {
-                    repostSpan.textContent = typeof fmt === 'function' ? fmt(newCount) : newCount;
-                }
-
-                const isRepostedByMe = currentUid ? repostArray.includes(currentUid) : false;
-                repostBtn.classList.toggle('repost-active', isRepostedByMe);
-
-                if (localPost) {
-                    localPost.reposts = newCount;
-                    localPost.isRepostedByMe = isRepostedByMe;
-                }
+            if (likeSpan) {
+                likeSpan.textContent = typeof fmt === 'function' ? fmt(newLikeCount) : newLikeCount;
             }
 
-            const commentBtn = document.querySelector(`.feed-reaction-btn[data-id="${postId}"][data-type="comment"]`);
-            if (commentBtn) {
-                const countSpan = commentBtn.querySelector('.comments-count');
-                const newCommentCount = data.comments || 0;
-                if (countSpan) countSpan.textContent = typeof fmt === 'function' ? fmt(newCommentCount) : newCommentCount;
-                if (localPost) localPost.comments = newCommentCount;
-            } else {
-                needsFullRender = true;
+            const isLikedByMe = currentUid ? likedArray.includes(currentUid) : false;
+            likeBtn.classList.toggle('heart-active', isLikedByMe);
+
+            if (localPost) {
+                localPost.likes = newLikeCount;
+                localPost.isLikedByMe = isLikedByMe;
             }
+        }
+
+        const repostBtn = document.querySelector(`.feed-reaction-btn[data-id="${postId}"][data-type="repost"]`);
+        if (repostBtn) {
+            const repostSpan = repostBtn.querySelector('.reposts-count');
+            const repostArray = data.repostedBy || [];
+            const newRepostCount = repostArray.length;
+            
+            if (repostSpan) {
+                repostSpan.textContent = typeof fmt === 'function' ? fmt(newRepostCount) : newRepostCount;
+            }
+
+            const isRepostedByMe = currentUid ? repostArray.includes(currentUid) : false;
+            repostBtn.classList.toggle('repost-active', isRepostedByMe);
+
+            if (localPost) {
+                localPost.reposts = newRepostCount;
+                localPost.isRepostedByMe = isRepostedByMe;
+            }
+        }
+
+        const commentBtn = document.querySelector(`.feed-reaction-btn[data-id="${postId}"][data-type="comment"]`);
+        if (commentBtn) {
+            const countSpan = commentBtn.querySelector('.comments-count');
+            const newCommentCount = data.comments || 0;
+            if (countSpan) countSpan.textContent = typeof fmt === 'function' ? fmt(newCommentCount) : newCommentCount;
+            if (localPost) localPost.comments = newCommentCount;
         } else {
             needsFullRender = true;
         }
-    });
+    } else {
+        needsFullRender = true;
+    }
+});
 
     if (needsFullRender || !window.FEED_POSTS || window.FEED_POSTS.length === 0) {
         const firebaseData = [];
