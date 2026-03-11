@@ -69,8 +69,8 @@ let FEED_POSTS = [];
         `<img src="${USER.photoSrc}" alt="Me" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
     }
 
-    document.getElementById('comment-avatar-wrap').outerHTML =
-      `<img class="comment-avatar" id="comment-avatar-wrap" src="${USER.photoSrc}" alt="Me"/>`;
+    const el = document.getElementById('comment-avatar-wrap');
+    el.innerHTML = `<img src="${USER.photoSrc}" alt="Me" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"/>`;
 
     document.getElementById('modal-avatar').innerHTML =
       `<img src="${USER.photoSrc}" alt="Me" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
@@ -423,7 +423,6 @@ window.renderFeedPosts = renderFeedPosts;
 
     window.renderComments(postIdx);
 
-    /* Set current user avatar in comment input */
     const inputAvatar = document.getElementById('comment-input-avatar');
     inputAvatar.innerHTML = USER.photoSrc
       ? `<img src="${USER.photoSrc}" alt="Me" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`
@@ -453,7 +452,15 @@ window.renderFeedPosts = renderFeedPosts;
   const anonToggle = document.getElementById('modal-anon-toggle');
 
   function openModal()  { overlay.classList.add('open'); setTimeout(() => textarea.focus(), 100); }
-  function closeModal() { overlay.classList.remove('open'); }
+  function closeModal() { 
+    if (overlay) overlay.classList.remove('open'); 
+
+    if (typeof window.resetPostModal === 'function') {
+        window.resetPostModal();
+    } else {
+        console.warn("resetPostModal function not found!");
+    }
+}
 
   document.getElementById('open-create-post').addEventListener('click', openModal);
 
