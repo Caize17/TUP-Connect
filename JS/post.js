@@ -465,3 +465,62 @@ async function deleteComment(postId, commentId) {
 }
 window.deleteComment = deleteComment;
 
+document.addEventListener('click', async (e) => {
+    const menuBtn = e.target.closest('.post-menu-btn');
+
+    if (menuBtn) {
+        e.stopPropagation(); 
+        const idx = menuBtn.dataset.post;
+        const dropdown = document.getElementById(`post-menu-${idx}`);
+
+        document.querySelectorAll('.post-menu-dropdown.open').forEach(m => {
+            if (m !== dropdown) m.classList.remove('open');
+        });
+
+        dropdown.classList.toggle('open');
+        return;
+    }
+
+    const reportItem = e.target.closest('[data-action="report"]');
+    if (reportItem) {
+        const idx = reportItem.dataset.post;
+        const post = window.FEED_POSTS ? window.FEED_POSTS[idx] : null;
+
+        if (post && confirm("Report this post for community review?")) {
+            try {
+                await handleReportPost(post.id, post.userId);
+                alert("Thank you. The post has been reported.");
+            } catch (err) {
+                console.error("Report failed:", err);
+                alert("Could not submit report at this time.");
+            }
+        }
+
+        const dropdown = reportItem.closest('.post-menu-dropdown');
+        if (dropdown) dropdown.classList.remove('open');
+        return;
+    }
+
+    document.querySelectorAll('.post-menu-dropdown.open').forEach(m => {
+        m.classList.remove('open');
+    });
+});
+
+
+
+
+async function handleReportPost(postId, reportedUserId) {
+    const user = auth.currentUser;
+    if (!user) return alert("Please login to report posts.");
+
+    const reportsRef = collection(db, "reports");
+
+    await addDoc(reportsRef, {
+        postId: postId,
+        reportedUserId: reportedUserId,
+        reportedBy: user.uid,
+        timestamp: serverTimestamp(),
+        status: "pending"
+    });
+}
+

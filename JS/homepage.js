@@ -362,7 +362,7 @@ window.renderFeedPosts = renderFeedPosts;
     btn.addEventListener('click', async function () {
       const pIdx = this.dataset.post;
       const cIdx = this.dataset.comment;
-      
+
       const post = window.FEED_POSTS[pIdx];
       const commentData = post.commentList[cIdx]; 
       const commentId = commentData.id; 
