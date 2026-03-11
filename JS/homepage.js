@@ -379,7 +379,6 @@ window.renderFeedPosts = renderFeedPosts;
       bubble.style.display = '';
       editWrap.classList.remove('open');
 
-      // BACKEND: Update the specific document in the sub-collection
       try {
         await saveCommentEdit(post.id, commentId, newText);
         showToast('Comment updated.');
@@ -406,7 +405,6 @@ window.renderFeedPosts = renderFeedPosts;
         item.style.transform = 'translateX(12px)';
         
         try {
-          // BACKEND: Delete from sub-collection
           await deleteComment(post.id, commentId);
           
           setTimeout(() => item.remove(), 200);
