@@ -275,14 +275,20 @@
         
         let finalPhotoURL = `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=random&color=fff`;
 
-        if (profileInput.files && profileInput.files[0]) {
-          try {
-            finalPhotoURL = await compressImage(profileInput.files[0]);
-            console.log("Image compressed! Length:", finalPhotoURL.length);
-          } catch (e) {
-            console.error("Compression failed, using initials instead", e);
+      if (profileInput.files && profileInput.files[0]) {
+        try {
+          const compressed = await compressImage(profileInput.files[0]);
+          
+          if (compressed.length > 100) {
+            finalPhotoURL = compressed;
+            console.log("Valid image captured! Length:", finalPhotoURL.length);
+          } else {
+            console.warn("Compressed image was too small, using fallback.");
           }
+        } catch (e) {
+          console.error("Compression error:", e);
         }
+      }
 
         const userRef = doc(db, "users", user.uid);
         const dataToSave = {
