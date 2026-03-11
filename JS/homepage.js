@@ -347,18 +347,39 @@ window.renderFeedPosts = renderFeedPosts;
         </div>`;
     }).join('');
 
-      /* Edit button — show inline input */
-    commentList.querySelectorAll('.edit-btn').forEach(btn => {
-      btn.addEventListener('click', function () {
-        const p        = this.dataset.post;
-        const c        = this.dataset.comment;
-        const bubble   = document.getElementById(`comment-bubble-${p}-${c}`);
-        const editWrap = document.getElementById(`comment-edit-${p}-${c}`);
-        bubble.style.display = 'none';
-        editWrap.classList.add('open');
-        document.getElementById(`comment-edit-input-${p}-${c}`).focus();
-      });
-    });
+    attachCommentListeners(listElement);
+
+    listElement.addEventListener('click', async function(e) {
+    // 2. Check if a Delete button was clicked
+    const deleteBtn = e.target.closest('.delete-btn');
+    if (deleteBtn) {
+        const pIdx = deleteBtn.dataset.post;
+        const cIdx = deleteBtn.dataset.comment;
+        const post = window.FEED_POSTS[pIdx];
+        const comment = post.commentList[cIdx];
+
+        if (confirm("Delete this comment?")) {
+            try {
+                await window.deleteComment(post.id, comment.id);
+                showToast("Deleted!");
+            } catch (err) {
+                console.error(err);
+            }
+        }
+        return; // Stop here
+    }
+
+    // 3. Check if an Edit button was clicked
+    const editBtn = e.target.closest('.edit-btn');
+    if (editBtn) {
+        const pIdx = editBtn.dataset.post;
+        const cIdx = editBtn.dataset.comment;
+        
+        // Hide the bubble, show the edit wrap
+        document.getElementById(`comment-bubble-${pIdx}-${cIdx}`).style.display = 'none';
+        document.getElementById(`comment-edit-${pIdx}-${cIdx}`).style.display = 'flex';
+        return;
+    }
 
     /* Cancel edit */
     commentList.querySelectorAll('.comment-edit-cancel').forEach(btn => {
@@ -403,37 +424,8 @@ window.renderFeedPosts = renderFeedPosts;
     });
   });
 
-    /* Delete button */
-    commentList.querySelectorAll('.delete-btn').forEach(btn => {
-  btn.onclick = async function () {
-    const pIdx = this.dataset.post;
-    const cIdx = this.dataset.comment;
-    
-    const post = window.FEED_POSTS[pIdx];
-    const commentId = post.commentList[cIdx].id;
-    const item = document.getElementById(`comment-item-${pIdx}-${cIdx}`);
-
-    if(!confirm("Are you sure you want to delete this comment?")) return;
-
-    if (item) {
-        item.style.transition = 'opacity 0.2s, transform 0.2s';
-        item.style.opacity = '0';
-        item.style.transform = 'translateX(12px)';
-    }
-
-    try {
-        await window.deleteComment(post.id, commentId);
-
-    } catch (err) {
-        console.error("Delete failed:", err);
-        if (item) {
-            item.style.opacity = '1';
-            item.style.transform = 'translateX(0)';
-        }
-    }
-  };
 });
-  };
+};
 
   function openCommentModal(postIdx) {
     const overlay = document.getElementById('comment-modal-overlay');
@@ -493,7 +485,7 @@ window.renderFeedPosts = renderFeedPosts;
     } else {
         console.warn("resetPostModal function not found!");
     }
-}
+  }
 
   document.getElementById('open-create-post').addEventListener('click', openModal);
 
@@ -559,7 +551,51 @@ window.renderFeedPosts = renderFeedPosts;
     if (e.key === 'Escape') { closeLB(); closeModal(); closeCommentModal(); }
   });
 
-  /* Sidebar nav is handled by the shared navbar.js */
+  /* ════════════════════════════════════════
+     SIDEBAR NAV — smooth sliding teardrop
+  ════════════════════════════════════════ */
+
+  (function () {
+    const navWrap  = document.getElementById('sidebar-nav');
+    const teardrop = document.getElementById('nav-teardrop');
+    const navBtns  = Array.from(navWrap.querySelectorAll('.nav-btn'));
+    const profBtn  = document.getElementById('sidebar-avatar-wrap');
+    const allBtns  = [...navBtns, profBtn];
+    const TD_BASE_H = 66;
+
+    function moveTo(item) {
+      const wrapRect = navWrap.getBoundingClientRect();
+      const itemRect = item.getBoundingClientRect();
+      const centerY  = itemRect.top + itemRect.height / 2 - wrapRect.top;
+      teardrop.style.top = (centerY - TD_BASE_H / 2) + 'px';
+    }
+
+    navBtns.forEach(item => {
+      item.addEventListener('click', function () {
+        allBtns.forEach(i => i.classList.remove('active'));
+        this.classList.add('active');
+        moveTo(this);
+        console.log('Navigate to:', this.dataset.route);
+      });
+    });
+
+    profBtn.addEventListener('click', function () {
+      allBtns.forEach(i => i.classList.remove('active'));
+      this.classList.add('active');
+      moveTo(this);
+      console.log('Navigate to: profile');
+    });
+
+    /* Snap to active button on load (no transition) */
+    const active = navWrap.querySelector('.nav-btn.active');
+    if (active) {
+      teardrop.style.transition = 'none';
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        moveTo(active);
+        teardrop.style.transition = '';
+      }));
+    }
+  })();
 
 })();
 
