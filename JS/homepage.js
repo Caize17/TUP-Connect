@@ -300,37 +300,52 @@ window.renderFeedPosts = renderFeedPosts;
 
   window.renderComments = function(postIdx) {
     const fp = window.FEED_POSTS ? window.FEED_POSTS[postIdx] : null;
-    if (!fp || !commentList) return;
+    const listElement = document.getElementById('comment-list'); 
+    if (!fp || !listElement) return;
 
-    commentList.innerHTML = (fp.commentList || []).map((c, cIdx) => `
-    <div class="comment-item" id="comment-item-${postIdx}-${cIdx}">
-      <div class="comment-item-avatar">${avatarHtmlFor(c.photoSrc, c.name)}</div>
-        <div class="comment-item-content">
-          <div class="comment-item-bubble" id="comment-bubble-${postIdx}-${cIdx}">
-            <div class="comment-item-name">${c.author || "Anonymous User"}</div>
-            <div class="comment-item-text" id="comment-text-${postIdx}-${cIdx}">${c.text}</div>
-          </div>
-          <div class="comment-edit-wrap" id="comment-edit-${postIdx}-${cIdx}">
-            <input class="comment-edit-input" id="comment-edit-input-${postIdx}-${cIdx}" value="${c.text}"/>
-            <button class="comment-edit-save" data-post="${postIdx}" data-comment="${cIdx}">
-              <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-            </button>
-            <button class="comment-edit-cancel" data-post="${postIdx}" data-comment="${cIdx}">✕</button>
-          </div>
-          <div class="comment-item-time">${c.time}</div>
-          ${c.isOwn ? `
-          <div class="comment-item-actions">
-            <button class="comment-action-btn edit-btn" data-post="${postIdx}" data-comment="${cIdx}">
-              <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-              Edit
-            </button>
-            <button class="comment-action-btn delete-btn" data-post="${postIdx}" data-comment="${cIdx}">
-              <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
-              Delete
-            </button>
-          </div>` : ''}
-        </div>
-      </div>`).join('');
+    listElement.innerHTML = (fp.commentList || []).map((c, cIdx) => {
+    if(cIdx === 0) console.log("First comment data:", c);
+
+    let rawPhoto = c.photoURL;
+   
+    if (c.isOwn && (rawPhoto === 'anon' || !rawPhoto)) {
+            rawPhoto = window.cachedPhoto;
+      }
+
+    const validPhoto = (rawPhoto && rawPhoto !== 'anon') ? rawPhoto : null;
+    const avatarHtml = window.getAvatar(validPhoto, c.author);
+    
+
+        return `
+        <div class="comment-item" id="comment-item-${postIdx}-${cIdx}">
+            <div class="comment-item-avatar">${avatarHtml}</div>
+            <div class="comment-item-content">
+                <div class="comment-item-bubble" id="comment-bubble-${postIdx}-${cIdx}">
+                    <div class="comment-item-name">${c.author || "Anonymous User"}</div>
+                    <div class="comment-item-text" id="comment-text-${postIdx}-${cIdx}">${c.text}</div>
+                </div>
+                <div class="comment-edit-wrap" id="comment-edit-${postIdx}-${cIdx}">
+                    <input class="comment-edit-input" id="comment-edit-input-${postIdx}-${cIdx}" value="${c.text}"/>
+                    <button class="comment-edit-save" data-post="${postIdx}" data-comment="${cIdx}">
+                        <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                    </button>
+                    <button class="comment-edit-cancel" data-post="${postIdx}" data-comment="${cIdx}">✕</button>
+                </div>
+                <div class="comment-item-time">${c.time || ''}</div>
+                ${c.isOwn ? `
+                <div class="comment-item-actions">
+                    <button class="comment-action-btn edit-btn" data-post="${postIdx}" data-comment="${cIdx}">
+                        <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                        Edit
+                    </button>
+                    <button class="comment-action-btn delete-btn" data-post="${postIdx}" data-comment="${cIdx}">
+                        <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                        Delete
+                    </button>
+                </div>` : ''}
+            </div>
+        </div>`;
+    }).join('');
 
       /* Edit button — show inline input */
     commentList.querySelectorAll('.edit-btn').forEach(btn => {
@@ -390,50 +405,68 @@ window.renderFeedPosts = renderFeedPosts;
 
     /* Delete button */
     commentList.querySelectorAll('.delete-btn').forEach(btn => {
-      btn.addEventListener('click', async function () {
-        const pIdx = this.dataset.post;
-        const cIdx = this.dataset.comment;
-        
-        const post = window.FEED_POSTS[pIdx];
-        const commentId = post.commentList[cIdx].id;
+  btn.onclick = async function () {
+    const pIdx = this.dataset.post;
+    const cIdx = this.dataset.comment;
+    
+    const post = window.FEED_POSTS[pIdx];
+    const commentId = post.commentList[cIdx].id;
+    const item = document.getElementById(`comment-item-${pIdx}-${cIdx}`);
 
-        const item = document.getElementById(`comment-item-${pIdx}-${cIdx}`);
-        
+    if(!confirm("Are you sure you want to delete this comment?")) return;
+
+    if (item) {
         item.style.transition = 'opacity 0.2s, transform 0.2s';
         item.style.opacity = '0';
         item.style.transform = 'translateX(12px)';
-        
-        try {
-          await deleteComment(post.id, commentId);
-          
-          setTimeout(() => item.remove(), 200);
-          showToast('Comment deleted.');
-        } catch (err) {
-          console.error("Delete failed:", err);
-          item.style.opacity = '1';
-          item.style.transform = 'none';
+    }
+
+    try {
+        await window.deleteComment(post.id, commentId);
+
+    } catch (err) {
+        console.error("Delete failed:", err);
+        if (item) {
+            item.style.opacity = '1';
+            item.style.transform = 'translateX(0)';
         }
-      });
-    });
+    }
+  };
+});
   };
 
-  window.openCommentModal = function(postIdx) {
-    const fp = window.FEED_POSTS ? window.FEED_POSTS[postIdx] : null;
-    if (!fp) return;
+  function openCommentModal(postIdx) {
+    const overlay = document.getElementById('comment-modal-overlay');
+    const inputAvatar = document.getElementById('comment-input-avatar'); 
+    const inputField = document.getElementById('comment-input-field');
 
-    window.renderComments(postIdx);
+    const currentUser = window.auth ? window.auth.currentUser : null;
 
-    const inputAvatar = document.getElementById('comment-input-avatar');
-    inputAvatar.innerHTML = USER.photoSrc
-      ? `<img src="${USER.photoSrc}" alt="Me" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`
-      : `<svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`;
+    if (inputAvatar && currentUser) {
+        inputAvatar.innerHTML = window.avatarHtmlFor(currentUser.photoURL, currentUser.displayName);
+    }
 
-    commentOverlay.dataset.post = postIdx;
-    commentOverlay.classList.add('open');
-    setTimeout(() => document.getElementById('comment-input-field').focus(), 150);
+    if (overlay) {
+        overlay.dataset.post = postIdx;
+        overlay.classList.add('open');
+
+        if (window.renderComments) {
+            window.renderComments(postIdx);
+        }
+
+        if (inputField) {
+            setTimeout(() => inputField.focus(), 150);
+        }
+    }
   }
 
-  function closeCommentModal() { commentOverlay.classList.remove('open'); }
+  function closeCommentModal() { 
+    const overlay = document.getElementById('comment-modal-overlay');
+    const inputField = document.getElementById('comment-input-field');
+    if (overlay) overlay.classList.remove('open');
+
+    if (inputField) inputField.value = '';
+  }
 
   document.getElementById('comment-modal-close').addEventListener('click', closeCommentModal);
   commentOverlay.addEventListener('click', e => { if (e.target === commentOverlay) closeCommentModal(); });

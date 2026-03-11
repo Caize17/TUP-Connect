@@ -23,7 +23,6 @@ const firebaseConfig = {
 
 let currentProfile = { name: "TUPian", photo: null };
 let updatePostBox = null;
-let unsubscribeComments = null;
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
@@ -142,8 +141,6 @@ window.resetPostModal = function() {
     if (typeof updatePostBox === 'function' && currentProfile) {
         updatePostBox(currentProfile.name, currentProfile.photo);
     }
-
-    console.log("Modal fully cleared: Text, Image, and Identity reset.");
 };
 
 async function uploadPostToFirestore(text, imageData, isAnonymous) {
@@ -433,169 +430,6 @@ feedContainer.addEventListener('click', async (e) => {
     }
 });
 
-if (feedContainer) {
-  feedContainer.addEventListener('click', (e) => {
-    const btn = e.target.closest('[data-type="comment"]');
-    if (!btn) return;
 
-    const postId = btn.dataset.id;
-    const postIdx = window.FEED_POSTS.findIndex(p => p.id === postId);
 
-    if (postIdx !== -1 && window.FEED_POSTS[postIdx]) {
-    listenForComments(postId); 
-    
-    if (typeof window.openCommentModal === 'function') {
-        window.openCommentModal(postIdx);
-    } else {
-        console.error("The openCommentModal function hasn't loaded yet!");
-    }
-}
-  });
-}
 
-function listenForComments(postId) {
-  if (unsubscribeComments) unsubscribeComments();
-    
-  const q = query(
-    collection(db, "posts", postId, "comments"),
-    orderBy("createdAt", "asc")
-  );
-
-  unsubscribeComments = onSnapshot(q, (snapshot) => {
-    const comments = snapshot.docs.map(doc => {
-      const data = doc.data();
-      return {
-        id: doc.id,
-        ...data,
-        isOwn: auth.currentUser ? (data.userId === auth.currentUser.uid) : false,
-        time: data.createdAt ? data.createdAt.toDate().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'Just now'
-      };
-    });
-
-    const postIdx = window.FEED_POSTS.findIndex(p => p.id === postId);
-    if (postIdx !== -1) {
-      window.FEED_POSTS[postIdx].commentList = comments;
-      if (window.renderComments) {
-          window.renderComments(postIdx);
-      } else if (window.openCommentModal) {
-          window.openCommentModal(postIdx);
-      }
-    }
-  });
-}
-
-const sendBtn = document.getElementById('comment-send-btn');
-const inputField = document.getElementById('comment-input-field');
-
-if (sendBtn) {
-  sendBtn.addEventListener('click', async () => {
-    const overlay = document.getElementById('comment-modal-overlay');
-    const postIdx = overlay.dataset.post;
-    const post = window.FEED_POSTS ? window.FEED_POSTS[postIdx] : null;
-    const text = inputField.value.trim();
-
-    if (!text || !post || !auth.currentUser) {
-        console.error("Missing data:", { text, post, user: auth.currentUser });
-        return;
-    }
-
-    try {
-      await addDoc(collection(db, "posts", post.id, "comments"), {
-        text: text,
-        author: auth.currentUser.displayName || "Anonymous User",
-        userId: auth.currentUser.uid,
-        photoSrc: auth.currentUser.photoURL || null,
-        createdAt: serverTimestamp()
-      });
-
-      await updateDoc(doc(db, "posts", post.id), {
-        comments: increment(1)
-      });
-
-      inputField.value = '';
-    } catch (err) {
-      console.error("Firebase Error:", err);
-    }
-  });
-}
-
-async function saveCommentEdit(postId, commentId, newText) {
-  const commentRef = doc(db, "posts", postId, "comments", commentId);
-  
-  return await updateDoc(commentRef, {
-    text: newText,
-    isEdited: true,
-    editedAt: serverTimestamp()
-  });
-}
-window.saveCommentEdit = saveCommentEdit;
-
-async function deleteComment(postId, commentId) {
-  const commentRef = doc(db, "posts", postId, "comments", commentId);
-  const postRef = doc(db, "posts", postId);
-
-  await deleteDoc(commentRef); 
-
-  await updateDoc(postRef, {
-    comments: increment(-1)
-  });
-}
-window.deleteComment = deleteComment;
-
-document.addEventListener('click', async (e) => {
-    const menuBtn = e.target.closest('.post-menu-btn');
-
-    if (menuBtn) {
-        e.stopPropagation(); 
-        const idx = menuBtn.dataset.post;
-        const dropdown = document.getElementById(`post-menu-${idx}`);
-
-        document.querySelectorAll('.post-menu-dropdown.open').forEach(m => {
-            if (m !== dropdown) m.classList.remove('open');
-        });
-
-        dropdown.classList.toggle('open');
-        return;
-    }
-
-    const reportItem = e.target.closest('[data-action="report"]');
-    if (reportItem) {
-        const idx = reportItem.dataset.post;
-        const post = window.FEED_POSTS ? window.FEED_POSTS[idx] : null;
-
-        if (post && confirm("Report this post for community review?")) {
-            try {
-                await handleReportPost(post.id, post.userId);
-                alert("Thank you. The post has been reported.");
-            } catch (err) {
-                console.error("Report failed:", err);
-                alert("Could not submit report at this time.");
-            }
-        }
-
-        const dropdown = reportItem.closest('.post-menu-dropdown');
-        if (dropdown) dropdown.classList.remove('open');
-        return;
-    }
-
-    document.querySelectorAll('.post-menu-dropdown.open').forEach(m => {
-        m.classList.remove('open');
-    });
-});
-
-window.handleReportPost = async function(postId, userId) {
-    if (!auth.currentUser) return alert("Login to report.");
-    console.log("Reporting Post:", postId, "User:", userId);
-
-    if (!postId || !userId) {
-        throw new Error("Missing Post ID or User ID. Check your data mapping.");
-    }
-
-    return await addDoc(collection(db, "reports"), {
-        postId: postId,
-        reportedUser: userId,
-        reportedBy: auth.currentUser.uid,
-        timestamp: serverTimestamp(),
-        status: "pending"
-    });
-};
