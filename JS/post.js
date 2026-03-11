@@ -506,21 +506,19 @@ document.addEventListener('click', async (e) => {
     });
 });
 
+window.handleReportPost = async function(postId, userId) {
+    if (!auth.currentUser) return alert("Login to report.");
+    console.log("Reporting Post:", postId, "User:", userId);
 
+    if (!postId || !userId) {
+        throw new Error("Missing Post ID or User ID. Check your data mapping.");
+    }
 
-
-async function handleReportPost(postId, reportedUserId) {
-    const user = auth.currentUser;
-    if (!user) return alert("Please login to report posts.");
-
-    const reportsRef = collection(db, "reports");
-
-    await addDoc(reportsRef, {
+    return await addDoc(collection(db, "reports"), {
         postId: postId,
-        reportedUserId: reportedUserId,
-        reportedBy: user.uid,
+        reportedUser: userId,
+        reportedBy: auth.currentUser.uid,
         timestamp: serverTimestamp(),
         status: "pending"
     });
-}
-
+};
