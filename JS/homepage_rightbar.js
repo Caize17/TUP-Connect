@@ -1,3 +1,26 @@
+import { 
+  getAuth, 
+  onAuthStateChanged 
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+import { 
+  getFirestore, 
+  doc, 
+  getDoc 
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBpGOdMpx_Mws2EcCq6rbOWfZ-FFuhhfo0",
+  authDomain: "tup-connect-b162d.firebaseapp.com",
+  projectId: "tup-connect-b162d",
+  storageBucket: "tup-connect-b162d.firebasestorage.app",
+  messagingSenderId: "193141013544",
+  appId: "1:193141013544:web:72b403e84aa4d3313f091d"
+};
+
+const auth = getAuth();
+const db = getFirestore();
+
 onAuthStateChanged(auth, async (user) => {
   if (user) {
     // 1. Basic Auth Info
