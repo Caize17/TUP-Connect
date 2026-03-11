@@ -199,9 +199,13 @@ function renderFeedPosts() {
           <div class="feed-quote-body">${fp.quote.body.replace(/\n/g, '<br>')}</div>
         </div>` : '';
 
+    const imageTag = fp.postImage 
+    ? `<img src="${fp.postImage}" class="feed-post-img" style="width:100%; border-radius:8px; margin-top:10px; display:block;">` 
+    : '';
+
     const bodyHtml = fp.body ? `
-        <div class="feed-body" id="feed-body-${idx}">${fp.body}</div>
-        <button class="feed-view-more" id="feed-vm-${idx}">View more ▾</button>` : '';
+    <div class="feed-body" id="feed-body-${idx}">${fp.body}</div>
+    ${imageTag} <button class="feed-view-more" id="feed-vm-${idx}">View more ▾</button>` : (imageTag ? imageTag : '');
 
     // Safety Check for Comments
     const firstComment = (fp.commentList && fp.commentList.length > 0) ? fp.commentList[0] : null;
@@ -238,7 +242,7 @@ function renderFeedPosts() {
             <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
             <span class="likes-count">${fmt(fp.likes)}</span> Heart
           </button>
-          <button class="feed-reaction-btn" data-id="${fp.id}" data-type="comment">
+          <button class="feed-reaction-btn" data-id="${fp.id}" data-type="comment" data-post="${idx}">
             <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
             <span class="comments-count">${fmt(fp.comments)}</span> Comments
           </button>
@@ -294,9 +298,9 @@ window.renderFeedPosts = renderFeedPosts;
   const commentOverlay = document.getElementById('comment-modal-overlay');
   const commentList    = document.getElementById('comment-list');
 
-  window.openCommentModal = function(postIdx) {
+  window.renderComments = function(postIdx) {
     const fp = window.FEED_POSTS ? window.FEED_POSTS[postIdx] : null;
-    if (!fp) return;
+    if (!fp || !commentList) return;
 
     commentList.innerHTML = (fp.commentList || []).map((c, cIdx) => `
     <div class="comment-item" id="comment-item-${postIdx}-${cIdx}">
@@ -328,8 +332,7 @@ window.renderFeedPosts = renderFeedPosts;
         </div>
       </div>`).join('');
 
-
-    /* Edit button — show inline input */
+      /* Edit button — show inline input */
     commentList.querySelectorAll('.edit-btn').forEach(btn => {
       btn.addEventListener('click', function () {
         const p        = this.dataset.post;
@@ -389,6 +392,13 @@ window.renderFeedPosts = renderFeedPosts;
         showToast('Comment deleted.');
       });
     });
+  };
+
+  window.openCommentModal = function(postIdx) {
+    const fp = window.FEED_POSTS ? window.FEED_POSTS[postIdx] : null;
+    if (!fp) return;
+
+    window.renderComments(postIdx);
 
     /* Set current user avatar in comment input */
     const inputAvatar = document.getElementById('comment-input-avatar');
@@ -405,6 +415,7 @@ window.renderFeedPosts = renderFeedPosts;
 
   document.getElementById('comment-modal-close').addEventListener('click', closeCommentModal);
   commentOverlay.addEventListener('click', e => { if (e.target === commentOverlay) closeCommentModal(); });
+  window.openCommentModal = openCommentModal;
 
 
   /* ════════════════════════════════════════

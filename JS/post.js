@@ -21,6 +21,9 @@ const firebaseConfig = {
   appId: "1:193141013544:web:72b403e84aa4d3313f091d"
 };
 
+let unsubscribeComments = null; 
+const fmt = (num) => (num >= 1000 ? (num / 1000).toFixed(1) + 'k' : num);
+
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
@@ -66,9 +69,38 @@ function resetPostModal() {
     console.log("Modal cleared successfully!");
 }
 
+async function compressImage(file) {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+
+        const MAX_WIDTH = 800;
+        if (width > MAX_WIDTH) {
+          height *= MAX_WIDTH / width;
+          width = MAX_WIDTH;
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+
+        resolve(canvas.toDataURL('image/jpeg', 0.7));
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
 if (submitBtn) {
   submitBtn.addEventListener('click', async (e) => {
-    e.stopImmediatePropagation(); 
+    e.stopImmediatePropagation();
 
     const liveTextarea = document.getElementById('post-textarea');
     const text = liveTextarea ? liveTextarea.value.trim() : "";
@@ -76,50 +108,73 @@ if (submitBtn) {
 
     if (!text && !imageFile) return;
 
-    const user = auth.currentUser;
-
     try {
       submitBtn.disabled = true;
       submitBtn.textContent = "Posting...";
 
-      let uploadedImageURL = null;
+      let finalImageData = null;
 
+      // 1. Convert and Compress Image
       if (imageFile) {
-        const storageRef = ref(storage, `posts/${user.uid}/${Date.now()}_${imageFile.name}`);
-        const snapshot = await uploadBytes(storageRef, imageFile);
-        uploadedImageURL = await getDownloadURL(snapshot.ref);
+        console.log("Compressing image...");
+        finalImageData = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = (event) => {
+            const img = new Image();
+            img.onload = () => {
+              const canvas = document.createElement('canvas');
+              let width = img.width;
+              let height = img.height;
+
+              // Resize to max 800px width
+              const MAX_WIDTH = 800;
+              if (width > MAX_WIDTH) {
+                height *= MAX_WIDTH / width;
+                width = MAX_WIDTH;
+              }
+
+              canvas.width = width;
+              canvas.height = height;
+              const ctx = canvas.getContext('2d');
+              ctx.drawImage(img, 0, 0, width, height);
+
+              // 0.6 quality is safe for the 1MB limit
+              const compressedData = canvas.toDataURL('image/jpeg', 0.6);
+              console.log("Compression complete. String length:", compressedData.length);
+              resolve(compressedData);
+            };
+            img.onerror = reject;
+            img.src = event.target.result;
+          };
+          reader.onerror = reject;
+          reader.readAsDataURL(imageFile);
+        });
       }
 
+      // 2. Save to Firestore (only after compression is done)
+      console.log("Saving to Firestore...");
       await addDoc(collection(db, "posts"), {
         text: text,
-        imageURL: uploadedImageURL,
-        userId: user ? user.uid : "unknown",
-        author: anonToggle.checked ? "Anonymous Puto" : (user.displayName || user.email),
-        photoURL: user ? user.photoURL : null,
+        imageURL: finalImageData, // This will now contain the string
+        userId: auth.currentUser?.uid || "unknown",
+        author: anonToggle.checked ? "Anonymous Puto" : (auth.currentUser?.displayName || "TUPian"),
+        photoURL: auth.currentUser?.photoURL || null,
         isAnonymous: anonToggle.checked,
         createdAt: serverTimestamp(),
         likes: 0
       });
 
+      console.log("Post successful!");
       resetPostModal();
-      
       if (overlay) overlay.classList.remove('open');
-      if (typeof showToast === 'function') showToast('Post Shared!');
 
     } catch (err) {
-      console.error("❌ Firebase Error:", err);
+      console.error("❌ Post Error:", err);
       alert("Failed to post: " + err.message);
     } finally {
       submitBtn.disabled = false;
       submitBtn.textContent = "Share";
     }
-  });
-}
-
-if (closeBtn) {
-  closeBtn.addEventListener('click', () => {
-    if (overlay) overlay.classList.remove('open');
-    resetPostModal();
   });
 }
 
@@ -157,48 +212,12 @@ const q = query(collection(db, "posts"), orderBy("createdAt", "desc"));
 onSnapshot(q, (snapshot) => {
     let needsFullRender = false;
 
-    snapshot.docChanges().forEach((change) => {
-        const data = change.doc.data();
-        const postId = change.doc.id;
+    const firebaseData = []; // <--- Make sure this line is EXACTLY here
 
-        if (change.type === "modified") {
-            const btn = document.querySelector(`.feed-reaction-btn[data-id="${postId}"]`);
-            if (btn) {
-                const countSpan = btn.querySelector('.likes-count');
-                const likes = data.likedBy ? data.likedBy.length : 0;
-                const isLiked = auth.currentUser ? (data.likedBy || []).includes(auth.currentUser.uid) : false;
-
-
-                if (countSpan) countSpan.textContent = typeof fmt === 'function' ? fmt(likes) : likes;
-
-                const commentBtn = document.querySelector(`.feed-reaction-btn[data-id="${postId}"][data-type="comment"]`);
-                if (commentBtn) {
-                    const commentSpan = commentBtn.querySelector('.comments-count');
-                    const commentCount = data.comments || 0;
-                    
-                    if (commentSpan) {
-                        commentSpan.textContent = typeof fmt === 'function' ? fmt(commentCount) : commentCount;
-                    }
-                }
-
-                if (isLiked) {
-                    btn.classList.add('heart-active');
-                } else {
-                    btn.classList.remove('heart-active');
-                }
-            } else {
-                needsFullRender = true;
-            }
-        } else {
-            needsFullRender = true;
-        }
-    });
-
-    if (needsFullRender || !window.FEED_POSTS || window.FEED_POSTS.length === 0) {
-        const firebaseData = [];
         snapshot.forEach((doc) => {
             const data = doc.data();
             const dateObj = data.createdAt ? data.createdAt.toDate() : new Date();
+            
             firebaseData.push({
                 id: doc.id,
                 name: data.author || "Anonymous Puto",
@@ -209,13 +228,12 @@ onSnapshot(q, (snapshot) => {
                 comments: data.comments || 0,
                 reposts: data.reposts || 0,
                 photoSrc: data.isAnonymous ? "../assets/images/anon_avatar.jpg" : (data.photoURL || null),
-                postImage: data.imageURL || null,
+                postImage: data.imageURL || null
             });
         });
 
         window.FEED_POSTS = firebaseData;
         if (window.renderFeedPosts) window.renderFeedPosts();
-    }
 });
 
 const feedContainer = document.getElementById('feed-posts');
@@ -263,11 +281,14 @@ if (feedContainer) {
     const postIdx = window.FEED_POSTS.findIndex(p => p.id === postId);
 
     if (postIdx !== -1 && window.FEED_POSTS[postIdx]) {
-      listenForComments(postId); 
-      window.openCommentModal(postIdx);
+    listenForComments(postId); 
+    
+    if (typeof window.openCommentModal === 'function') {
+        window.openCommentModal(postIdx);
     } else {
-      console.error("Post not found in FEED_POSTS array!");
+        console.error("The openCommentModal function hasn't loaded yet!");
     }
+}
   });
 }
 
@@ -293,7 +314,14 @@ function listenForComments(postId) {
     const postIdx = window.FEED_POSTS.findIndex(p => p.id === postId);
     if (postIdx !== -1) {
       window.FEED_POSTS[postIdx].commentList = comments;
-      if (window.openCommentModal) window.openCommentModal(postIdx);
+      
+      // If the list drawing function exists, use it to refresh just the comments
+      // instead of re-opening the whole modal
+      if (window.renderComments) {
+          window.renderComments(postIdx);
+      } else if (window.openCommentModal) {
+          window.openCommentModal(postIdx);
+      }
     }
   });
 }
