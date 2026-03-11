@@ -115,7 +115,7 @@
         '</div>' +
         '<h3 class="guest-wall-title">You\'re viewing as a guest</h3>' +
         '<p class="guest-wall-sub">Sign in with your TUP email to see all posts, react, and join the conversation.</p>' +
-        '<a href="../pages/index.html" class="guest-wall-btn">Sign In</a>' +
+        '<a href="../index.html" class="guest-wall-btn">Sign In</a>' +
         '<button class="guest-wall-dismiss" onclick="this.closest(\'.guest-signin-wall\').remove()">Keep browsing as guest</button>' +
       '</div>';
     return wall;
@@ -134,7 +134,7 @@
         '</div>' +
         '<h2 class="guest-locked-title">' + pageName + ' is for TUP students</h2>' +
         '<p class="guest-locked-sub">Sign in with your TUP email to access this page.</p>' +
-        '<a href="../pages/index.html" class="guest-wall-btn">Sign In to Continue</a>' +
+        '<a href="../index.html" class="guest-wall-btn">Sign In to Continue</a>' +
         '<a href="../pages/homepage.html" class="guest-locked-back">← Back to Feed</a>' +
       '</div>';
     return overlay;
@@ -144,6 +144,24 @@
      HOMEPAGE LOGIC
   ════════════════════════════════════════ */
   function initHomepageGuest() {
+
+    /* ── Hijack renderFeedPosts IMMEDIATELY (before post.js calls it) ──
+       post.js sets window.FEED_POSTS from Firebase then calls
+       window.renderFeedPosts(). We replace that function right now
+       so when post.js calls it, our dummy feed runs instead.        */
+    window.renderFeedPosts = function () {
+      renderGuestFeed();
+    };
+
+    /* Also block window.FEED_POSTS from being overwritten by post.js */
+    try {
+      Object.defineProperty(window, 'FEED_POSTS', {
+        set: function () { /* swallow — don't let Firebase posts in */ },
+        get: function () { return []; },
+        configurable: true
+      });
+    } catch(e) {}
+
     document.addEventListener('DOMContentLoaded', function () {
 
       /* Hide the create-post bar — guests can't post */
@@ -169,9 +187,15 @@
           '</div>';
       }
 
-      /* Inject dummy posts into feed */
+      /* Render guest dummy feed */
+      renderGuestFeed();
+    });
+  }
+
+  function renderGuestFeed() {
       var feed = document.getElementById('feed-posts');
-      if (feed) {
+      if (!feed) return;
+      {
         var html = '';
         DUMMY_POSTS.forEach(function (fp, i) {
           html += buildDummyPost(fp, i);
@@ -211,7 +235,10 @@
           showGuestToast();
         });
       });
+  }
 
+  function initHomepageGuestUI() {
+    document.addEventListener('DOMContentLoaded', function () {
       /* Show guest banner at top */
       showGuestBanner();
     });
@@ -243,7 +270,7 @@
     var banner = document.createElement('div');
     banner.className = 'guest-top-banner';
     banner.innerHTML =
-      'You\'re browsing as a guest. <a href="../pages/index.html">Sign in</a> for the full experience.' +
+      'You\'re browsing as a guest. <a href="../index.html">Sign in</a> for the full experience.' +
       '<button class="guest-banner-close" onclick="this.parentElement.remove()">✕</button>';
     document.body.appendChild(banner);
   }
@@ -257,7 +284,7 @@
     var toast = document.createElement('div');
     toast.id = 'guest-toast';
     toast.className = 'guest-toast';
-    toast.innerHTML = '🔒 Sign in to interact with posts. <a href="../pages/index.html">Sign In</a>';
+    toast.innerHTML = '🔒 Sign in to interact with posts. <a href="../index.html">Sign In</a>';
     document.body.appendChild(toast);
     setTimeout(function () { toast.classList.add('show'); }, 10);
     setTimeout(function () {
@@ -271,6 +298,7 @@
   ════════════════════════════════════════ */
   if (isHome) {
     initHomepageGuest();
+    initHomepageGuestUI();
   } else if (isProfile) {
     initLockedPage('Your Profile');
   } else if (isCampusNews) {
