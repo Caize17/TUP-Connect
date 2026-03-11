@@ -1107,3 +1107,28 @@ body {
 .profile-card { animation: fadeUp .45s .05s ease both; }
 .quick-card   { animation: fadeUp .45s .12s ease both; }
 
+/* ASK ME (Tupee) */
+.ask-me-wrap {
+  position: fixed;
+  right: -30px;
+  bottom: -120px;
+  cursor: pointer;
+  animation: float 2.5s ease-in-out infinite;
+  z-index: 99;
+}
+
+.ask-me-img {
+  width: 200px;
+  height: 200px;
+  object-fit: contain;
+  transition: transform 0.18s;
+}
+
+.ask-me-wrap:hover .ask-me-img {
+  transform: scale(1.12);
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(-50%); }
+  50%       { transform: translateY(calc(-50% - 6px)); }
+}

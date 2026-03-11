@@ -631,7 +631,11 @@ document.addEventListener('DOMContentLoaded', () => {
         allBtns.forEach(i => i.classList.remove('active'));
         this.classList.add('active');
         moveTo(this);
-        console.log('Navigate to:', this.dataset.route);
+
+        const route = this.dataset.route;
+        if (route === 'home')        window.location.href = '../pages/homepage.html';
+        if (route === 'campus news') window.location.href = '../pages/campus_news.html';
+        if (route === 'campus')      window.location.href = '../pages/campus_directory.html';
       });
     });
 
@@ -639,7 +643,7 @@ document.addEventListener('DOMContentLoaded', () => {
       allBtns.forEach(i => i.classList.remove('active'));
       this.classList.add('active');
       moveTo(this);
-      console.log('Navigate to: profile');
+      window.location.href = '../pages/profile.html';
     });
 
     /* Snap to active button on load */
