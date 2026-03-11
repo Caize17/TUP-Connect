@@ -211,28 +211,43 @@ onSnapshot(q, (snapshot) => {
     snapshot.docChanges().forEach((change) => {
         const data = change.doc.data();
         const postId = change.doc.id;
+        const currentUid = auth.currentUser?.uid;
 
-    if (change.type === "modified") {
-        const localPost = window.FEED_POSTS?.find(p => p.id === postId);
+        if (change.type === "modified") {
+            const localPost = window.FEED_POSTS?.find(p => p.id === postId);
 
-        const repostBtn = document.querySelector(`.feed-reaction-btn[data-id="${postId}"][data-type="repost"]`);
-        if (repostBtn) {
-            const repostSpan = repostBtn.querySelector('.reposts-count');
-            const newCount = data.reposts || 0;
-            if (repostSpan) repostSpan.textContent = typeof fmt === 'function' ? fmt(newCount) : newCount;
-            if (localPost) localPost.reposts = newCount; // Keep local data in sync
-        }
+            const repostBtn = document.querySelector(`.feed-reaction-btn[data-id="${postId}"][data-type="repost"]`);
+            if (repostBtn) {
+                const repostSpan = repostBtn.querySelector('.reposts-count');
 
-        const commentBtn = document.querySelector(`.feed-reaction-btn[data-id="${postId}"][data-type="comment"]`);
-        if (commentBtn) {
-            const countSpan = commentBtn.querySelector('.comments-count');
-            const newCount = data.comments || 0;
-            if (countSpan) countSpan.textContent = typeof fmt === 'function' ? fmt(newCount) : newCount;
-            if (localPost) localPost.comments = newCount;
+                const repostArray = data.repostedBy || [];
+                const newCount = repostArray.length;
+                
+                if (repostSpan) {
+                    repostSpan.textContent = typeof fmt === 'function' ? fmt(newCount) : newCount;
+                }
+
+                const isRepostedByMe = currentUid ? repostArray.includes(currentUid) : false;
+                repostBtn.classList.toggle('repost-active', isRepostedByMe);
+
+                if (localPost) {
+                    localPost.reposts = newCount;
+                    localPost.isRepostedByMe = isRepostedByMe;
+                }
+            }
+
+            const commentBtn = document.querySelector(`.feed-reaction-btn[data-id="${postId}"][data-type="comment"]`);
+            if (commentBtn) {
+                const countSpan = commentBtn.querySelector('.comments-count');
+                const newCommentCount = data.comments || 0;
+                if (countSpan) countSpan.textContent = typeof fmt === 'function' ? fmt(newCommentCount) : newCommentCount;
+                if (localPost) localPost.comments = newCommentCount;
+            } else {
+                needsFullRender = true;
+            }
         } else {
             needsFullRender = true;
         }
-    }
     });
 
     if (needsFullRender || !window.FEED_POSTS || window.FEED_POSTS.length === 0) {
@@ -240,6 +255,7 @@ onSnapshot(q, (snapshot) => {
         snapshot.forEach((doc) => {
             const data = doc.data();
             const dateObj = data.createdAt ? data.createdAt.toDate() : new Date();
+            const repostedBy = data.repostedBy || [];
             
             firebaseData.push({
                 id: doc.id,
@@ -249,7 +265,8 @@ onSnapshot(q, (snapshot) => {
                 likes: data.likedBy ? data.likedBy.length : 0,
                 isLikedByMe: auth.currentUser ? (data.likedBy || []).includes(auth.currentUser.uid) : false,
                 comments: data.comments || 0,
-                reposts: data.reposts || 0,
+                reposts: repostedBy.length,
+                isRepostedByMe: auth.currentUser ? repostedBy.includes(auth.currentUser.uid) : false,
                 photoSrc: data.isAnonymous ? "../assets/images/anon_avatar.jpg" : (data.photoURL || null),
                 postImage: data.imageURL || null
             });
@@ -316,36 +333,6 @@ if (feedContainer) {
   });
 }
 
-if (feedContainer) {
-  feedContainer.addEventListener('click', async (e) => {
-    const btn = e.target.closest('.feed-reaction-btn[data-type="repost"]');
-    if (!btn) return;
-
-    const postId = btn.dataset.id;
-    const user = auth.currentUser;
-
-    if (!user) {
-        showToast("Login to repost!");
-        return;
-    }
-
-    const postRef = doc(db, "posts", postId);
-    const isReposted = btn.classList.contains('repost-active');
-
-    try {
-      await updateDoc(postRef, {
-        reposts: increment(isReposted ? -1 : 1)
-      });
-      
-      btn.classList.toggle('repost-active');
-      
-      if (!isReposted) showToast("Post reposted!");
-    } catch (err) {
-      console.error("Repost failed:", err);
-    }
-  });
-}
-
 function listenForComments(postId) {
   if (unsubscribeComments) unsubscribeComments();
     
@@ -384,9 +371,7 @@ if (sendBtn) {
   sendBtn.addEventListener('click', async () => {
     const overlay = document.getElementById('comment-modal-overlay');
     const postIdx = overlay.dataset.post;
-    
     const post = window.FEED_POSTS ? window.FEED_POSTS[postIdx] : null;
-
     const text = inputField.value.trim();
 
     if (!text || !post || !auth.currentUser) {
@@ -413,3 +398,26 @@ if (sendBtn) {
     }
   });
 }
+
+feedContainer.addEventListener('click', async (e) => {
+    const btn = e.target.closest('.feed-reaction-btn[data-type="repost"]');
+    if (!btn) return;
+
+    const postId = btn.dataset.id; 
+
+    const user = auth.currentUser;
+    if (!user) return alert("Login to repost!");
+
+    try {
+        const postRef = doc(db, "posts", postId);
+        const isReposted = btn.classList.contains('repost-active');
+
+        await updateDoc(postRef, {
+            repostedBy: isReposted ? arrayRemove(user.uid) : arrayUnion(user.uid)
+        });
+        
+        console.log("Success! Post ID used:", postId);
+    } catch (err) {
+        console.error("Repost failed:", err);
+    }
+});

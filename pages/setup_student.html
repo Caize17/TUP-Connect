@@ -225,16 +225,14 @@
     });
   }
 
-  
+
   window.handleStudentSubmit = async function() {
     let valid = true;
     const user = auth.currentUser;
 
-    // Reset errors
     document.querySelectorAll('.field-error').forEach(e => e.style.display = 'none');
     document.querySelectorAll('.tup-input').forEach(e => e.classList.remove('error'));
 
-    // Basic Validation
     if (!idInput.value.trim()) {
       idInput.classList.add('error');
       document.getElementById('err-id').style.display = 'block';
@@ -251,7 +249,6 @@
         btnSubmit.disabled = true;
         btnSubmit.textContent = "Finalizing Account...";
 
-        // IMPORTANT: Define userRef (This was missing!)
         const userRef = doc(db, "users", user.uid);
 
         const profileInput = document.getElementById('profile-input');
@@ -260,7 +257,6 @@
         let finalPhotoURL = user.photoURL || ""; 
         let finalCoverURL = "";
 
-        // --- PROFILE PHOTO UPLOAD ---
         if (profileInput.files && profileInput.files[0]) {
           try {
             const file = profileInput.files[0];
@@ -272,7 +268,6 @@
           }
         }
 
-        // --- COVER PHOTO UPLOAD ---
         if (coverInput.files && coverInput.files[0]) {
           try {
             const file = coverInput.files[0];
@@ -284,8 +279,6 @@
           }
         }
 
-        // --- FINAL FIRESTORE UPDATE ---
-        // Even if images failed, this will now run!
         await updateDoc(userRef, {
           studentID: idInput.value.trim(),
           college: collegeSelect.value,
