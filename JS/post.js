@@ -21,8 +21,9 @@ const firebaseConfig = {
   appId: "1:193141013544:web:72b403e84aa4d3313f091d"
 };
 
-let unsubscribeComments = null; 
-const fmt = (num) => (num >= 1000 ? (num / 1000).toFixed(1) + 'k' : num);
+let currentProfile = { name: "TUPian", photo: null };
+let updatePostBox = null;
+let unsubscribeComments = null;
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
@@ -37,36 +38,23 @@ const closeBtn = document.getElementById('modal-close-btn');
 if (addImageBtn && imageInput) {
   imageInput.addEventListener('change', function() {
     const file = this.files[0];
-    if (file && imagePreview) {
+    const attachments = document.getElementById('modal-attachments');
+    const preview = document.getElementById('post-image-preview');
+
+    if (file) {
       const reader = new FileReader();
       reader.onload = (e) => {
-        imagePreview.src = e.target.result;
-        imagePreview.style.display = 'block';
+        if (preview) {
+            preview.src = e.target.result;
+            preview.style.display = 'block';
+        }
+        if (attachments) {
+            attachments.style.display = 'block';
+        }
       };
       reader.readAsDataURL(file);
     }
   });
-}
-
-const submitBtn  = document.getElementById('modal-submit-btn');
-const anonToggle = document.getElementById('modal-anon-toggle');
-const overlay    = document.getElementById('create-post-overlay');
-
-function resetPostModal() {
-    const liveTextarea = document.getElementById('post-textarea');
-    const attachments = document.getElementById('modal-attachments');
-    const fileInput = document.getElementById('modal-file-input');
-
-    if (liveTextarea) liveTextarea.value = '';
-
-    if (fileInput) fileInput.value = ""; 
-
-    if (attachments) {
-        attachments.innerHTML = '';
-        attachments.style.display = 'none';
-    }
-
-    console.log("Modal cleared successfully!");
 }
 
 async function compressImage(file) {
@@ -98,253 +86,291 @@ async function compressImage(file) {
   });
 }
 
+async function getCompressedImageData(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                let width = img.width;
+                let height = img.height;
+                const MAX_WIDTH = 800;
+
+                if (width > MAX_WIDTH) {
+                    height *= MAX_WIDTH / width;
+                    width = MAX_WIDTH;
+                }
+
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+                resolve(canvas.toDataURL('image/jpeg', 0.6));
+            };
+            img.onerror = reject;
+            img.src = event.target.result;
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+    });
+}
+
+const submitBtn  = document.getElementById('modal-submit-btn');
+const anonToggle = document.getElementById('modal-anon-toggle');
+const overlay    = document.getElementById('create-post-overlay');
+
+window.resetPostModal = function() {
+    const liveTextarea = document.getElementById('post-textarea');
+    const attachments = document.getElementById('modal-attachments');
+    const fileInput = document.getElementById('modal-file-input');
+    const anonToggle = document.getElementById('modal-anon-toggle');
+
+    if (liveTextarea) liveTextarea.value = '';
+
+    if (fileInput) fileInput.value = ""; 
+
+    if (attachments) {
+        attachments.innerHTML = '';
+        attachments.style.display = 'none';
+    }
+
+    if (anonToggle) {
+        anonToggle.checked = false;
+    }
+
+    if (typeof updatePostBox === 'function' && currentProfile) {
+        updatePostBox(currentProfile.name, currentProfile.photo);
+    }
+
+    console.log("Modal fully cleared: Text, Image, and Identity reset.");
+};
+
+async function uploadPostToFirestore(text, imageData, isAnonymous) {
+    const user = auth.currentUser;
+    let name = currentProfile.name;
+    let photo = currentProfile.photo;
+
+    if (isAnonymous) {
+        name = "Anonymous Puto";
+        photo = "../assets/images/anon_avatar.jpg";
+    }
+
+    return await addDoc(collection(db, "posts"), {
+        text: text,
+        imageURL: imageData,
+        userId: user?.uid || "unknown",
+        author: name,
+        photoURL: photo,
+        isAnonymous: isAnonymous,
+        createdAt: serverTimestamp(),
+        likes: 0
+    });
+}
+
+/**
+ * Toggles the modal visibility and handles cleanup
+ * @param {boolean} isOpen - true to open, false to close
+ */
+function setModalSelection(isOpen) {
+    const overlay = document.getElementById('create-post-overlay');
+    if (!overlay) return;
+    
+    if (isOpen) {
+        overlay.classList.add('open');
+        setTimeout(() => document.getElementById('post-textarea')?.focus(), 100);
+    } else {
+        overlay.classList.remove('open');
+        resetPostModal(); 
+    }
+}
+
 if (submitBtn) {
   submitBtn.addEventListener('click', async (e) => {
     e.stopImmediatePropagation();
 
     const liveTextarea = document.getElementById('post-textarea');
+    const liveImageInput = document.getElementById('modal-file-input');
+    const liveAnonToggle = document.getElementById('modal-anon-toggle');
+
     const text = liveTextarea ? liveTextarea.value.trim() : "";
-    const imageFile = imageInput ? imageInput.files[0] : null;
+    const imageFile = liveImageInput ? liveImageInput.files[0] : null;
+
+    const isAnon = liveAnonToggle ? liveAnonToggle.checked : false;
 
     if (!text && !imageFile) return;
 
     try {
       submitBtn.disabled = true;
-      submitBtn.textContent = "Posting...";
-
-      const user = auth.currentUser;
-      let userData = {};
-      if (user) {
-        const userDoc = await getDoc(doc(db, "users", user.uid));
-        if (userDoc.exists()) {
-          userData = userDoc.data();
-        }
-      }
 
       let finalImageData = null;
-
       if (imageFile) {
-        console.log("Compressing post image...");
-        finalImageData = await new Promise((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onload = (event) => {
-            const img = new Image();
-            img.onload = () => {
-              const canvas = document.createElement('canvas');
-              let width = img.width;
-              let height = img.height;
-
-              const MAX_WIDTH = 800;
-              if (width > MAX_WIDTH) {
-                height *= MAX_WIDTH / width;
-                width = MAX_WIDTH;
-              }
-
-              canvas.width = width;
-              canvas.height = height;
-              const ctx = canvas.getContext('2d');
-              ctx.drawImage(img, 0, 0, width, height);
-
-              const compressedData = canvas.toDataURL('image/jpeg', 0.6);
-              resolve(compressedData);
-            };
-            img.onerror = reject;
-            img.src = event.target.result;
-          };
-          reader.onerror = reject;
-          reader.readAsDataURL(imageFile);
-        });
+        finalImageData = await getCompressedImageData(imageFile);
       }
 
-      console.log("Saving to Firestore...");
+      await uploadPostToFirestore(text, finalImageData, isAnon);
+ 
+      setModalSelection(false); 
       
-      await addDoc(collection(db, "posts"), {
-        text: text,
-        imageURL: finalImageData,
-        userId: user?.uid || "unknown",
-        author: anonToggle.checked ? "Anonymous Puto" : (userData.fullName || user?.displayName || "TUPian"),
-        photoURL: anonToggle.checked ? null : (userData.photoURL || user?.photoURL), 
-        isAnonymous: anonToggle.checked,
-        createdAt: serverTimestamp(),
-        likes: 0
-      });
-
-      console.log("Post successful!");
-      resetPostModal();
-      if (overlay) overlay.classList.remove('open');
-
     } catch (err) {
       console.error("❌ Post Error:", err);
       alert("Failed to post: " + err.message);
     } finally {
       submitBtn.disabled = false;
-      submitBtn.textContent = "Share";
+      submitBtn.textContent = `<i class="fa-regular fa-paper-plane"></i> Share`;
     }
   });
 }
 
-
-
 onAuthStateChanged(auth, async (user) => {
   if (!user) return;
 
-  // 1. Initial Profile State
-  let currentProfile = {
-    name: user.displayName || "TUPian",
-    photo: user.photoURL
-  };
-
-  // 2. The Master Update Function
-  const updatePostBox = (name, photo) => {
-    // Target all three potential areas
+  updatePostBox = (name, photo) => {
     const postBoxNameEl = document.getElementById('modal-user-name');
     const avatarContainer = document.getElementById('modal-avatar');
-    const feedBarAvatar = document.getElementById('comment-avatar-wrap'); // The "Hi ka-Puto" bar
+    const feedBarAvatar = document.getElementById('comment-avatar-wrap');
 
     if (postBoxNameEl) postBoxNameEl.textContent = name;
 
-    // Update Modal Avatar
-    if (avatarContainer) {
-      if (photo) {
-        avatarContainer.innerHTML = `<img src="${photo}" alt="${name}">`;
-      } else {
-        avatarContainer.innerHTML = `<svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`;
-      }
-    }
+    const imgHTML = photo 
+      ? `<img src="${photo}" alt="${name}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`
+      : `<svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`;
 
-    // Update Static Feed Bar Avatar
-    if (feedBarAvatar) {
-      if (photo) {
-        feedBarAvatar.innerHTML = `<img src="${photo}" alt="${name}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
-      }
-    }
+    if (avatarContainer) avatarContainer.innerHTML = imgHTML;
+    if (feedBarAvatar) feedBarAvatar.innerHTML = imgHTML;
   };
 
-  // Run immediately with Auth defaults
+  currentProfile.name = user.displayName || "TUPian";
+  currentProfile.photo = user.photoURL;
+  
   updatePostBox(currentProfile.name, currentProfile.photo);
 
-  // 3. Get Firestore Data
   try {
-    const userDocRef = doc(db, "users", user.uid);
-    const userSnap = await getDoc(userDocRef);
+    const userDoc = await getDoc(doc(db, "users", user.uid));
+    if (userDoc.exists()) {
+      const userData = userDoc.data();
+      currentProfile.name = userData.fullName || currentProfile.name;
+      currentProfile.photo = userData.photoURL || currentProfile.photo;
 
-    if (userSnap.exists()) {
-      const userData = userSnap.data();
-      currentProfile.name = userData.fullName || user.displayName || "TUPian";
-      currentProfile.photo = userData.photoURL || user.photoURL;
-
-      // Update everything with real TUP data
       updatePostBox(currentProfile.name, currentProfile.photo);
     }
-  } catch (error) {
-    console.error("Error fetching profile:", error);
+  } catch (err) { 
+    console.error("Error fetching user doc:", err); 
   }
 
-  // 4. Anonymous Toggle Logic
   const anonToggle = document.getElementById('modal-anon-toggle');
   if (anonToggle) {
+
     anonToggle.replaceWith(anonToggle.cloneNode(true));
     const newToggle = document.getElementById('modal-anon-toggle');
 
     newToggle.addEventListener('change', (e) => {
-      if (e.target.checked) {
-        updatePostBox("Anonymous Puto", "../assets/images/anon_avatar.jpg");
-      } else {
-        updatePostBox(currentProfile.name, currentProfile.photo);
-      }
+    const modalName = document.getElementById('modal-user-name');
+    const modalAvatar = document.getElementById('modal-avatar');
+
+    if (e.target.checked) {
+        if (modalName) modalName.textContent = "Anonymous Puto";
+        if (modalAvatar) {
+            modalAvatar.innerHTML = `<img src="../assets/images/anon_avatar.jpg" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
+        }
+    } else {
+        if (modalName) modalName.textContent = currentProfile.name;
+        if (modalAvatar) {
+            modalAvatar.innerHTML = currentProfile.photo 
+                ? `<img src="${currentProfile.photo}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`
+                : `<svg>...</svg>`;
+        }
+    }
     });
   }
-}); // End of onAuthStateChanged
+});
 
+function updatePostUI(postId, data, currentUid) {
+    const localPost = window.FEED_POSTS?.find(p => p.id === postId);
+
+    const updateReaction = (type, countKey, activeClass, isMeKey) => {
+    const btn = document.querySelector(`.feed-reaction-btn[data-id="${postId}"][data-type="${type}"]`);
+    if (!btn) return false;
+
+    const countSpan = btn.querySelector(`.${type}s-count`); 
+
+    const rawData = data[countKey];
+    let count = 0;
+
+    if (Array.isArray(rawData)) {
+        count = rawData.length;
+    } else if (typeof rawData === 'number') {
+        count = rawData;
+    } else {
+        count = data[type] || 0;
+    }
+
+    if (countSpan) {
+
+        countSpan.textContent = typeof fmt === 'function' ? fmt(count) : count;
+    }
+
+    const dataArray = Array.isArray(rawData) ? rawData : [];
+    const isMe = currentUid ? dataArray.includes(currentUid) : false;
+    
+    if (activeClass) {
+        btn.classList.toggle(activeClass, isMe);
+    }
+
+    if (localPost) {
+        localPost[type + 's'] = count;
+        localPost[isMeKey] = isMe;
+    }
+    
+    return true;
+};
+
+    const likeFound = updateReaction('like', 'likedBy', 'heart-active', 'isLikedByMe');
+    const repostFound = updateReaction('repost', 'repostedBy', 'repost-active', 'isRepostedByMe');
+    const commentFound = updateReaction('comment', 'comments', '', '');
+
+    return likeFound && repostFound && commentFound;
+}
+
+function formatFirebaseData(snapshot) {
+    return snapshot.docs.map(doc => {
+        const data = doc.data();
+        const dateObj = data.createdAt ? data.createdAt.toDate() : new Date();
+        const repostedBy = data.repostedBy || [];
+        
+        return {
+            id: doc.id,
+            name: data.author || "Anonymous Puto",
+            body: data.text,
+            time: dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            likes: data.likedBy ? data.likedBy.length : 0,
+            isLikedByMe: auth.currentUser ? (data.likedBy || []).includes(auth.currentUser.uid) : false,
+            comments: data.comments || 0,
+            reposts: repostedBy.length,
+            isRepostedByMe: auth.currentUser ? repostedBy.includes(auth.currentUser.uid) : false,
+            photoSrc: data.isAnonymous ? "../assets/images/anon_avatar.jpg" : (data.photoURL || null),
+            postImage: data.imageURL || null
+        };
+    });
+}
 
 const q = query(collection(db, "posts"), orderBy("createdAt", "desc"));
 
 onSnapshot(q, (snapshot) => {
     let needsFullRender = false;
-
-snapshot.docChanges().forEach((change) => {
-    const data = change.doc.data();
-    const postId = change.doc.id;
     const currentUid = auth.currentUser?.uid;
 
-    if (change.type === "modified") {
-        const localPost = window.FEED_POSTS?.find(p => p.id === postId);
-
-        const likeBtn = document.querySelector(`.feed-reaction-btn[data-id="${postId}"][data-type="like"]`);
-        if (likeBtn) {
-            const likeSpan = likeBtn.querySelector('.likes-count');
-            const likedArray = data.likedBy || [];
-            const newLikeCount = likedArray.length;
-
-            if (likeSpan) {
-                likeSpan.textContent = typeof fmt === 'function' ? fmt(newLikeCount) : newLikeCount;
-            }
-
-            const isLikedByMe = currentUid ? likedArray.includes(currentUid) : false;
-            likeBtn.classList.toggle('heart-active', isLikedByMe);
-
-            if (localPost) {
-                localPost.likes = newLikeCount;
-                localPost.isLikedByMe = isLikedByMe;
-            }
-        }
-
-        const repostBtn = document.querySelector(`.feed-reaction-btn[data-id="${postId}"][data-type="repost"]`);
-        if (repostBtn) {
-            const repostSpan = repostBtn.querySelector('.reposts-count');
-            const repostArray = data.repostedBy || [];
-            const newRepostCount = repostArray.length;
-            
-            if (repostSpan) {
-                repostSpan.textContent = typeof fmt === 'function' ? fmt(newRepostCount) : newRepostCount;
-            }
-
-            const isRepostedByMe = currentUid ? repostArray.includes(currentUid) : false;
-            repostBtn.classList.toggle('repost-active', isRepostedByMe);
-
-            if (localPost) {
-                localPost.reposts = newRepostCount;
-                localPost.isRepostedByMe = isRepostedByMe;
-            }
-        }
-
-        const commentBtn = document.querySelector(`.feed-reaction-btn[data-id="${postId}"][data-type="comment"]`);
-        if (commentBtn) {
-            const countSpan = commentBtn.querySelector('.comments-count');
-            const newCommentCount = data.comments || 0;
-            if (countSpan) countSpan.textContent = typeof fmt === 'function' ? fmt(newCommentCount) : newCommentCount;
-            if (localPost) localPost.comments = newCommentCount;
+    snapshot.docChanges().forEach((change) => {
+        if (change.type === "modified") {
+            const success = updatePostUI(change.doc.id, change.doc.data(), currentUid);
+            if (!success) needsFullRender = true;
         } else {
             needsFullRender = true;
         }
-    } else {
-        needsFullRender = true;
-    }
-});
+    });
 
     if (needsFullRender || !window.FEED_POSTS || window.FEED_POSTS.length === 0) {
-        const firebaseData = [];
-        snapshot.forEach((doc) => {
-            const data = doc.data();
-            const dateObj = data.createdAt ? data.createdAt.toDate() : new Date();
-            const repostedBy = data.repostedBy || [];
-            
-            firebaseData.push({
-                id: doc.id,
-                name: data.author || "Anonymous Puto",
-                body: data.text,
-                time: dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-                likes: data.likedBy ? data.likedBy.length : 0,
-                isLikedByMe: auth.currentUser ? (data.likedBy || []).includes(auth.currentUser.uid) : false,
-                comments: data.comments || 0,
-                reposts: repostedBy.length,
-                isRepostedByMe: auth.currentUser ? repostedBy.includes(auth.currentUser.uid) : false,
-                photoSrc: data.isAnonymous ? "../assets/images/anon_avatar.jpg" : (data.photoURL || null),
-                postImage: data.imageURL || null
-            });
-        });
-
-        window.FEED_POSTS = firebaseData;
+        window.FEED_POSTS = formatFirebaseData(snapshot);
         if (window.renderFeedPosts) window.renderFeedPosts();
     }
 });
@@ -402,13 +428,10 @@ feedContainer.addEventListener('click', async (e) => {
             repostedBy: isReposted ? arrayRemove(user.uid) : arrayUnion(user.uid)
         });
         
-        console.log("Success! Post ID used:", postId);
     } catch (err) {
         console.error("Repost failed:", err);
     }
 });
-
-
 
 if (feedContainer) {
   feedContainer.addEventListener('click', (e) => {
