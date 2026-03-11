@@ -1,8 +1,20 @@
+
 const avatarImg = document.querySelector('#modal-avatar img');
 const USER = {
   name: document.getElementById('modal-user-name').textContent,
   photoSrc: avatarImg ? avatarImg.src : ''
 };
+
+let USERS = {
+  name: "Loading...",
+  email: "",
+  studentId: "",
+  photoSrc: null,
+  logoSrc:   "../assets/images/logo.png",
+};
+
+let POST = null;
+let FEED_POSTS = [];
 
 // ========================
 // TEMPLATE HELPER
@@ -319,6 +331,57 @@ function deletePost(e) {
 }
 
 // ========================
+// EDIT POST
+// ========================
+function editPost(e) {
+  const card = e.target.closest('.post-card');
+  const bodyEl = card.querySelector('.post-body');
+  if (!bodyEl) return;
+
+  // Prevent double-editing
+  if (card.querySelector('.edit-post-wrap')) return;
+
+  // Close the dropdown
+  card.querySelectorAll('.dropdown-menu').forEach(m => m.classList.remove('open'));
+
+  // Get current plain text (strip <br> back to newlines)
+  const currentText = bodyEl.innerHTML.replace(/<br\s*\/?>/gi, '\n');
+
+  // Hide the body, inject edit UI after it
+  bodyEl.style.display = 'none';
+
+  const wrap = document.createElement('div');
+  wrap.className = 'edit-post-wrap';
+  wrap.innerHTML = `
+    <textarea class="edit-post-textarea">${escapeHTML(currentText)}</textarea>
+    <div class="edit-post-actions">
+      <button class="edit-post-cancel">Cancel</button>
+      <button class="edit-post-save">Save</button>
+    </div>`;
+
+  bodyEl.insertAdjacentElement('afterend', wrap);
+  const textarea = wrap.querySelector('.edit-post-textarea');
+  textarea.focus();
+  textarea.setSelectionRange(textarea.value.length, textarea.value.length);
+
+  // Cancel
+  wrap.querySelector('.edit-post-cancel').addEventListener('click', () => {
+    bodyEl.style.display = '';
+    wrap.remove();
+  });
+
+  // Save
+  wrap.querySelector('.edit-post-save').addEventListener('click', () => {
+    const newText = textarea.value.trim();
+    if (!newText) { showToast('Post cannot be empty!'); return; }
+    bodyEl.innerHTML = escapeHTML(newText).replace(/\n/g, '<br>');
+    bodyEl.style.display = '';
+    wrap.remove();
+    showToast('Post updated!');
+  });
+}
+
+// ========================
 // DROPDOWN MENU
 // ========================
 function toggleMenu(e, id) {
@@ -327,12 +390,165 @@ function toggleMenu(e, id) {
     if (m.id !== id) m.classList.remove('open');
   });
   const menu = document.getElementById(id);
-  if (menu) menu.classList.toggle('open');
+  if (menu) {
+    menu.classList.toggle('open');
+
+    // Update pin button label based on pinned state
+    const card = menu.closest('.post-card');
+    const pinBtn = menu.querySelector('.pin-btn');
+    if (pinBtn && card) {
+      const isPinned = card.dataset.pinned === 'true';
+      pinBtn.querySelector('span').textContent = isPinned ? 'Unpin Post' : 'Pin Post';
+    }
+  }
 }
 
 document.addEventListener('click', () => {
   document.querySelectorAll('.dropdown-menu').forEach(m => m.classList.remove('open'));
 });
+
+function pinPost(e) {
+  const card = e.target.closest('.post-card');
+  const annCard = document.getElementById('ann-card');
+  const body    = card.querySelector('.post-body')?.innerHTML || '';
+  const author  = card.querySelector('.post-author')?.textContent || '';
+  const time    = card.querySelector('.post-time')?.textContent || '';
+
+  const pinItem = e.target.closest('.dropdown-item');
+  if (pinItem) {
+    pinItem.setAttribute('onclick', 'unpinFromMenu(event)');
+    pinItem.innerHTML = `
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;flex-shrink:0;">
+        <line x1="2" y1="2" x2="22" y2="22"/>
+        <line x1="12" y1="17" x2="12" y2="22"/>
+        <path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V17z"/>
+      </svg> Unpin Post`;
+  }
+
+  // Check if already pinned — unpin it
+  const isPinned = card.dataset.pinned === 'true';
+  if (isPinned) {
+    card.dataset.pinned = 'false';
+    card.querySelector('.dropdown-item [data-pin]')?.closest('.dropdown-item')
+        ?.querySelector('span')?.textContent === 'Pin Post';
+    annCard.innerHTML = `
+      <div class="pinned-empty">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+          <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+        </svg>
+        <div class="pinned-empty-text">No announcements yet</div>
+      </div>`;
+    showToast('Post unpinned.');
+    return;
+  }
+
+  // Pin it
+  card.dataset.pinned = 'true';
+  annCard.innerHTML = `
+    <div class="pushpin"><div class="pin-head"></div><div class="pin-shaft"></div></div>
+
+    <button class="unpin-post-btn visible" id="unpin-post-btn" onclick="unpinPost()" title="Unpin Post">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="2" y1="2" x2="22" y2="22"/>
+        <line x1="12" y1="17" x2="12" y2="22"/>
+        <path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V17z"/>
+      </svg>
+      Unpin Post
+    </button>
+
+    <div class="social-bar-wrap">
+      <div class="social-bar-outer">
+        <div class="social-bar">
+          <span class="social-item"><span>0</span>
+            <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          </span>
+          <div class="social-divider"></div>
+          <span class="social-item"><span>0</span>
+            <svg viewBox="0 0 24 24"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/><path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
+          </span>
+          <div class="social-divider"></div>
+          <span class="social-item"><span>0</span>
+            <svg viewBox="0 0 24 24"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+          </span>
+        </div>
+      </div>
+    </div>
+    <hr class="divider-line"/>
+    <div class="timestamp">${time}</div>
+    <div class="card-inner">
+      <div class="text-bubble">
+        <div class="ann-title">${author}</div>
+        <div class="ann-body">${body}</div>
+      </div>
+    </div>`;
+
+  showToast('Post pinned!');
+
+  const unpinPostBtn = document.getElementById('unpin-post-btn');
+  if (unpinPostBtn) unpinPostBtn.classList.add('visible');
+}
+
+function unpinFromMenu(e) {
+  const card = e.target.closest('.post-card');
+
+  // Revert dropdown item back to "Pin Post"
+  const pinItem = e.target.closest('.dropdown-item');
+  if (pinItem) {
+    pinItem.setAttribute('onclick', 'pinPost(event)');
+    pinItem.innerHTML = `
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;flex-shrink:0;">
+        <line x1="12" y1="17" x2="12" y2="22"/>
+        <path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V17z"/>
+      </svg> Pin Post`;
+  }
+
+  // Mark card as unpinned
+  if (card) card.dataset.pinned = 'false';
+
+  // Reset ann-card to empty state
+  const annCard = document.getElementById('ann-card');
+  annCard.innerHTML = `
+    <div class="pinned-empty">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+        <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+      </svg>
+      <div class="pinned-empty-text">No announcements yet</div>
+    </div>`;
+
+  showToast('Post unpinned.');
+}
+
+function unpinPost() {
+  const annCard  = document.getElementById('ann-card');
+  const unpinBtn = document.getElementById('unpin-post-btn');
+
+  // Unpin the currently pinned card
+  document.querySelectorAll('.post-card[data-pinned="true"]').forEach(c => {
+    c.dataset.pinned = 'false';
+    const oldMenu  = c.querySelector('.dropdown-menu');
+    const oldPin   = oldMenu?.querySelector('.pin-btn');
+    const oldUnpin = oldMenu?.querySelector('.unpin-btn');
+    if (oldPin)   oldPin.style.display   = 'flex';
+    if (oldUnpin) oldUnpin.style.display = 'none';
+  });
+
+  // Hide unpin button
+  if (unpinBtn) unpinBtn.classList.remove('visible');
+
+  // Reset pinned card to empty state
+  annCard.innerHTML = `
+    <div class="pinned-empty">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+        <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+      </svg>
+      <div class="pinned-empty-text">No announcements yet</div>
+    </div>`;
+
+  showToast('Post unpinned.');
+}
 
 // ========================
 // HELPER
@@ -517,7 +733,7 @@ function submitModalComment() {
 
   const list = document.getElementById('commentModalList');
   const cIdx = list.querySelectorAll('.comment-modal-item').length;
-  list.appendChild(buildCommentModalItem('Puto-Manila Organization', '../assets/images/anon_avatar.jpg', text, 'Just now', true, cIdx));
+  list.appendChild(buildCommentModalItem('Puto-Manila Admin', '../assets/images/anon_avatar.jpg', text, 'Just now', true, cIdx));
   list.scrollTop = list.scrollHeight;
 
   bindCommentActions();
@@ -526,7 +742,7 @@ function submitModalComment() {
     const store = _currentPostCard.querySelector('.comments-data');
     const cd = document.createElement('div');
     cd.className        = 'comment-data';
-    cd.dataset.author   = 'Puto-Manila Organization';
+    cd.dataset.author   = 'Puto-Manila Admin';
     cd.dataset.avatar   = '../assets/images/anon_avatar.jpg';
     cd.dataset.text     = text;
     cd.dataset.time     = 'Just now';
@@ -576,7 +792,6 @@ function updateFeedCommentPreview(card) {
     preview.remove();
   }
 }
-
 
 // ========================
 // SUBMIT BUTTON OPACITY
@@ -643,4 +858,110 @@ document.addEventListener('DOMContentLoaded', () => {
     window.addEventListener('load', () => setTimeout(snapToActive, 50));
 
   })();
+
+    /* ════════════════════════════════════════
+    HELPERS
+  ════════════════════════════════════════ */
+
+  /** Format large numbers: 1200 → "1.2k" */
+  function fmt(n) {
+    return n >= 1000 ? (n / 1000).toFixed(1).replace(/\.0$/, '') + 'k' : n;
+  }
+
+  /* ════════════════════════════════════════
+    PINNED ANNOUNCEMENT
+  ════════════════════════════════════════ */
+
+  if (POST) {
+    document.getElementById('count-likes').textContent    = fmt(POST.likes);
+    document.getElementById('count-thumbsup').textContent = fmt(POST.thumbsUp);
+    document.getElementById('count-reposts').textContent  = fmt(POST.reposts);
+    document.getElementById('post-timestamp').textContent = POST.timestamp;
+    document.getElementById('post-title').textContent     = POST.title;
+    document.getElementById('post-body').innerHTML        = POST.body.map(p => `<p>${p}</p>`).join('');
+    document.getElementById('poster-org').textContent      = POST.posterOrg;
+    document.getElementById('poster-headline').textContent = POST.posterHeadline;
+    document.getElementById('poster-subtext').textContent  = POST.posterSubtext;
+    document.getElementById('poster-date').textContent     = POST.posterDate;
+    document.getElementById('poster-desc').textContent     = POST.posterDesc;
+    document.getElementById('poster-handle').textContent   = POST.posterHandle + ' ✉';
+    document.getElementById('poster-colleges').innerHTML   =
+      POST.posterColleges.map(c => `<div class="p-college">${c}</div>`).join('');
+  } else {
+    // Empty state — no announcement
+    const annCard = document.getElementById('ann-card');
+    if (annCard) {
+      annCard.innerHTML = `
+      <div class="pinned-empty">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+          <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+        </svg>
+        <div class="pinned-empty-text">No announcements yet</div>
+      </div>`;
+    }
+  }
+
+  /* ── View More / Less toggle ── */
+  if (POST) {
+    (function () {
+      const body = document.getElementById('post-body');
+      const btn  = document.getElementById('view-more-btn');
+      let expanded = false;
+      body.classList.add('is-clamped');
+      requestAnimationFrame(() => {
+        if (body.scrollHeight > body.clientHeight) {
+          btn.classList.add('visible');
+        } else {
+          body.classList.remove('is-clamped');
+        }
+      });
+      btn.addEventListener('click', function () {
+        expanded = !expanded;
+        body.classList.toggle('is-clamped', !expanded);
+        btn.textContent = expanded ? 'View less ▴' : 'View more ▾';
+      });
+    })();
+
+    /* ── Media / image grid ── */
+    const mediaGridEl2 = document.getElementById('media-grid');
+    const imgs = POST.images || [];
+    if (imgs.length > 0) {
+      document.getElementById('poster-card-inner').style.display = 'none';
+      const shown    = Math.min(imgs.length, 4);
+      const extra    = imgs.length - shown;
+      const countCls = imgs.length === 1 ? 'count-1'
+                    : imgs.length === 2 ? 'count-2'
+                    : imgs.length === 3 ? 'count-3'
+                    : 'count-4';
+      const cells = imgs.slice(0, shown).map((src, i) => {
+        const isLast = i === shown - 1 && extra > 0;
+        return `<div class="gi"><img src="${src}" alt="post image"/>${isLast ? `<div class="gi-more">+${extra + 1}</div>` : ''}</div>`;
+      }).join('');
+      const grid = document.createElement('div');
+      grid.className = `img-grid ${countCls}`;
+      grid.innerHTML = cells;
+      mediaGridEl2.insertBefore(grid, mediaGridEl2.querySelector('.poster-hint').nextSibling);
+    }
+  }
+
+  /* ── Lightbox (for pinned post image click) ── */
+  const lightbox    = document.getElementById('lightbox');
+  const lbImg       = document.getElementById('lightbox-img');
+  const openLB      = src => { lbImg.src = src; lightbox.classList.add('open'); };
+  const closeLB     = ()  => { lightbox.classList.remove('open'); lbImg.src = ''; };
+  const mediaGridEl = document.getElementById('media-grid');
+
+  if (mediaGridEl) {
+    mediaGridEl.addEventListener('click', () => {
+      if (POST && POST.images && POST.images.length > 0) openLB(POST.images[0]);
+    });
+  }
+  document.getElementById('lightbox-close').addEventListener('click', closeLB);
+  lightbox.addEventListener('click', e => { if (e.target === lightbox) closeLB(); });
+
+  /* ── Reaction buttons (likes / thumbsup / reposts) ── */
+  document.getElementById('btn-likes')?.addEventListener('click',    () => {});
+  document.getElementById('btn-thumbsup')?.addEventListener('click', () => {});
+  document.getElementById('btn-reposts')?.addEventListener('click',  () => {});
 });

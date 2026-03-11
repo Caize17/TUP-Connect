@@ -169,7 +169,7 @@ body {
 .nav-btn-profile.active .nav-profile-avatar,
 .nav-btn-profile:hover .nav-profile-avatar {
   background: var(--maroon-dark);
-  border-color: rgba(255,255,255,0.9);
+  border-color: #561C24;
 }
 
 .nav-btn-profile .nav-profile-avatar svg {
