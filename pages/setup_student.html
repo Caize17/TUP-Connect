@@ -225,7 +225,7 @@
     });
   }
 
-  // 5. Submit Function (Firestore Integration)
+  
   window.handleStudentSubmit = async function() {
     let valid = true;
     const user = auth.currentUser;
@@ -251,26 +251,41 @@
         btnSubmit.disabled = true;
         btnSubmit.textContent = "Finalizing Account...";
 
+        // IMPORTANT: Define userRef (This was missing!)
+        const userRef = doc(db, "users", user.uid);
+
         const profileInput = document.getElementById('profile-input');
         const coverInput = document.getElementById('cover-input');
         
         let finalPhotoURL = user.photoURL || ""; 
         let finalCoverURL = "";
 
+        // --- PROFILE PHOTO UPLOAD ---
         if (profileInput.files && profileInput.files[0]) {
-        const file = profileInput.files[0];
-        const storageRef = ref(storage, `profiles/${user.uid}/avatar.jpg`);
-        const snapshot = await uploadBytes(storageRef, file);
-        finalPhotoURL = await getDownloadURL(snapshot.ref);
-      }
+          try {
+            const file = profileInput.files[0];
+            const storageRef = ref(storage, `profiles/${user.uid}/avatar.jpg`);
+            const snapshot = await uploadBytes(storageRef, file);
+            finalPhotoURL = await getDownloadURL(snapshot.ref);
+          } catch (uploadErr) {
+            console.warn("Profile upload failed (CORS), skipping image:", uploadErr);
+          }
+        }
 
-      if (coverInput.files && coverInput.files[0]) {
-        const file = coverInput.files[0];
-        const storageRef = ref(storage, `profiles/${user.uid}/cover.jpg`);
-        const snapshot = await uploadBytes(storageRef, file);
-        finalCoverURL = await getDownloadURL(snapshot.ref);
-      }
+        // --- COVER PHOTO UPLOAD ---
+        if (coverInput.files && coverInput.files[0]) {
+          try {
+            const file = coverInput.files[0];
+            const storageRef = ref(storage, `profiles/${user.uid}/cover.jpg`);
+            const snapshot = await uploadBytes(storageRef, file);
+            finalCoverURL = await getDownloadURL(snapshot.ref);
+          } catch (uploadErr) {
+            console.warn("Cover upload failed (CORS), skipping image:", uploadErr);
+          }
+        }
 
+        // --- FINAL FIRESTORE UPDATE ---
+        // Even if images failed, this will now run!
         await updateDoc(userRef, {
           studentID: idInput.value.trim(),
           college: collegeSelect.value,

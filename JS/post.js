@@ -208,37 +208,33 @@ const q = query(collection(db, "posts"), orderBy("createdAt", "desc"));
 onSnapshot(q, (snapshot) => {
     let needsFullRender = false;
 
-    // 1. Process changes one by one
     snapshot.docChanges().forEach((change) => {
         const data = change.doc.data();
         const postId = change.doc.id;
 
-        // If a post was just modified (liked or commented on)
-        if (change.type === "modified") {
-            // Find the specific comment count span for this post
-            const commentBtn = document.querySelector(`.feed-reaction-btn[data-id="${postId}"][data-type="comment"]`);
-            if (commentBtn) {
-                const countSpan = commentBtn.querySelector('.comments-count');
-                const newCount = data.comments || 0;
-                
-                // Update ONLY the text, not the whole HTML
-                if (countSpan) {
-                    countSpan.textContent = typeof fmt === 'function' ? fmt(newCount) : newCount;
-                }
+    if (change.type === "modified") {
+        const localPost = window.FEED_POSTS?.find(p => p.id === postId);
 
-                // Also update our background data so the modal stays accurate
-                const localPost = window.FEED_POSTS?.find(p => p.id === postId);
-                if (localPost) localPost.comments = newCount;
-            } else {
-                needsFullRender = true;
-            }
+        const repostBtn = document.querySelector(`.feed-reaction-btn[data-id="${postId}"][data-type="repost"]`);
+        if (repostBtn) {
+            const repostSpan = repostBtn.querySelector('.reposts-count');
+            const newCount = data.reposts || 0;
+            if (repostSpan) repostSpan.textContent = typeof fmt === 'function' ? fmt(newCount) : newCount;
+            if (localPost) localPost.reposts = newCount; // Keep local data in sync
+        }
+
+        const commentBtn = document.querySelector(`.feed-reaction-btn[data-id="${postId}"][data-type="comment"]`);
+        if (commentBtn) {
+            const countSpan = commentBtn.querySelector('.comments-count');
+            const newCount = data.comments || 0;
+            if (countSpan) countSpan.textContent = typeof fmt === 'function' ? fmt(newCount) : newCount;
+            if (localPost) localPost.comments = newCount;
         } else {
-            // If a post was 'added' or 'removed', we have to rebuild the list
             needsFullRender = true;
         }
+    }
     });
 
-    // 2. Only rebuild the entire HTML if a post was added/removed
     if (needsFullRender || !window.FEED_POSTS || window.FEED_POSTS.length === 0) {
         const firebaseData = [];
         snapshot.forEach((doc) => {
@@ -317,6 +313,36 @@ if (feedContainer) {
         console.error("The openCommentModal function hasn't loaded yet!");
     }
 }
+  });
+}
+
+if (feedContainer) {
+  feedContainer.addEventListener('click', async (e) => {
+    const btn = e.target.closest('.feed-reaction-btn[data-type="repost"]');
+    if (!btn) return;
+
+    const postId = btn.dataset.id;
+    const user = auth.currentUser;
+
+    if (!user) {
+        showToast("Login to repost!");
+        return;
+    }
+
+    const postRef = doc(db, "posts", postId);
+    const isReposted = btn.classList.contains('repost-active');
+
+    try {
+      await updateDoc(postRef, {
+        reposts: increment(isReposted ? -1 : 1)
+      });
+      
+      btn.classList.toggle('repost-active');
+      
+      if (!isReposted) showToast("Post reposted!");
+    } catch (err) {
+      console.error("Repost failed:", err);
+    }
   });
 }
 
