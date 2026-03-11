@@ -1,20 +1,16 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { 
     getFirestore, 
-    collection, 
-    addDoc, 
+    collection, onSnapshot,
     serverTimestamp, 
-    query, 
-    orderBy, 
-    onSnapshot ,
-    doc, 
-    updateDoc, 
-    arrayUnion, 
-    arrayRemove,
-    increment,
-    deleteDoc,
+    query, orderBy, increment,
+    doc, getDoc, addDoc, deleteDoc, updateDoc,
+    arrayUnion, arrayRemove
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { 
+    getStorage, ref, uploadBytes, getDownloadURL 
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBpGOdMpx_Mws2EcCq6rbOWfZ-FFuhhfo0",
@@ -28,13 +24,47 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
+const storage = getStorage(app);
+
+const imageInput = document.getElementById('modal-file-input');
+const imagePreview = document.getElementById('post-image-preview'); 
+const addImageBtn = document.getElementById('modal-photo-btn');
+const closeBtn = document.getElementById('modal-close-btn');
+
+if (addImageBtn && imageInput) {
+  imageInput.addEventListener('change', function() {
+    const file = this.files[0];
+    if (file && imagePreview) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        imagePreview.src = e.target.result;
+        imagePreview.style.display = 'block';
+      };
+      reader.readAsDataURL(file);
+    }
+  });
+}
 
 const submitBtn  = document.getElementById('modal-submit-btn');
-const textarea = document.querySelector('#post-textarea textarea') || document.querySelector('textarea#post-textarea');
 const anonToggle = document.getElementById('modal-anon-toggle');
 const overlay    = document.getElementById('create-post-overlay');
 
-let unsubscribeComments = null;
+function resetPostModal() {
+    const liveTextarea = document.getElementById('post-textarea');
+    const attachments = document.getElementById('modal-attachments');
+    const fileInput = document.getElementById('modal-file-input');
+
+    if (liveTextarea) liveTextarea.value = '';
+
+    if (fileInput) fileInput.value = ""; 
+
+    if (attachments) {
+        attachments.innerHTML = '';
+        attachments.style.display = 'none';
+    }
+
+    console.log("Modal cleared successfully!");
+}
 
 if (submitBtn) {
   submitBtn.addEventListener('click', async (e) => {
@@ -42,11 +72,9 @@ if (submitBtn) {
 
     const liveTextarea = document.getElementById('post-textarea');
     const text = liveTextarea ? liveTextarea.value.trim() : "";
+    const imageFile = imageInput ? imageInput.files[0] : null;
 
-    if (!text) {
-      console.log("Blocking empty post!");
-      return;
-    }
+    if (!text && !imageFile) return;
 
     const user = auth.currentUser;
 
@@ -54,18 +82,28 @@ if (submitBtn) {
       submitBtn.disabled = true;
       submitBtn.textContent = "Posting...";
 
-      const docRef = await addDoc(collection(db, "posts"), {
+      let uploadedImageURL = null;
+
+      if (imageFile) {
+        const storageRef = ref(storage, `posts/${user.uid}/${Date.now()}_${imageFile.name}`);
+        const snapshot = await uploadBytes(storageRef, imageFile);
+        uploadedImageURL = await getDownloadURL(snapshot.ref);
+      }
+
+      await addDoc(collection(db, "posts"), {
         text: text,
+        imageURL: uploadedImageURL,
         userId: user ? user.uid : "unknown",
         author: anonToggle.checked ? "Anonymous Puto" : (user.displayName || user.email),
+        photoURL: user ? user.photoURL : null,
         isAnonymous: anonToggle.checked,
         createdAt: serverTimestamp(),
         likes: 0
       });
+
+      resetPostModal();
       
-      liveTextarea.value = '';
       if (overlay) overlay.classList.remove('open');
-      
       if (typeof showToast === 'function') showToast('Post Shared!');
 
     } catch (err) {
@@ -77,6 +115,42 @@ if (submitBtn) {
     }
   });
 }
+
+if (closeBtn) {
+  closeBtn.addEventListener('click', () => {
+    if (overlay) overlay.classList.remove('open');
+    resetPostModal();
+  });
+}
+
+onAuthStateChanged(auth, async (user) => {
+  if (!user) return;
+
+  const updatePostBox = (name, photo) => {
+    const postBoxNameEl = document.getElementById('modal-user-name');
+    const postBoxPhotoEl = document.getElementById('modal-user-photo');
+
+    if (postBoxNameEl) postBoxNameEl.textContent = name;
+    if (postBoxPhotoEl && photo) postBoxPhotoEl.src = photo;
+  };
+
+  updatePostBox(user.displayName || "TUPian", user.photoURL);
+
+  try {
+    const userDocRef = doc(db, "users", user.uid);
+    const userSnap = await getDoc(userDocRef);
+
+    if (userSnap.exists()) {
+      const userData = userSnap.data();
+      const fullName = userData.fullName || userData.displayName || user.displayName;
+      const photoURL = userData.photoURL || user.photoURL;
+
+      updatePostBox(fullName, photoURL);
+    }
+  } catch (error) {
+    console.error("Error updating Post Box:", error);
+  }
+});
 
 const q = query(collection(db, "posts"), orderBy("createdAt", "desc"));
 
@@ -100,7 +174,7 @@ onSnapshot(q, (snapshot) => {
                 const commentBtn = document.querySelector(`.feed-reaction-btn[data-id="${postId}"][data-type="comment"]`);
                 if (commentBtn) {
                     const commentSpan = commentBtn.querySelector('.comments-count');
-                    const commentCount = data.comments || 0; // Or data.commentsList.length depending on your DB
+                    const commentCount = data.comments || 0;
                     
                     if (commentSpan) {
                         commentSpan.textContent = typeof fmt === 'function' ? fmt(commentCount) : commentCount;
@@ -120,7 +194,6 @@ onSnapshot(q, (snapshot) => {
         }
     });
 
-    // Only rebuild and re-render if it's a new post or initial load
     if (needsFullRender || !window.FEED_POSTS || window.FEED_POSTS.length === 0) {
         const firebaseData = [];
         snapshot.forEach((doc) => {
@@ -135,44 +208,14 @@ onSnapshot(q, (snapshot) => {
                 isLikedByMe: auth.currentUser ? (data.likedBy || []).includes(auth.currentUser.uid) : false,
                 comments: data.comments || 0,
                 reposts: data.reposts || 0,
-                photoSrc: data.isAnonymous ? "../assets/images/anon_avatar.jpg" : (data.photoURL || null)
+                photoSrc: data.isAnonymous ? "../assets/images/anon_avatar.jpg" : (data.photoURL || null),
+                postImage: data.imageURL || null,
             });
         });
 
         window.FEED_POSTS = firebaseData;
         if (window.renderFeedPosts) window.renderFeedPosts();
     }
-});
-
-onAuthStateChanged(auth, (user) => {
-  if (user) {
-
-    const currentName = user.displayName || user.email.split('@')[0];
-
-    USER.name = currentName;
-    USER.photoSrc = user.photoURL;
-
-    const nameEl = document.getElementById('modal-user-name');
-    const sidebarName = document.querySelector('.user-name'); 
-    const postBoxName = document.querySelector('.post-creator-info h4'); 
-
-    if (nameEl) nameEl.textContent = USER.name;
-    if (sidebarName) sidebarName.textContent = USER.name;
-    if (postBoxName) postBoxName.textContent = USER.name;
-
-    const rightBarName = document.getElementById('profile-name');
-    if (rightBarName) {
-      rightBarName.textContent = USER.name;
-    }
-
-    const rightBarAvatar = document.querySelector('.right-sidebar .profile-pic img') || 
-                           document.querySelector('#profile-name-container img');
-    if (rightBarAvatar && user.photoURL) {
-      rightBarAvatar.src = user.photoURL;
-    }
-  } else {
-    window.location.href = "../index.html";
-  }
 });
 
 const feedContainer = document.getElementById('feed-posts');

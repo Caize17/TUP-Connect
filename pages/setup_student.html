@@ -172,6 +172,7 @@
   import { auth, db } from '../firebaseConfig.js';
   import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
   import { doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+  import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
   // 2. DOM Elements
   const displayNameEl = document.getElementById('display-name');
@@ -179,6 +180,7 @@
   const btnSubmit     = document.getElementById('btn-submit');
   const idInput       = document.getElementById('input-id');
   const collegeSelect = document.getElementById('input-college');
+  const storage = getStorage();
 
   // 3. Populate User Data (Full Name & Email)
   onAuthStateChanged(auth, async (user) => {
@@ -249,10 +251,31 @@
         btnSubmit.disabled = true;
         btnSubmit.textContent = "Finalizing Account...";
 
-        const userRef = doc(db, "users", user.uid);
+        const profileInput = document.getElementById('profile-input');
+        const coverInput = document.getElementById('cover-input');
+        
+        let finalPhotoURL = user.photoURL || ""; 
+        let finalCoverURL = "";
+
+        if (profileInput.files && profileInput.files[0]) {
+        const file = profileInput.files[0];
+        const storageRef = ref(storage, `profiles/${user.uid}/avatar.jpg`);
+        const snapshot = await uploadBytes(storageRef, file);
+        finalPhotoURL = await getDownloadURL(snapshot.ref);
+      }
+
+      if (coverInput.files && coverInput.files[0]) {
+        const file = coverInput.files[0];
+        const storageRef = ref(storage, `profiles/${user.uid}/cover.jpg`);
+        const snapshot = await uploadBytes(storageRef, file);
+        finalCoverURL = await getDownloadURL(snapshot.ref);
+      }
+
         await updateDoc(userRef, {
           studentID: idInput.value.trim(),
           college: collegeSelect.value,
+          photoURL: finalPhotoURL,
+          coverURL: finalCoverURL,
           isSetupComplete: true, 
           setupDate: new Date()
         });
