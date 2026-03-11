@@ -1,0 +1,404 @@
+/* ════════════════════════════════════════
+   GUEST MODE STYLES
+   Include on every page after navbar.css
+════════════════════════════════════════ */
+
+/* ── Top banner ── */
+.guest-top-banner {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  background: #4a1010;
+  color: #FFF4E7;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+  padding: 10px 48px;
+  z-index: 9998;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  box-shadow: 0 2px 12px rgba(74,16,16,0.25);
+}
+
+.guest-top-banner a {
+  color: #f5c84a;
+  font-weight: 700;
+  text-decoration: none;
+}
+.guest-top-banner a:hover { text-decoration: underline; }
+
+.guest-banner-close {
+  position: absolute;
+  right: 16px;
+  background: none;
+  border: none;
+  color: rgba(255,244,231,0.7);
+  font-size: 16px;
+  cursor: pointer;
+  padding: 0 4px;
+  line-height: 1;
+}
+.guest-banner-close:hover { color: #FFF4E7; }
+
+/* Shift page content down when banner is showing */
+body:has(.guest-top-banner) .main,
+body:has(.guest-top-banner) .sidebar,
+body:has(.guest-top-banner) .sidebar-logo {
+  margin-top: 38px;
+}
+
+/* Right panel: push content down inside it so it clears the banner.
+   We can't change 'top' on sticky easily, so pad the inside instead. */
+body:has(.guest-top-banner) .right-panel {
+  padding-top: 58px;
+}
+
+/* ── Dummy post cards ── */
+.guest-dummy-post {
+  background: #fff;
+  border-radius: 16px;
+  padding: 18px 20px 14px;
+  margin-bottom: 16px;
+  border: 1.5px solid rgba(222,194,198,0.5);
+  box-shadow: 0 2px 12px rgba(107,26,26,0.06);
+  transition: box-shadow 0.18s;
+}
+
+.guest-dummy-post .feed-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.guest-dummy-post .feed-avatar-ph {
+  width: 42px; height: 42px;
+  border-radius: 50%;
+  background: #f5e6e0;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  color: #8b4040;
+}
+
+.guest-dummy-post .feed-avatar-ph svg {
+  width: 22px; height: 22px;
+  stroke: #8b4040;
+}
+
+.guest-dummy-post .feed-name {
+  font-weight: 700;
+  font-size: 14px;
+  color: #2a1a0a;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.guest-dummy-post .org-badge {
+  background: #4a1010;
+  color: #FFF4E7;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 20px;
+  letter-spacing: 0.04em;
+}
+
+.guest-dummy-post .feed-time {
+  font-size: 11px;
+  color: #9b8060;
+  margin-top: 2px;
+}
+
+.guest-dummy-post .feed-text {
+  font-size: 14px;
+  color: #2a1a0a;
+  line-height: 1.6;
+  margin-bottom: 14px;
+}
+
+.guest-dummy-post .feed-actions {
+  display: flex;
+  gap: 8px;
+  border-top: 1px solid rgba(222,194,198,0.4);
+  padding-top: 12px;
+}
+
+.feed-action-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: none;
+  border: none;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: #8a7060;
+  cursor: pointer;
+  padding: 6px 10px;
+  border-radius: 8px;
+  transition: background 0.15s, color 0.15s;
+}
+
+.feed-action-btn svg {
+  width: 16px; height: 16px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2;
+}
+
+.guest-locked-btn:hover {
+  background: #f5e6e0;
+  color: #4a1010;
+}
+
+/* ── Blurred posts ── */
+.guest-blurred {
+  filter: blur(5px);
+  pointer-events: none;
+  user-select: none;
+  opacity: 0.7;
+  position: relative;
+}
+
+/* ── Blur wrapper — holds blurred posts + overlay wall ── */
+.guest-blur-wrap {
+  position: relative;
+}
+
+/* Gradient fade over the blurred posts */
+.guest-blur-wrap::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 120px;
+  background: linear-gradient(to bottom, transparent, #FFF4E7);
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* ── Sign-in wall ── */
+.guest-signin-wall {
+  position: absolute;
+  top: 80px;
+  left: 0; right: 0;
+  display: flex;
+  justify-content: center;
+  z-index: 10;
+  padding: 0 16px;
+}
+
+.guest-wall-inner {
+  background: #fff;
+  border-radius: 24px;
+  border: 2px solid #dec2c6;
+  box-shadow: 0 8px 40px rgba(107,26,26,0.12);
+  padding: 40px 36px;
+  text-align: center;
+  max-width: 420px;
+  width: 100%;
+  pointer-events: all;
+}
+
+.guest-wall-lock {
+  width: 56px; height: 56px;
+  background: #f5e6e0;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 18px;
+}
+
+.guest-wall-lock svg {
+  width: 26px; height: 26px;
+  stroke: #4a1010;
+}
+
+.guest-wall-title {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 18px;
+  font-weight: 800;
+  color: #2a1a0a;
+  margin-bottom: 8px;
+}
+
+.guest-wall-sub {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 13px;
+  color: #8a7060;
+  line-height: 1.6;
+  margin-bottom: 24px;
+}
+
+.guest-wall-btn {
+  display: inline-block;
+  background: #4a1010;
+  color: #FFF4E7;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  padding: 12px 32px;
+  border-radius: 50px;
+  text-decoration: none;
+  transition: background 0.18s, transform 0.18s;
+  margin-bottom: 12px;
+}
+
+.guest-wall-btn:hover {
+  background: #6b1a1a;
+  transform: translateY(-1px);
+}
+
+.guest-wall-dismiss {
+  display: block;
+  margin: 0 auto;
+  background: none;
+  border: none;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 12px;
+  color: #9b8060;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 4px;
+}
+
+.guest-wall-dismiss:hover { color: #4a1010; }
+
+/* ── Guest profile placeholder ── */
+.guest-profile-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px 16px;
+  gap: 8px;
+}
+
+.guest-profile-avatar {
+  width: 56px; height: 56px;
+  background: #f5e6e0;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+}
+
+.guest-profile-avatar svg {
+  width: 28px; height: 28px;
+  stroke: #8b4040;
+  fill: none;
+}
+
+.guest-profile-name {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  color: #2a1a0a;
+}
+
+/* ── Locked page overlay ── */
+.guest-main-blurred {
+  filter: blur(8px);
+  pointer-events: none;
+  user-select: none;
+  overflow: hidden;
+  max-height: 100vh;
+}
+
+.guest-locked-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(255, 244, 231, 0.6);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 5000;
+  padding: 20px;
+}
+
+.guest-locked-inner {
+  background: #fff;
+  border-radius: 28px;
+  border: 2px solid #dec2c6;
+  box-shadow: 0 16px 60px rgba(107,26,26,0.18);
+  padding: 52px 44px;
+  text-align: center;
+  max-width: 460px;
+  width: 100%;
+  animation: guestPopIn 0.35s cubic-bezier(0.34, 1.28, 0.64, 1);
+}
+
+@keyframes guestPopIn {
+  from { transform: scale(0.88); opacity: 0; }
+  to   { transform: scale(1);    opacity: 1; }
+}
+
+.guest-locked-icon {
+  width: 72px; height: 72px;
+  background: #f5e6e0;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 20px;
+}
+
+.guest-locked-icon svg {
+  width: 34px; height: 34px;
+  stroke: #4a1010;
+}
+
+.guest-locked-title {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 20px;
+  font-weight: 800;
+  color: #2a1a0a;
+  margin-bottom: 10px;
+}
+
+.guest-locked-sub {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 13px;
+  color: #8a7060;
+  line-height: 1.7;
+  margin-bottom: 28px;
+}
+
+.guest-locked-back {
+  display: block;
+  margin-top: 14px;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 13px;
+  color: #9b8060;
+  text-decoration: none;
+}
+.guest-locked-back:hover { color: #4a1010; text-decoration: underline; }
+
+/* ── Guest toast ── */
+.guest-toast {
+  position: fixed;
+  bottom: 32px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: #2a1a0a;
+  color: #FFF4E7;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 12px 24px;
+  border-radius: 50px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+  z-index: 9999;
+  opacity: 0;
+  transition: opacity 0.25s, transform 0.25s;
+  white-space: nowrap;
+}
+
+.guest-toast a {
+  color: #f5c84a;
+  text-decoration: none;
+  margin-left: 8px;
+  font-weight: 700;
+}
+
+.guest-toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}

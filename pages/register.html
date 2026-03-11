@@ -19,7 +19,7 @@
         <img src="../assets/images/logo-white.png" alt="TUP Konek Logo" style="height:90px; width:auto; object-fit:contain;"/>
       </a>
       <div style="display:flex; align-items:center; gap:14px;">
-        <button class="btn-guest" onclick="window.location.href='homepage.html'">Browse as Guest</button>
+        <button class="btn-guest">Browse as Guest</button>
         <button class="btn-nav-signin" onclick="window.location.href='../index.html'">Sign In</button>
       </div>
     </nav>
@@ -151,7 +151,7 @@
               </button>
 
               <div class="or-divider" id="or-divider" style="display:none;">or</div>
-              <button class="btn-browse-guest" id="btn-guest-bottom" style="display:none;" onclick="window.location.href='homepage.html'">Browse as Guest</button>
+              <button class="btn-browse-guest" id="btn-guest-login" style="display:none;">Browse as Guest</button>
 
             </div>
 
@@ -176,6 +176,26 @@
 
   </div>
 
-  <script type="module" src="../JS/register.js"></script>
+  <script>
+  // Select both guest buttons (the nav one and the bottom one)
+  var guestBtns = document.querySelectorAll('#btn-guest-login, .btn-guest');
+  
+  guestBtns.forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      // Set the session flag
+      sessionStorage.setItem('guestMode', 'true');
+      // Redirect to homepage.html (already in the same 'pages' folder)
+      window.location.href = 'homepage.html';
+    });
+  });
+
+  // Ensure the Register/Sign-in button clears guest mode
+  var registerBtn = document.getElementById('btn-register');
+  if (registerBtn) {
+    registerBtn.addEventListener('click', function() {
+      sessionStorage.removeItem('guestMode');
+    });
+  }
+</script>
 </body>
 </html>

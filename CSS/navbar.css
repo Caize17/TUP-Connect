@@ -1,0 +1,219 @@
+/* ════════════════════════════════════════
+   SHARED NAVBAR — TUP Konek
+   Include in every page after the page CSS.
+════════════════════════════════════════ */
+
+/* ── Sidebar pill ── */
+.sidebar {
+  width: 100px;
+  background: #4a1010;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px 0;
+  position: fixed;
+  top: 130px;
+  bottom: 40px;
+  left: 14px;
+  z-index: 300;
+  border-radius: 50px;
+  overflow: visible;
+}
+
+/* ── Logo above the pill ── */
+.sidebar-logo {
+  width: 170px;
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  background: none;
+  position: fixed;
+  top: 10px;
+  left: -8px;
+  z-index: 301;
+  text-decoration: none;
+}
+
+.TUP-Konek-logo {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 6px rgba(0,0,0,0.2));
+}
+
+/* ── Nav items container ── */
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  align-items: center;
+  flex: 1;
+  width: 100%;
+  justify-content: center;
+  position: relative;
+  padding: 8px 0;
+}
+
+/* ── Nav button base ── */
+.nav-btn {
+  width: 72px;
+  height: 66px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  padding: 8px;
+  position: relative;
+  flex-shrink: 0;
+}
+
+/* Icon circle wrap */
+.nav-icon-wrap {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  transition: background 0.22s;
+  position: relative;
+  z-index: 5;
+  flex-shrink: 0;
+}
+
+/* Icon images — match original 90px default */
+.nav-icon-wrap img {
+  width: 90px;
+  height: 90px;
+  object-fit: contain;
+  filter: brightness(0) invert(1) opacity(1);
+  transition:
+    filter  0.22s,
+    width   0.22s cubic-bezier(0.34, 1.28, 0.64, 1),
+    height  0.22s cubic-bezier(0.34, 1.28, 0.64, 1);
+  position: relative;
+  z-index: 6;
+}
+
+/* Home & announcements icons are slightly larger */
+.nav-btn[data-route="home"] .nav-icon-wrap img,
+.nav-btn[data-route="announcements"] .nav-icon-wrap img {
+  width: 102px;
+  height: 102px;
+}
+
+/* Active / hover — darken circle, shrink icon to 64px */
+.nav-btn:hover .nav-icon-wrap,
+.nav-btn.active .nav-icon-wrap {
+  background: #4a1010;
+  z-index: 10;
+}
+
+.nav-btn:hover .nav-icon-wrap img,
+.nav-btn.active .nav-icon-wrap img {
+  width: 64px;
+  height: 64px;
+  filter: brightness(0) invert(1) opacity(1);
+}
+
+/* Keep home/announcements at 64px on active/hover too */
+.nav-btn[data-route="home"]:hover .nav-icon-wrap img,
+.nav-btn[data-route="home"].active .nav-icon-wrap img,
+.nav-btn[data-route="announcements"]:hover .nav-icon-wrap img,
+.nav-btn[data-route="announcements"].active .nav-icon-wrap img {
+  width: 64px;
+  height: 64px;
+}
+
+/* No pseudo-element glitch on nav buttons */
+.nav-btn::after { display: none; }
+
+/* ── Profile avatar button ── */
+.nav-btn-profile {
+  width: 72px;
+  height: 66px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  padding: 8px;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.nav-profile-avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: 2.5px solid rgba(255,255,255,0.75);
+  overflow: hidden;
+  background: rgba(255,255,255,0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    border-color 0.18s,
+    transform    0.18s,
+    background   0.22s;
+  position: relative;
+  z-index: 6;
+}
+
+.nav-profile-avatar svg {
+  width: 22px;
+  height: 22px;
+  stroke: rgba(255,255,255,0.85);
+  fill: none;
+  stroke-width: 1.8;
+}
+
+.nav-profile-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.nav-btn-profile:hover .nav-profile-avatar,
+.nav-btn-profile.active .nav-profile-avatar {
+  background: #4a1010;
+  border-color: rgba(255,255,255,0.9);
+}
+
+/* ── Spacer pushes profile to bottom ── */
+.nav-spacer { flex: 1; min-height: 4px; }
+
+/* ── Teardrop active indicator ── */
+.nav-teardrop {
+  position: absolute;
+  left: 10px;
+  top: 0;
+  width: 116px;
+  height: 66px;
+  background: #FFF4E7;
+  clip-path: path('M33 0 C14 0, 0 14, 0 33 C0 52, 14 66, 33 66 C49 66, 108 47, 116 33 C108 19, 49 0, 33 0 Z');
+  transform-origin: left center;
+  pointer-events: none;
+  z-index: 1;
+  transition: top 0.42s cubic-bezier(0.34, 1.28, 0.64, 1);
+  will-change: top;
+}
+
+/* Homepage uses a slightly cooler cream — add class="nav-teardrop cream-home" on that page */
+.nav-teardrop.cream-home { background: #f5efe3; }
+
+/* ── Smooth page-leave fade ── */
+
+
+/* ── When a page is loaded inside the shell iframe,
+      hide its own sidebar — the shell provides it ── */
+html.in-shell .sidebar,
+html.in-shell .sidebar-logo {
+  display: none !important;
+}

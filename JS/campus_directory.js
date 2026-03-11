@@ -1,49 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-
-    (function () {
-    const navWrap  = document.getElementById('sidebar-nav');
-    const teardrop = document.getElementById('nav-teardrop');
-    const navBtns  = Array.from(navWrap.querySelectorAll('.nav-btn'));
-    const profBtn  = document.getElementById('sidebar-avatar-wrap');
-    const allBtns  = [...navBtns, profBtn];
-    const TD_BASE_H = 66;
-
-    function moveTo(item) {
-      const wrapRect = navWrap.getBoundingClientRect();
-      const itemRect = item.getBoundingClientRect();
-      const centerY  = itemRect.top + itemRect.height / 2 - wrapRect.top;
-      teardrop.style.top = (centerY - TD_BASE_H / 2) + 'px';
-    }
-
-    navBtns.forEach(item => {
-      item.addEventListener('click', function () {
-        allBtns.forEach(i => i.classList.remove('active'));
-        this.classList.add('active');
-        moveTo(this);
-
-        const route = this.dataset.route;
-        if (route === 'home')        window.location.href = '../pages/homepage.html';
-        if (route === 'campus news') window.location.href = '../pages/campus_news.html';
-      });
-    });
-
-    profBtn.addEventListener('click', function () {
-      allBtns.forEach(i => i.classList.remove('active'));
-      this.classList.add('active');
-      moveTo(this);
-      window.location.href = '../pages/profile.html';
-    });
-
-    /* Snap to active button on load (no transition) */
-    const active = navWrap.querySelector('.nav-btn.active');
-    if (active) {
-      teardrop.style.transition = 'none';
-      requestAnimationFrame(() => requestAnimationFrame(() => {
-        moveTo(active);
-        teardrop.style.transition = '';
-      }));
-    }
-  })();
+  /* Sidebar nav is handled by the shared navbar.js */
 
 // ========================
   // SEARCH BAR

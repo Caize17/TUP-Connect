@@ -1,7 +1,7 @@
 :root {
-  --maroon:       #561C24;
-  --maroon-dark:  #3d1219;
-  --maroon-light: #6e2330;
+  --maroon:       #6B1A1A;
+  --maroon-dark:  #4a1010;
+  --maroon-light: #8B2A2A;
   --cream:        #FFF4E7;
   --cream-dark:   #f0e0c8;
   --gold:         #C9A84C;
@@ -23,7 +23,7 @@ body {
   inset: 0;
   z-index: 0;
   background:
-    linear-gradient(135deg, rgba(91,12,14,0.82) 0%, rgba(20,6,6,0.75) 60%, rgba(0,0,0,0.70) 100%),
+    linear-gradient(135deg, rgba(107,26,26,0.82) 0%, rgba(20,6,6,0.75) 60%, rgba(0,0,0,0.70) 100%),
     url('../assets/images/bg.png') center/cover no-repeat;
   filter: saturate(0.7);
 }
@@ -63,19 +63,19 @@ body {
 /* ── INPUTS ── */
 .tup-input {
   background: rgba(255,255,255,0.85);
-  border: 1.5px solid rgba(123,17,19,0.2);
+  border: 1.5px solid rgba(107,26,26,0.2);
   border-radius: 10px;
   padding: 13px 16px;
   font-family: 'Montserrat', sans-serif;
   font-size: 15px;
-  color: #2a0a0b;
+  color: #2a1a1a;
   width: 100%;
   transition: border-color 0.2s, box-shadow 0.2s;
   outline: none;
 }
 .tup-input:focus {
   border-color: var(--maroon);
-  box-shadow: 0 0 0 3px rgba(123,17,19,0.15);
+  box-shadow: 0 0 0 3px rgba(107,26,26,0.15);
   background: #fff;
 }
 .tup-input::placeholder { color: #b08d8e; }
@@ -96,7 +96,7 @@ body {
   position: relative;
   overflow: hidden;
   transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-  box-shadow: 0 4px 15px rgba(86,28,36,0.35), 0 1px 3px rgba(86,28,36,0.2);
+  box-shadow: 0 4px 15px rgba(107,26,26,0.35), 0 1px 3px rgba(107,26,26,0.2);
 }
 .btn-signin-main::before {
   content: '';
@@ -109,12 +109,12 @@ body {
 .btn-signin-main:hover::before { left: 100%; }
 .btn-signin-main:hover {
   transform: translateY(-3px) scale(1.01);
-  box-shadow: 0 12px 28px rgba(86,28,36,0.45), 0 4px 8px rgba(86,28,36,0.2);
-  background: linear-gradient(135deg, #7e2535, var(--maroon-dark));
+  box-shadow: 0 12px 28px rgba(107,26,26,0.45), 0 4px 8px rgba(107,26,26,0.2);
+  background: linear-gradient(135deg, #8B2A2A, var(--maroon-dark));
 }
 .btn-signin-main:active {
   transform: translateY(0px) scale(0.99);
-  box-shadow: 0 4px 12px rgba(86,28,36,0.3);
+  box-shadow: 0 4px 12px rgba(107,26,26,0.3);
 }
 
 .btn-guest {
@@ -161,7 +161,7 @@ body {
   position: relative;
   overflow: hidden;
   transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-  box-shadow: 0 4px 14px rgba(86,28,36,0.35), 0 1px 3px rgba(86,28,36,0.15);
+  box-shadow: 0 4px 14px rgba(107,26,26,0.35), 0 1px 3px rgba(107,26,26,0.15);
 }
 .btn-nav-signin::before {
   content: '';
@@ -174,11 +174,11 @@ body {
 .btn-nav-signin:hover::before { left: 100%; }
 .btn-nav-signin:hover {
   transform: translateY(-2px) scale(1.02);
-  box-shadow: 0 10px 24px rgba(86,28,36,0.45), 0 3px 6px rgba(86,28,36,0.2);
+  box-shadow: 0 10px 24px rgba(107,26,26,0.45), 0 3px 6px rgba(107,26,26,0.2);
 }
 .btn-nav-signin:active {
   transform: translateY(0) scale(0.98);
-  box-shadow: 0 3px 10px rgba(86,28,36,0.3);
+  box-shadow: 0 3px 10px rgba(107,26,26,0.3);
 }
 
 .btn-browse-guest {
@@ -201,14 +201,14 @@ body {
   position: absolute;
   top: 0; left: -100%;
   width: 100%; height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(86,28,36,0.06), transparent);
+  background: linear-gradient(90deg, transparent, rgba(107,26,26,0.06), transparent);
   transition: left 0.5s ease;
 }
 .btn-browse-guest:hover::before { left: 100%; }
 .btn-browse-guest:hover {
-  background: rgba(86,28,36,0.06);
+  background: rgba(107,26,26,0.06);
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(86,28,36,0.15);
+  box-shadow: 0 6px 16px rgba(107,26,26,0.15);
   border-color: var(--maroon-light);
 }
 .btn-browse-guest:active {
@@ -229,7 +229,7 @@ body {
   content: '';
   flex: 1;
   height: 1px;
-  background: rgba(123,17,19,0.15);
+  background: rgba(107,26,26,0.15);
 }
 
 /* ── ICON BADGE ── */
@@ -237,7 +237,7 @@ body {
   width: 44px;
   height: 44px;
   border-radius: 12px;
-  background: rgba(123,17,19,0.18);
+  background: rgba(107,26,26,0.18);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -440,7 +440,7 @@ body {
   display: block;
   font-size: 13px;
   font-weight: 600;
-  color: #5a2426;
+  color: #5a1a1a;
   margin-bottom: 7px;
 }
 .field-label-row {

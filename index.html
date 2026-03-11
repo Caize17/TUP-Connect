@@ -184,5 +184,23 @@
   </div>
 
 
+  <script>
+    // Guest mode button
+    var guestBtns = document.querySelectorAll('#btn-guest-login, .btn-guest');
+    guestBtns.forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        sessionStorage.setItem('guestMode', 'true');
+        window.location.href = 'pages/homepage.html';
+      });
+    });
+
+    // Sign in button clears guest mode
+    var signInBtn = document.getElementById('btn-sign-in');
+    if (signInBtn) {
+      signInBtn.addEventListener('click', function() {
+        sessionStorage.removeItem('guestMode');
+      });
+    }
+  </script>
 </body>
 </html>

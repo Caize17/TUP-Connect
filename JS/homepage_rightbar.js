@@ -14,6 +14,9 @@ const auth = getAuth();
 const db = getFirestore();
 
 onAuthStateChanged(auth, async (user) => {
+  // Guest mode — skip auth entirely, don't redirect
+  if (sessionStorage.getItem('guestMode') === 'true') return;
+
   if (user) {
     const emailEl = document.getElementById('profile-email');
     if (emailEl) emailEl.textContent = user.email;
