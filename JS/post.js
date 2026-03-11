@@ -331,6 +331,31 @@ if (feedContainer) {
   });
 }
 
+feedContainer.addEventListener('click', async (e) => {
+    const btn = e.target.closest('.feed-reaction-btn[data-type="repost"]');
+    if (!btn) return;
+
+    const postId = btn.dataset.id; 
+
+    const user = auth.currentUser;
+    if (!user) return alert("Login to repost!");
+
+    try {
+        const postRef = doc(db, "posts", postId);
+        const isReposted = btn.classList.contains('repost-active');
+
+        await updateDoc(postRef, {
+            repostedBy: isReposted ? arrayRemove(user.uid) : arrayUnion(user.uid)
+        });
+        
+        console.log("Success! Post ID used:", postId);
+    } catch (err) {
+        console.error("Repost failed:", err);
+    }
+});
+
+
+
 if (feedContainer) {
   feedContainer.addEventListener('click', (e) => {
     const btn = e.target.closest('[data-type="comment"]');
@@ -417,25 +442,26 @@ if (sendBtn) {
   });
 }
 
-feedContainer.addEventListener('click', async (e) => {
-    const btn = e.target.closest('.feed-reaction-btn[data-type="repost"]');
-    if (!btn) return;
+async function saveCommentEdit(postId, commentId, newText) {
+  const commentRef = doc(db, "posts", postId, "comments", commentId);
+  
+  return await updateDoc(commentRef, {
+    text: newText,
+    isEdited: true,
+    editedAt: serverTimestamp()
+  });
+}
+window.saveCommentEdit = saveCommentEdit;
 
-    const postId = btn.dataset.id; 
+async function deleteComment(postId, commentId) {
+  const commentRef = doc(db, "posts", postId, "comments", commentId);
+  const postRef = doc(db, "posts", postId);
 
-    const user = auth.currentUser;
-    if (!user) return alert("Login to repost!");
+  await deleteDoc(commentRef); 
 
-    try {
-        const postRef = doc(db, "posts", postId);
-        const isReposted = btn.classList.contains('repost-active');
+  await updateDoc(postRef, {
+    comments: increment(-1)
+  });
+}
+window.deleteComment = deleteComment;
 
-        await updateDoc(postRef, {
-            repostedBy: isReposted ? arrayRemove(user.uid) : arrayUnion(user.uid)
-        });
-        
-        console.log("Success! Post ID used:", postId);
-    } catch (err) {
-        console.error("Repost failed:", err);
-    }
-});

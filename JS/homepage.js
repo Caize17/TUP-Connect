@@ -359,37 +359,63 @@ window.renderFeedPosts = renderFeedPosts;
 
     /* Save edit */
     commentList.querySelectorAll('.comment-edit-save').forEach(btn => {
-      btn.addEventListener('click', function () {
-        const p       = this.dataset.post;
-        const c       = this.dataset.comment;
-        const input   = document.getElementById(`comment-edit-input-${p}-${c}`);
-        const newText = input.value.trim();
-        if (!newText) return;
-        const textEl   = document.getElementById(`comment-text-${p}-${c}`);
-        const bubble   = document.getElementById(`comment-bubble-${p}-${c}`);
-        const editWrap = document.getElementById(`comment-edit-${p}-${c}`);
-        textEl.textContent   = newText;
-        bubble.style.display = '';
-        editWrap.classList.remove('open');
-        // BACKEND TEAM: update comment in Firebase here
-        console.log('Edit comment:', { post: p, comment: c, newText });
+    btn.addEventListener('click', async function () {
+      const pIdx = this.dataset.post;
+      const cIdx = this.dataset.comment;
+      
+      const post = window.FEED_POSTS[pIdx];
+      const commentData = post.commentList[cIdx]; 
+      const commentId = commentData.id; 
+      
+      const input = document.getElementById(`comment-edit-input-${pIdx}-${cIdx}`);
+      const newText = input.value.trim();
+      if (!newText) return;
+
+      const textEl = document.getElementById(`comment-text-${pIdx}-${cIdx}`);
+      const bubble = document.getElementById(`comment-bubble-${pIdx}-${cIdx}`);
+      const editWrap = document.getElementById(`comment-edit-${pIdx}-${cIdx}`);
+      
+      textEl.textContent = newText;
+      bubble.style.display = '';
+      editWrap.classList.remove('open');
+
+      // BACKEND: Update the specific document in the sub-collection
+      try {
+        await saveCommentEdit(post.id, commentId, newText);
         showToast('Comment updated.');
-      });
+      } catch (err) {
+        console.error("Failed to save edit:", err);
+        showToast('Error updating comment.');
+      }
     });
+  });
 
     /* Delete button */
     commentList.querySelectorAll('.delete-btn').forEach(btn => {
-      btn.addEventListener('click', function () {
-        const p    = this.dataset.post;
-        const c    = this.dataset.comment;
-        const item = document.getElementById(`comment-item-${p}-${c}`);
+      btn.addEventListener('click', async function () {
+        const pIdx = this.dataset.post;
+        const cIdx = this.dataset.comment;
+        
+        const post = window.FEED_POSTS[pIdx];
+        const commentId = post.commentList[cIdx].id;
+
+        const item = document.getElementById(`comment-item-${pIdx}-${cIdx}`);
+        
         item.style.transition = 'opacity 0.2s, transform 0.2s';
-        item.style.opacity    = '0';
-        item.style.transform  = 'translateX(12px)';
-        setTimeout(() => item.remove(), 200);
-        // BACKEND TEAM: delete comment from Firebase here
-        console.log('Delete comment:', { post: p, comment: c });
-        showToast('Comment deleted.');
+        item.style.opacity = '0';
+        item.style.transform = 'translateX(12px)';
+        
+        try {
+          // BACKEND: Delete from sub-collection
+          await deleteComment(post.id, commentId);
+          
+          setTimeout(() => item.remove(), 200);
+          showToast('Comment deleted.');
+        } catch (err) {
+          console.error("Delete failed:", err);
+          item.style.opacity = '1';
+          item.style.transform = 'none';
+        }
       });
     });
   };
