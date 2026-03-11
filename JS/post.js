@@ -112,10 +112,19 @@ if (submitBtn) {
       submitBtn.disabled = true;
       submitBtn.textContent = "Posting...";
 
+      const user = auth.currentUser;
+      let userData = {};
+      if (user) {
+        const userDoc = await getDoc(doc(db, "users", user.uid));
+        if (userDoc.exists()) {
+          userData = userDoc.data();
+        }
+      }
+
       let finalImageData = null;
 
       if (imageFile) {
-        console.log("Compressing image...");
+        console.log("Compressing post image...");
         finalImageData = await new Promise((resolve, reject) => {
           const reader = new FileReader();
           reader.onload = (event) => {
@@ -137,7 +146,6 @@ if (submitBtn) {
               ctx.drawImage(img, 0, 0, width, height);
 
               const compressedData = canvas.toDataURL('image/jpeg', 0.6);
-              console.log("Compression complete. String length:", compressedData.length);
               resolve(compressedData);
             };
             img.onerror = reject;
@@ -149,12 +157,13 @@ if (submitBtn) {
       }
 
       console.log("Saving to Firestore...");
+      
       await addDoc(collection(db, "posts"), {
         text: text,
         imageURL: finalImageData,
-        userId: auth.currentUser?.uid || "unknown",
-        author: anonToggle.checked ? "Anonymous Puto" : (auth.currentUser?.displayName || "TUPian"),
-        photoURL: auth.currentUser?.photoURL || null,
+        userId: user?.uid || "unknown",
+        author: anonToggle.checked ? "Anonymous Puto" : (userData.fullName || user?.displayName || "TUPian"),
+        photoURL: anonToggle.checked ? null : (userData.photoURL || user?.photoURL), 
         isAnonymous: anonToggle.checked,
         createdAt: serverTimestamp(),
         likes: 0
@@ -174,34 +183,79 @@ if (submitBtn) {
   });
 }
 
+
+
 onAuthStateChanged(auth, async (user) => {
   if (!user) return;
 
-  const updatePostBox = (name, photo) => {
-    const postBoxNameEl = document.getElementById('modal-user-name');
-    const postBoxPhotoEl = document.getElementById('modal-user-photo');
-
-    if (postBoxNameEl) postBoxNameEl.textContent = name;
-    if (postBoxPhotoEl && photo) postBoxPhotoEl.src = photo;
+  // 1. Initial Profile State
+  let currentProfile = {
+    name: user.displayName || "TUPian",
+    photo: user.photoURL
   };
 
-  updatePostBox(user.displayName || "TUPian", user.photoURL);
+  // 2. The Master Update Function
+  const updatePostBox = (name, photo) => {
+    // Target all three potential areas
+    const postBoxNameEl = document.getElementById('modal-user-name');
+    const avatarContainer = document.getElementById('modal-avatar');
+    const feedBarAvatar = document.getElementById('comment-avatar-wrap'); // The "Hi ka-Puto" bar
 
+    if (postBoxNameEl) postBoxNameEl.textContent = name;
+
+    // Update Modal Avatar
+    if (avatarContainer) {
+      if (photo) {
+        avatarContainer.innerHTML = `<img src="${photo}" alt="${name}">`;
+      } else {
+        avatarContainer.innerHTML = `<svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`;
+      }
+    }
+
+    // Update Static Feed Bar Avatar
+    if (feedBarAvatar) {
+      if (photo) {
+        feedBarAvatar.innerHTML = `<img src="${photo}" alt="${name}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
+      }
+    }
+  };
+
+  // Run immediately with Auth defaults
+  updatePostBox(currentProfile.name, currentProfile.photo);
+
+  // 3. Get Firestore Data
   try {
     const userDocRef = doc(db, "users", user.uid);
     const userSnap = await getDoc(userDocRef);
 
     if (userSnap.exists()) {
       const userData = userSnap.data();
-      const fullName = userData.fullName || userData.displayName || user.displayName;
-      const photoURL = userData.photoURL || user.photoURL;
+      currentProfile.name = userData.fullName || user.displayName || "TUPian";
+      currentProfile.photo = userData.photoURL || user.photoURL;
 
-      updatePostBox(fullName, photoURL);
+      // Update everything with real TUP data
+      updatePostBox(currentProfile.name, currentProfile.photo);
     }
   } catch (error) {
-    console.error("Error updating Post Box:", error);
+    console.error("Error fetching profile:", error);
   }
-});
+
+  // 4. Anonymous Toggle Logic
+  const anonToggle = document.getElementById('modal-anon-toggle');
+  if (anonToggle) {
+    anonToggle.replaceWith(anonToggle.cloneNode(true));
+    const newToggle = document.getElementById('modal-anon-toggle');
+
+    newToggle.addEventListener('change', (e) => {
+      if (e.target.checked) {
+        updatePostBox("Anonymous Puto", "../assets/images/anon_avatar.jpg");
+      } else {
+        updatePostBox(currentProfile.name, currentProfile.photo);
+      }
+    });
+  }
+}); // End of onAuthStateChanged
+
 
 const q = query(collection(db, "posts"), orderBy("createdAt", "desc"));
 
