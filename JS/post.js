@@ -114,7 +114,6 @@ if (submitBtn) {
 
       let finalImageData = null;
 
-      // 1. Convert and Compress Image
       if (imageFile) {
         console.log("Compressing image...");
         finalImageData = await new Promise((resolve, reject) => {
@@ -126,7 +125,6 @@ if (submitBtn) {
               let width = img.width;
               let height = img.height;
 
-              // Resize to max 800px width
               const MAX_WIDTH = 800;
               if (width > MAX_WIDTH) {
                 height *= MAX_WIDTH / width;
@@ -138,7 +136,6 @@ if (submitBtn) {
               const ctx = canvas.getContext('2d');
               ctx.drawImage(img, 0, 0, width, height);
 
-              // 0.6 quality is safe for the 1MB limit
               const compressedData = canvas.toDataURL('image/jpeg', 0.6);
               console.log("Compression complete. String length:", compressedData.length);
               resolve(compressedData);
@@ -151,11 +148,10 @@ if (submitBtn) {
         });
       }
 
-      // 2. Save to Firestore (only after compression is done)
       console.log("Saving to Firestore...");
       await addDoc(collection(db, "posts"), {
         text: text,
-        imageURL: finalImageData, // This will now contain the string
+        imageURL: finalImageData,
         userId: auth.currentUser?.uid || "unknown",
         author: anonToggle.checked ? "Anonymous Puto" : (auth.currentUser?.displayName || "TUPian"),
         photoURL: auth.currentUser?.photoURL || null,
@@ -212,8 +208,39 @@ const q = query(collection(db, "posts"), orderBy("createdAt", "desc"));
 onSnapshot(q, (snapshot) => {
     let needsFullRender = false;
 
-    const firebaseData = []; // <--- Make sure this line is EXACTLY here
+    // 1. Process changes one by one
+    snapshot.docChanges().forEach((change) => {
+        const data = change.doc.data();
+        const postId = change.doc.id;
 
+        // If a post was just modified (liked or commented on)
+        if (change.type === "modified") {
+            // Find the specific comment count span for this post
+            const commentBtn = document.querySelector(`.feed-reaction-btn[data-id="${postId}"][data-type="comment"]`);
+            if (commentBtn) {
+                const countSpan = commentBtn.querySelector('.comments-count');
+                const newCount = data.comments || 0;
+                
+                // Update ONLY the text, not the whole HTML
+                if (countSpan) {
+                    countSpan.textContent = typeof fmt === 'function' ? fmt(newCount) : newCount;
+                }
+
+                // Also update our background data so the modal stays accurate
+                const localPost = window.FEED_POSTS?.find(p => p.id === postId);
+                if (localPost) localPost.comments = newCount;
+            } else {
+                needsFullRender = true;
+            }
+        } else {
+            // If a post was 'added' or 'removed', we have to rebuild the list
+            needsFullRender = true;
+        }
+    });
+
+    // 2. Only rebuild the entire HTML if a post was added/removed
+    if (needsFullRender || !window.FEED_POSTS || window.FEED_POSTS.length === 0) {
+        const firebaseData = [];
         snapshot.forEach((doc) => {
             const data = doc.data();
             const dateObj = data.createdAt ? data.createdAt.toDate() : new Date();
@@ -234,6 +261,7 @@ onSnapshot(q, (snapshot) => {
 
         window.FEED_POSTS = firebaseData;
         if (window.renderFeedPosts) window.renderFeedPosts();
+    }
 });
 
 const feedContainer = document.getElementById('feed-posts');
@@ -314,9 +342,6 @@ function listenForComments(postId) {
     const postIdx = window.FEED_POSTS.findIndex(p => p.id === postId);
     if (postIdx !== -1) {
       window.FEED_POSTS[postIdx].commentList = comments;
-      
-      // If the list drawing function exists, use it to refresh just the comments
-      // instead of re-opening the whole modal
       if (window.renderComments) {
           window.renderComments(postIdx);
       } else if (window.openCommentModal) {
