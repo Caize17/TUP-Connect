@@ -49,7 +49,7 @@ body {
 }
 .banner {
   position: relative;
-  margin-top: 20px;
+  margin-top: 55px;
   margin-left: 110px;
   right: 30px;
   width: 75%;
@@ -68,10 +68,11 @@ body {
   height: 100%;
   object-fit: cover;
   display: block;
+  border-radius: 20px;
 }
 
 .banner-search-wrap {
-  position: absolute;
+  position: absolute;   
   bottom: 250px;
   left: 50%;
   transform: translateX(-50%);
@@ -147,6 +148,7 @@ body {
   border: 2px solid #561C24;
   border-radius: 20px;
   z-index: 9999;
+  overflow: hidden;
 }
 
 .search-dropdown-label {
@@ -166,6 +168,7 @@ body {
   font-size: 14px;
   color: var(--text-dark);
   transition: background 0.15s;
+  /*border-radius: 20px;*/
 }
 
 .search-dropdown-item:hover {
@@ -219,6 +222,7 @@ body {
   scroll-behavior: smooth;
   width: 830px;
   margin-left: 80px;
+  margin-right: 195px;
   border-radius: 15px;
 }
 
@@ -275,7 +279,7 @@ body {
 ======================== */
 .directory-panel {
   position: fixed;
-  top: 20px;
+  top: 52px;
   right: 30px;
   width: 220px;
   display: flex;

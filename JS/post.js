@@ -214,7 +214,7 @@ if (submitBtn) {
       alert("Failed to post: " + err.message);
     } finally {
       submitBtn.disabled = false;
-      submitBtn.textContent = `<i class="fa-regular fa-paper-plane"></i> Share`;
+      submitBtn.innerHTML = `<svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>`;
     }
   });
 }
