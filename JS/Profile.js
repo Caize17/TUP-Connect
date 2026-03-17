@@ -25,6 +25,28 @@ function showToast(msg) {
 }
 
 // ========================
+// RELATIVE TIME FORMATTER
+// ========================
+function formatRelativeTime(date) {
+  const now = new Date();
+  const diffMs = now - date;
+  const diffSec = Math.floor(diffMs / 1000);
+  const diffMin = Math.floor(diffSec / 60);
+  const diffHour = Math.floor(diffMin / 60);
+  const diffDay = Math.floor(diffHour / 24);
+
+  if (diffSec < 60) return 'Just now';
+  if (diffMin < 60) return `${diffMin} minute${diffMin > 1 ? 's' : ''} ago`;
+  if (diffHour < 24) return `${diffHour} hour${diffHour > 1 ? 's' : ''} ago`;
+  if (diffDay < 7) return `${diffDay} day${diffDay > 1 ? 's' : ''} ago`;
+
+  // For older, return formatted date
+  return date.toLocaleDateString('en-US', {
+    month: 'short', day: 'numeric', year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined
+  });
+}
+
+// ========================
 // CHANGE PHOTO MENU
 // ========================
 function toggleChangePhotoMenu(e) {
@@ -115,12 +137,10 @@ document.addEventListener('click', function (e) {
     svg.style.animation = '';
 
     if (isActive) {
-      countSpan.textContent = fmt(base + 1);
       btn.lastChild.textContent = ' Reposted';
-      createRepostCard(btn);
-      showToast('You Reposted!');
+      openRepostModal(btn);
     } else {
-      countSpan.textContent = fmt(base);
+      countSpan.textContent = fmt(Math.max(0, base - 1));
       btn.lastChild.textContent = ' Repost';
       const originalCard = btn.closest('.post-card');
       const repostId = originalCard.dataset.repostCardId;
@@ -129,6 +149,16 @@ document.addEventListener('click', function (e) {
         if (repostCard) repostCard.remove();
         delete originalCard.dataset.repostCardId;
       }
+      // Remove repost data from original post
+      const repostsStore = originalCard.querySelector('.reposts-data');
+      const repostDatas = repostsStore.querySelectorAll('.repost-data');
+      if (repostDatas.length > 0) {
+        repostDatas[repostDatas.length - 1].remove(); // Remove the last one (assuming it's the current user's)
+      }
+
+      // Update the repost info line below the post
+      updateRepostInfo(originalCard);
+
       showToast('Repost removed!');
     }
   }
@@ -159,7 +189,7 @@ function buildReactions(idx = null, likes = 0, comments = 0, reposts = 0) {
 // ========================
 // REPOST CARD
 // ========================
-function createRepostCard(btn) {
+function createRepostCard(btn, quote = '') {
   const originalCard = btn.closest('.post-card');
 
   const author   = originalCard.querySelector('.post-author')?.textContent || 'Unknown';
@@ -202,8 +232,10 @@ function createRepostCard(btn) {
     </div>
 
     <div class="repost-label">
-      <img src="../assets/images/reposted.png" class="repost-label-icon"> You Reposted
+      <svg viewBox="0 0 24 24" class="repost-label-icon"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg> You Reposted
     </div>
+
+    ${quote ? `<div class="repost-quote-text">${escapeHTML(quote).replace(/\n/g, '<br>')}</div>` : ''}
 
     <div class="repost-quote-card">
       <div class="repost-quote-header">
@@ -233,6 +265,24 @@ function createRepostCard(btn) {
     </div>`;
 
   originalCard.dataset.repostCardId = repostId;
+
+  // Store repost data in original post
+  const repostsStore = originalCard.querySelector('.reposts-data');
+  const rd = document.createElement('div');
+  rd.className = 'repost-data';
+  rd.dataset.author = 'Puto Imnida'; // Current user
+  rd.dataset.avatar = '../assets/images/anon_avatar.jpg';
+  rd.dataset.quote = quote;
+  rd.dataset.hasQuote = quote ? 'true' : 'false';
+  rd.dataset.time = now.toISOString();
+  repostsStore.appendChild(rd);
+
+  // Update repost count
+  const countEl = originalCard.querySelector('.reaction-reposts-count');
+  if (countEl) countEl.textContent = parseInt(countEl.textContent) + 1;
+
+  // Update the repost info line below the post
+  updateRepostInfo(originalCard);
 
   const feed = document.getElementById('feed');
   feed.insertBefore(card, feed.firstChild);
@@ -351,8 +401,14 @@ function submitPost() {
     ${imagesHTML}
 
     <div class="comments-data" style="display:none;"></div>
+    <div class="reposts-data" style="display:none;"></div>
 
     ${getTemplate('post-template')}
+
+    <div class="post-repost-info" onclick="viewReposts(event)" style="display:none;">
+      <svg width="193px" height="193px" viewBox="0 0 24.00 24.00" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="#000000" stroke-width="0.00024000000000000003"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M14.2893 5.70708C13.8988 5.31655 13.2657 5.31655 12.8751 5.70708L7.98768 10.5993C7.20729 11.3805 7.2076 12.6463 7.98837 13.427L12.8787 18.3174C13.2693 18.7079 13.9024 18.7079 14.293 18.3174C14.6835 17.9269 14.6835 17.2937 14.293 16.9032L10.1073 12.7175C9.71678 12.327 9.71678 11.6939 10.1073 11.3033L14.2893 7.12129C14.6799 6.73077 14.6799 6.0976 14.2893 5.70708Z" fill="#0F0F0F"></path> </g></svg>
+      <span class="repost-info-text"></span>
+    </div>
 
     <span class="view-comments" onclick="openCommentModal(this)" style="display:none;">View more comments</span>
 
@@ -466,11 +522,33 @@ function fmt(n) {
   return String(n);
 }
 
+function updateRepostInfo(card) {
+  const info = card.querySelector('.post-repost-info');
+  if (!info) return;
+
+  const repostDatas = Array.from(card.querySelectorAll('.reposts-data .repost-data'));
+  if (repostDatas.length === 0) {
+    info.style.display = 'none';
+    info.classList.remove('repost-active');
+    return;
+  }
+
+  const count = repostDatas.length;
+  const textEl = info.querySelector('.repost-info-text');
+  if (textEl) textEl.textContent = count === 1
+    ? 'View repost'
+    : `View reposts (${count})`;
+
+  info.style.display = 'flex';
+  info.classList.add('repost-active');
+}
+
 // ========================
 // COMMENT MODAL
 // ========================
 
 let _currentPostCard = null;
+let _currentRepostBtn = null;
 
 function openCommentModal(el) {
   const card = el.closest('.post-card');
@@ -516,7 +594,7 @@ function buildCommentModalItem(author, avatar, text, time, isOwn, cIdx) {
         </button>
         <button class="comment-edit-cancel" data-comment="${cIdx}">✕</button>
       </div>
-      <div class="comment-modal-item-time">${time}</div>
+      <div class="comment-modal-item-time" data-timestamp="${time}">${formatRelativeTime(new Date(time))}</div>
       ${isOwn ? `
       <div class="comment-item-actions">
         <button class="comment-action-btn edit-btn" data-comment="${cIdx}">
@@ -630,9 +708,10 @@ function submitModalComment() {
   const text  = input.value.trim();
   if (!text) return;
 
+  const now = new Date();
   const list = document.getElementById('commentModalList');
   const cIdx = list.querySelectorAll('.comment-modal-item').length;
-  list.appendChild(buildCommentModalItem('Puto Imnida', '../assets/images/anon_avatar.jpg', text, 'Just now', true, cIdx));
+  list.appendChild(buildCommentModalItem('Puto Imnida', '../assets/images/anon_avatar.jpg', text, now.toISOString(), true, cIdx));
   list.scrollTop = list.scrollHeight;
 
   bindCommentActions();
@@ -644,7 +723,7 @@ function submitModalComment() {
     cd.dataset.author   = 'Puto Imnida';
     cd.dataset.avatar   = '../assets/images/anon_avatar.jpg';
     cd.dataset.text     = text;
-    cd.dataset.time     = 'Just now';
+    cd.dataset.time     = now.toISOString();
     cd.dataset.isOwn    = 'true';
     store.appendChild(cd);
 
@@ -656,6 +735,98 @@ function submitModalComment() {
 
   input.value = '';
   showToast('Comment posted!');
+}
+
+// ========================
+// REPOST MODAL
+// ========================
+let _repostSubmitted = false;
+
+function openRepostModal(btn) {
+  _currentRepostBtn = btn;
+  _repostSubmitted = false;
+  document.getElementById('repostModal').classList.add('open');
+  document.getElementById('repostContent').focus();
+}
+
+function closeRepostModal() {
+  if (!_repostSubmitted && _currentRepostBtn) {
+    // Cancelled, so untoggle the button
+    _currentRepostBtn.classList.remove('repost-active');
+    _currentRepostBtn.lastChild.textContent = ' Repost';
+  }
+  document.getElementById('repostModal').classList.remove('open');
+  document.getElementById('repostContent').value = '';
+  _currentRepostBtn = null;
+  _repostSubmitted = false;
+}
+
+function closeRepostModalOnOverlay(e) {
+  if (e.target === document.getElementById('repostModal')) closeRepostModal();
+}
+
+function submitRepost() {
+  const textarea = document.getElementById('repostContent');
+  const quote = textarea.value.trim();
+  _repostSubmitted = true;
+  if (_currentRepostBtn) {
+    createRepostCard(_currentRepostBtn, quote);
+    showToast('You Reposted!');
+  }
+  closeRepostModal();
+}
+
+// ========================
+// REPOST VIEW MODAL
+// ========================
+let _currentRepostViewCard = null;
+
+function viewReposts(e) {
+  const card = e.target.closest('.post-card');
+  _currentRepostViewCard = card;
+
+  const list = document.getElementById('repostViewModalList');
+  list.innerHTML = '';
+
+  card.querySelectorAll('.repost-data').forEach((rd, rIdx) => {
+    list.appendChild(buildRepostViewItem(
+      rd.dataset.author,
+      rd.dataset.avatar,
+      rd.dataset.quote,
+      rd.dataset.hasQuote === 'true',
+      rd.dataset.time,
+      rIdx
+    ));
+  });
+
+  document.getElementById('repostViewModal').classList.add('open');
+}
+
+function buildRepostViewItem(author, avatar, quote, hasQuote, time, rIdx) {
+  const item = document.createElement('div');
+  item.className = 'comment-modal-item';
+  item.id = `repost-view-item-${rIdx}`;
+  item.innerHTML = `
+    <div class="comment-modal-item-avatar">
+      <img src="${avatar}" alt="${escapeHTML(author)}" onerror="this.parentElement.textContent='👩'">
+    </div>
+    <div class="comment-modal-item-content">
+      <div class="comment-modal-item-bubble">
+        <div class="comment-modal-item-author">${escapeHTML(author)}</div>
+        ${hasQuote ? `<div class="comment-modal-item-text">${escapeHTML(quote)}</div>` : '<div class="reposted-without-quote"><em>Reposted without quote</em></div>'}
+      </div>
+      <div class="comment-modal-item-time" data-timestamp="${time}">${formatRelativeTime(new Date(time))}</div>
+    </div>`;
+  return item;
+}
+
+function closeRepostViewModal() {
+  document.getElementById('repostViewModal').classList.remove('open');
+  _currentRepostViewCard = null;
+}
+
+function closeRepostViewModalOnOverlay(e) {
+  if (e.target === document.getElementById('repostViewModal')) closeRepostViewModal();
 }
 
 function updateFeedCommentPreview(card) {
@@ -684,7 +855,7 @@ function updateFeedCommentPreview(card) {
             <div class="comment-modal-item-author">${escapeHTML(latest.dataset.author)}</div>
             <div class="comment-modal-item-text">${escapeHTML(latest.dataset.text)}</div>
           </div>
-          <div class="comment-modal-item-time">${latest.dataset.time}</div>
+          <div class="comment-modal-item-time" data-timestamp="${latest.dataset.time}">${formatRelativeTime(new Date(latest.dataset.time))}</div>
         </div>
       </div>`;
   } else if (preview) {
@@ -716,6 +887,61 @@ document.addEventListener('DOMContentLoaded', () => {
         : `<svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`;
     }
   });
+
+  // Profile photo change
+  document.querySelector('.profile-avatar').addEventListener('click', () => {
+    document.getElementById('profilePhotoInput').click();
+  });
+
+  document.getElementById('profilePhotoInput').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const imgSrc = e.target.result;
+        document.querySelector('.profile-avatar-inner').src = imgSrc;
+        document.querySelector('.post-input-img').src = imgSrc;
+        document.querySelector('.sidebar-avatar-img').src = imgSrc;
+        // Update USER.photoSrc
+        USER.photoSrc = imgSrc;
+      };
+      reader.readAsDataURL(file);
+    }
+  });
+
+  // Cover photo change
+  document.querySelector('.banner-img').addEventListener('click', () => {
+    document.getElementById('coverPhotoInput').click();
+  });
+
+  document.getElementById('coverPhotoInput').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        document.querySelector('.banner-img').src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+  });
+
+  // Event listener for comment preview bubble
+  document.addEventListener('click', function(e) {
+    const bubble = e.target.closest('.feed-comment-preview .comment-modal-item-bubble');
+    if (bubble) {
+      openCommentModal(bubble);
+    }
+  });
+
+  // Update comment times every minute
+  setInterval(() => {
+    document.querySelectorAll('.comment-modal-item-time').forEach(el => {
+      const timeStr = el.dataset.timestamp;
+      if (timeStr) {
+        el.textContent = formatRelativeTime(new Date(timeStr));
+      }
+    });
+  }, 60000); // 1 minute
 
     (function () {
     const navWrap  = document.getElementById('sidebar-nav');

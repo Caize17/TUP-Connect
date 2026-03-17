@@ -64,16 +64,19 @@
           <span class="change-photo">Change Photo</span>
         </button>
         <div class="change-photo-dropdown" id="changePhotoDropdown">
-          <div class="change-photo-item" onclick="showToast('Profile Photo coming soon!')">
+          <div class="change-photo-item" onclick="document.getElementById('profilePhotoInput').click()">
             <img src="../assets/images/change_profile.png" class="change-photo-item-icon"> Profile Photo
           </div>
-          <div class="change-photo-item" onclick="showToast('Cover Photo coming soon!')">
+          <div class="change-photo-item" onclick="document.getElementById('coverPhotoInput').click()">
             <img src="../assets/images/change_cover.png" class="change-photo-item-icon"> Cover Photo
           </div>
         </div>
       </div>
     </div>
 
+    <!-- HIDDEN FILE INPUTS -->
+    <input type="file" id="profilePhotoInput" accept="image/*" style="display: none;">
+    <input type="file" id="coverPhotoInput" accept="image/*" style="display: none;">
 
     <!-- PROFILE -->
     <div class="profile-section">
@@ -209,17 +212,16 @@
                 </div>
 
                 <div class="comment-modal-bubble-input">
-                    <div class="comment-modal-input-name">Puto Imnida</div>
 
                     <input
                         class="comment-modal-input"
                         id="commentModalInput"
-                        placeholder="Share your thoughts..."
+                        placeholder="Share your thoughts..." maxlength="500"
                         onkeydown="handleModalCommentKey(event)">
                 </div>
 
                 <button class="comment-modal-submit" onclick="submitModalComment()">
-                    <img src="../assets/images/post.png" alt="post">
+                    <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
                 </button>
 
             </div>
@@ -227,6 +229,37 @@
         </div>
 
     </div>
+
+  <!-- REPOST MODAL -->
+  <div class="modal-overlay" id="repostModal" onclick="closeRepostModalOnOverlay(event)">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title">Repost</div>
+        <button class="modal-close-btn" onclick="closeRepostModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <textarea class="modal-textarea" id="repostContent" placeholder="Add a quote (optional)..."></textarea>
+        <div class="modal-footer">
+          <div class="repost-send-button-container">
+            <button class="modal-submit-btn" id="repost-submit-btn" onclick="submitRepost()">
+              <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- REPOST VIEW MODAL -->
+  <div class="comment-modal-overlay" id="repostViewModal" onclick="closeRepostViewModalOnOverlay(event)">
+    <div class="comment-modal">
+      <div class="comment-modal-header">
+        <div class="comment-modal-title">Reposts</div>
+        <button class="comment-modal-close" onclick="closeRepostViewModal()">✕</button>
+      </div>
+      <div class="comment-modal-list" id="repostViewModalList"></div>
+    </div>
+  </div>
 
   <!-- TOAST -->
   <div class="toast" id="toast"></div>
