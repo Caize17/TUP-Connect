@@ -167,6 +167,8 @@ function createRepostCard(btn) {
   const body     = originalCard.querySelector('.post-body')?.innerHTML     || '';
   const avatarEl = originalCard.querySelector('.post-avatar img');
   const avatar   = avatarEl ? avatarEl.src : '';
+  const imagesEl = originalCard.querySelector('.post-images');
+  const imagesHTML = imagesEl ? imagesEl.outerHTML : '';
 
   const now     = new Date();
   const dateStr = now.toLocaleDateString('en-US', {
@@ -191,11 +193,12 @@ function createRepostCard(btn) {
         <div class="post-author">Puto Imnida</div>
         <div class="post-time">${dateStr}</div>
       </div>
-      <div class="post-menu" onclick="toggleMenu(event, '${menuId}')">···
+      <button class="post-menu" onclick="toggleMenu(event, '${menuId}')">
+        <svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg>
         <div class="dropdown-menu" id="${menuId}">
           ${getTemplate('menu-template')}
         </div>
-      </div>
+      </button>
     </div>
 
     <div class="repost-label">
@@ -213,6 +216,7 @@ function createRepostCard(btn) {
         </div>
       </div>
       <div class="repost-quote-body">${body}</div>
+      ${imagesHTML}
     </div>
 
     <div class="comments-data" style="display:none;"></div>
@@ -237,9 +241,56 @@ function createRepostCard(btn) {
 // ========================
 // POST MODAL
 // ========================
+const fileInput  = document.getElementById('modal-file-input');
+const attachWrap = document.getElementById('modal-attachments');
+const submitBtn  = document.getElementById('modal-submit-btn');
+const textarea   = document.getElementById('postContent') || document.getElementById('post-textarea');
+
+function updateSubmitButton() {
+  const hasContent = textarea && textarea.value.trim().length > 0;
+  const hasImages = attachWrap && attachWrap.querySelectorAll('.modal-attach-thumb').length > 0;
+  submitBtn.disabled = !hasContent && !hasImages;
+}
+
+if (textarea && submitBtn) {
+  textarea.addEventListener('input', updateSubmitButton);
+}
+
+document.getElementById('btn-add-photo').addEventListener('click', e => {
+  e.stopPropagation();
+  openPostModal();                              // open the modal first
+  setTimeout(() => fileInput.click(), 150);    // then open file picker (slight delay so modal renders)
+});
+
+// Add event listener to the modal's add photo button
+document.querySelector('.modal-add-photo-btn').addEventListener('click', e => {
+  e.stopPropagation();
+  fileInput.click();
+});
+
+fileInput.addEventListener('change', function () {
+  Array.from(this.files).forEach(file => {
+    const reader = new FileReader();
+    reader.onload = ev => {
+      const thumb     = document.createElement('img');
+      thumb.src       = ev.target.result;
+      thumb.className = 'modal-attach-thumb';
+      thumb.title     = 'Click to remove';
+      thumb.addEventListener('click', () => {
+        thumb.remove();
+        updateSubmitButton(); // Update button state after removing image
+      });
+      attachWrap.appendChild(thumb);
+    };
+    reader.readAsDataURL(file);
+  });
+  updateSubmitButton(); // Update button state after adding images
+});
+
 function openPostModal() {
   document.getElementById('postModal').classList.add('open');
   setTimeout(() => document.getElementById('postContent').focus(), 120);
+  updateSubmitButton(); // Ensure button state is correct on open
 }
 
 function closePostModal() {
@@ -252,7 +303,11 @@ function closeModalOnOverlay(e) {
 
 function submitPost() {
   const content = document.getElementById('postContent').value.trim();
-  if (!content) { showToast('Write something first!'); return; }
+  
+  // Collect attached images from the modal
+  const thumbs = Array.from(attachWrap.querySelectorAll('.modal-attach-thumb'));
+  
+  if (!content && thumbs.length === 0) { showToast('Write something first!'); return; }
 
   const isAnon  = document.getElementById('anonToggle').checked;
   const author  = isAnon ? 'Anonymous' : 'Puto Imnida';
@@ -265,11 +320,15 @@ function submitPost() {
     hour: '2-digit', minute: '2-digit'
   });
 
+  // Build image HTML from collected thumbnails
+  const imagesHTML = thumbs.length > 0
+    ? `<div class="post-images">${thumbs.map(img => `<img src="${img.src}" class="post-image">`).join('')}</div>`
+    : '';
+
   const menuId = 'menu-' + Date.now();
   const card   = document.createElement('div');
   card.className = 'post-card';
 
-  // Use getTemplate() to correctly read from <template> elements
   card.innerHTML = `
     <div class="post-header">
       <div class="post-avatar">
@@ -279,14 +338,17 @@ function submitPost() {
         <div class="post-author">${author}</div>
         <div class="post-time">${dateStr}</div>
       </div>
-      <div class="post-menu" onclick="toggleMenu(event, '${menuId}')">···
+      <button class="post-menu" onclick="toggleMenu(event, '${menuId}')">
+        <svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg>
         <div class="dropdown-menu" id="${menuId}">
           ${getTemplate('menu-template')}
         </div>
-      </div>
+      </button>
     </div>
 
-    <div class="post-body">${escapeHTML(content).replace(/\n/g, '<br>')}</div>
+    ${content ? `<div class="post-body">${escapeHTML(content).replace(/\n/g, '<br>')}</div>` : ''}
+
+    ${imagesHTML}
 
     <div class="comments-data" style="display:none;"></div>
 
@@ -303,8 +365,12 @@ function submitPost() {
 
   const feed = document.getElementById('feed');
   feed.insertBefore(card, feed.firstChild);
+
+  // Reset form
   document.getElementById('postContent').value = '';
   document.getElementById('anonToggle').checked = false;
+  attachWrap.innerHTML = '';       // ← clear thumbnails from modal
+  fileInput.value = '';            // ← reset file input so same files can be re-selected
   closePostModal();
   showToast('Post shared!');
 }
@@ -319,6 +385,52 @@ function deletePost(e) {
   card.style.transform  = 'scale(0.93)';
   setTimeout(() => card.remove(), 300);
   showToast('Post deleted.');
+}
+
+// ========================
+// EDIT POST
+// ========================
+function editPost(e) {
+  const card = e.target.closest('.post-card');
+  const bodyEl = card.querySelector('.post-body');
+  if (!bodyEl) return;
+
+  const originalText = bodyEl.innerHTML.replace(/<br>/g, '\n').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&').replace(/&quot;/g, '"');
+
+  // Hide the body and show edit mode
+  bodyEl.style.display = 'none';
+
+  const editWrap = document.createElement('div');
+  editWrap.className = 'post-edit-wrap';
+  editWrap.innerHTML = `
+    <textarea class="post-edit-textarea">${originalText}</textarea>
+    <div class="post-edit-buttons">
+      <button class="post-edit-save">Save</button>
+      <button class="post-edit-cancel">Cancel</button>
+    </div>
+  `;
+
+  bodyEl.parentNode.insertBefore(editWrap, bodyEl.nextSibling);
+
+  const textarea = editWrap.querySelector('.post-edit-textarea');
+  textarea.focus();
+
+  // Save
+  editWrap.querySelector('.post-edit-save').addEventListener('click', () => {
+    const newText = textarea.value.trim();
+    if (newText) {
+      bodyEl.innerHTML = escapeHTML(newText).replace(/\n/g, '<br>');
+    }
+    editWrap.remove();
+    bodyEl.style.display = '';
+    showToast('Post updated.');
+  });
+
+  // Cancel
+  editWrap.querySelector('.post-edit-cancel').addEventListener('click', () => {
+    editWrap.remove();
+    bodyEl.style.display = '';
+  });
 }
 
 // ========================
@@ -584,12 +696,6 @@ function updateFeedCommentPreview(card) {
 // SUBMIT BUTTON OPACITY
 // ========================
 document.addEventListener('DOMContentLoaded', () => {
-  const postContent = document.getElementById('postContent');
-  const postSubmit  = document.querySelector('.modal-submit-btn');
-  postContent.addEventListener('input', () => {
-    postSubmit.style.opacity = postContent.value.trim() ? '1' : '0.35';
-  });
-
   const commentInput  = document.getElementById('commentModalInput');
   const commentSubmit = document.querySelector('.comment-modal-submit');
   commentInput.addEventListener('input', () => {
