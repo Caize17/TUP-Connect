@@ -200,35 +200,45 @@
 
             <!-- BANNER -->
             <div class="banner">
-            <img src="../assets/images/TUP_bg.png" class="banner-img">
+            <img src="../assets/images/TUP_bg.png" class="banner-img" id="banner-img">
 
-                <div class="banner-search-wrap">
+                <div class="banner-search-wrap" id="banner-search-wrap">
                     <p class="banner-search-label">Looking for a TUP offices and Building? Search here!</p>
                     <div class="banner-search-bar">
                     <svg class="banner-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                         <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
                     </svg>
                     <input class="banner-search-input" type="text" placeholder="Search">
-                    <button class="banner-search-btn">→</button>
+                    <button class="banner-search-back-btn">→</button>
                     </div>
                 </div>
             </div>
 
-            <div class="carousel-track">
+            <div class="carousel-track" id="carousel-track">
                 <div class="carousel-item">
                     <button class="carousel-arrow left">
                         <img src="../assets/images/Arrow-left.png" class="arrow-left">
                     </button>
                     <div class="carousel-images">
-                        <img src="../assets/images/cashier.jpeg" class="carousel-img" alt="cashier">
-                        <img src="../assets/images/COS.jpeg" class="carousel-img" alt="COS">
-                        <img src="../assets/images/OSA.jpeg" class="carousel-img" alt="OSA">
-                        <img src="../assets/images/Registrar.jpeg" class="carousel-img" alt="registrar">
+                        <img src="../assets/images/cashier.jpeg" class="carousel-img" data-name="Cashier Office" alt="cashier">
+                        <img src="../assets/images/COS.jpeg" class="carousel-img" data-name="COS Building" alt="COS">
+                        <img src="../assets/images/OSA.jpeg" class="carousel-img" data-name="Office of Student Affair" alt="OSA">
+                        <img src="../assets/images/Registrar.jpeg" class="carousel-img" data-name="Registrar Office" alt="registrar">
                     </div>
                     <button class="carousel-arrow right">
                         <img src="../assets/images/Arrow-right.png" class="arrow-right">
                     </button>
                 </div>
+            </div>
+
+            <!-- DETAIL CARD -->
+            <div class="detail-card-wrap" id="detail-card">
+              <button class="detail-close-btn" id="detail-close-btn">
+                ✕
+              </button>
+              <div class="detail-card-title" id="detail-card-title"></div>
+              <div class="detail-card-desc"  id="detail-card-desc"></div>
+              <div id="detail-card-courses"></div>
             </div>
 
         </main>

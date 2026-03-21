@@ -217,7 +217,7 @@ function createRepostCard(btn, quote = '') {
   card.innerHTML = `
     <div class="post-header">
       <div class="post-avatar">
-        <img src="../assets/images/anon_avatar.jpg" alt="Samantha" onerror="this.parentElement.textContent='👩'">
+        <img src="${USER.photoSrc || '../assets/images/anon_avatar.jpg'}" alt="Samantha" onerror="this.parentElement.textContent='👩'">
       </div>
       <div class="post-meta">
         <div class="post-author">Puto Imnida</div>
@@ -259,7 +259,7 @@ function createRepostCard(btn, quote = '') {
 
     <div class="comment-input-row always-visible" onclick="openCommentModal(this)">
       <div class="comment-avatar">
-        <img src="../assets/images/anon_avatar.jpg" alt="You" onerror="this.parentElement.textContent='👩'">
+        <img src="${USER.photoSrc || '../assets/images/anon_avatar.jpg'}" alt="You" onerror="this.parentElement.textContent='👩'">
       </div>
       <input class="comment-input" placeholder="Write a comment..." readonly>
     </div>`;
@@ -271,7 +271,7 @@ function createRepostCard(btn, quote = '') {
   const rd = document.createElement('div');
   rd.className = 'repost-data';
   rd.dataset.author = 'Puto Imnida'; // Current user
-  rd.dataset.avatar = '../assets/images/anon_avatar.jpg';
+  rd.dataset.avatar = USER.photoSrc || '../assets/images/anon_avatar.jpg';
   rd.dataset.quote = quote;
   rd.dataset.hasQuote = quote ? 'true' : 'false';
   rd.dataset.time = now.toISOString();
@@ -361,7 +361,7 @@ function submitPost() {
 
   const isAnon  = document.getElementById('anonToggle').checked;
   const author  = isAnon ? 'Anonymous' : 'Puto Imnida';
-  const avatar  = isAnon ? '../assets/images/anon_avatar.jpg' : '../assets/images/anon_avatar.jpg';
+  const avatar  = isAnon ? '../assets/images/anon_avatar.jpg' : USER.photoSrc;
 
   const now     = new Date();
   const dateStr = now.toLocaleDateString('en-US', {
@@ -414,7 +414,7 @@ function submitPost() {
 
     <div class="comment-input-row always-visible" onclick="openCommentModal(this)">
       <div class="comment-avatar">
-        <img src="../assets/images/anon_avatar.jpg" alt="You" onerror="this.parentElement.textContent='👩'">
+        <img src="${USER.photoSrc || '../assets/images/anon_avatar.jpg'}" alt="You" onerror="this.parentElement.textContent='👩'">
       </div>
       <input class="comment-input" placeholder="Write a comment..." readonly>
     </div>`;
@@ -711,7 +711,7 @@ function submitModalComment() {
   const now = new Date();
   const list = document.getElementById('commentModalList');
   const cIdx = list.querySelectorAll('.comment-modal-item').length;
-  list.appendChild(buildCommentModalItem('Puto Imnida', '../assets/images/anon_avatar.jpg', text, now.toISOString(), true, cIdx));
+  list.appendChild(buildCommentModalItem('Puto Imnida', USER.photoSrc || '../assets/images/anon_avatar.jpg', text, now.toISOString(), true, cIdx));
   list.scrollTop = list.scrollHeight;
 
   bindCommentActions();
@@ -721,7 +721,7 @@ function submitModalComment() {
     const cd = document.createElement('div');
     cd.className        = 'comment-data';
     cd.dataset.author   = 'Puto Imnida';
-    cd.dataset.avatar   = '../assets/images/anon_avatar.jpg';
+    cd.dataset.avatar   = USER.photoSrc || '../assets/images/anon_avatar.jpg';
     cd.dataset.text     = text;
     cd.dataset.time     = now.toISOString();
     cd.dataset.isOwn    = 'true';
@@ -904,6 +904,61 @@ document.addEventListener('DOMContentLoaded', () => {
         document.querySelector('.sidebar-avatar-img').src = imgSrc;
         // Update USER.photoSrc
         USER.photoSrc = imgSrc;
+        
+        // Update modal avatar if not in anonymous mode
+        const anonToggle = document.getElementById('anonToggle');
+        if (!anonToggle.checked) {
+          const modalAvatarEl = document.getElementById('modal-avatar');
+          modalAvatarEl.innerHTML = `<img src="${imgSrc}" alt="Me" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+        }
+        
+        // Update all post avatars on the page
+        document.querySelectorAll('.post-avatar img').forEach(avatar => {
+          // Only update if the post is from the current user (not anonymous/reposts)
+          const postCard = avatar.closest('.post-card');
+          const postAuthor = postCard?.querySelector('.post-author')?.textContent;
+          if (postAuthor === 'Puto Imnida') {
+            avatar.src = imgSrc;
+          }
+        });
+        
+        // Update repost quote avatars in all posts
+        document.querySelectorAll('.repost-quote-avatar img').forEach(avatar => {
+          const repostCard = avatar.closest('.repost-quote-card');
+          const repostAuthor = repostCard?.querySelector('.repost-quote-author')?.textContent;
+          if (repostAuthor === 'Puto Imnida') {
+            avatar.src = imgSrc;
+          }
+        });
+        
+        // Update comment input avatars in all post cards
+        document.querySelectorAll('.comment-input-row .comment-avatar img').forEach(avatar => {
+          avatar.src = imgSrc;
+        });
+        
+        // Update comment modal avatars in all posts
+        document.querySelectorAll('.comment-modal-item-avatar img').forEach(avatar => {
+          const commentItem = avatar.closest('.comment-modal-item');
+          const commentAuthor = commentItem?.querySelector('.comment-modal-item-author')?.textContent;
+          if (commentAuthor === 'Puto Imnida') {
+            avatar.src = imgSrc;
+          }
+        });
+        
+        // Update comment modal input avatar
+        const commentModalAvatar = document.querySelector('.comment-modal-avatar img');
+        if (commentModalAvatar) {
+          commentModalAvatar.src = imgSrc;
+        }
+        
+        // Update repost view modal avatars
+        document.querySelectorAll('#repostViewModal .comment-modal-item-avatar img').forEach(avatar => {
+          const repostViewItem = avatar.closest('.comment-modal-item');
+          const repostViewAuthor = repostViewItem?.querySelector('.comment-modal-item-author')?.textContent;
+          if (repostViewAuthor === 'Puto Imnida') {
+            avatar.src = imgSrc;
+          }
+        });
       };
       reader.readAsDataURL(file);
     }

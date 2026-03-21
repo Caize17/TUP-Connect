@@ -1,13 +1,18 @@
 :root {
-  --maroon: #6B1A1A;
-  --maroon-dark: #4a1010;
-  --maroon-light: #8B2A2A;
-  --cream: #FAF6F0;
+ --maroon:    #6b1111;
+  --maroon-dk: #4a0c0c;
+  --maroon-lt: #8b2020;
+  --cream:     #FFF4E7;
+  --cream-dk:  #ece4d4;
+  --cream-md:  #e8dfc8;
+  --white:     #fdfaf4;
+  --text:      #2a1a0a;
+  --muted:     #8a7a6a;
+  --gold:      #c8a84b;
   --soft-pink: #F5EDE8;
   --text-dark: #2a1a1a;
   --text-mid: #6b5050; 
   --text-light: #9b8080;
-  --white: #fff;
   --shadow: 0 4px 24px rgba(107,26,26,0.10);
 }
 
@@ -42,25 +47,21 @@ body {
 /* ========================
    BANNER
 ======================== */
-
-.banner{
-  position: relative;
-  width: 100%;
-}
 .banner {
   position: relative;
-  margin-top: 55px;
-  margin-left: 110px;
-  right: 30px;
-  width: 75%;
-  height: 550px;
-  overflow: visible;
-  background: var(--maroon);
+  margin-top: 45px;
+  left: 42%;
+  transform: translateX(-50%);
+  width: calc(100% - 320px); /* mirrors the original ~160px gap on each side */
+  max-width: 1200px;          /* optional: prevent it from getting too wide on large screens */
+  min-width: 300px;           /* optional: prevent it from shrinking too small */
+  height: 400px;
+  overflow: hidden;
+  background: transparent;
   border-radius: 20px;
   outline: 3px solid rgb(86, 28, 36, 0.5);
   border: 5px solid rgb(222, 194, 198);
   z-index: 0;
-  isolation: auto;
 }
 
 .banner-img {
@@ -68,12 +69,12 @@ body {
   height: 100%;
   object-fit: cover;
   display: block;
-  border-radius: 20px;
+  border-radius: 15px;
 }
 
 .banner-search-wrap {
-  position: absolute;   
-  bottom: 250px;
+  position: fixed;   
+  bottom: 160px;
   left: 50%;
   transform: translateX(-50%);
   width: 80%;
@@ -84,7 +85,7 @@ body {
 .banner-search-label {
   color: #FFF4E7;
   font-weight: 800;
-  font-size: 18px;
+  font-size: 15px;
   margin-bottom: 14px;
   text-shadow: 0 2px 8px rgba(0,0,0,0.4);
 }
@@ -123,7 +124,7 @@ body {
   color: #561C24;
 }
 
-.banner-search-btn {
+.banner-search-back-btn {
   background: none;
   border: none;
   font-size: 22px;
@@ -131,6 +132,7 @@ body {
   cursor: pointer;
   font-weight: bold;
   line-height: 1;
+  display: none;
 }
 
 /* ========================
@@ -138,7 +140,7 @@ body {
 ======================== */
 .search-dropdown {
   display: none;
-  position: absolute;
+  position: fixed;
   top: calc(100% + 8px);
   left: 0;
   width: 100%;
@@ -153,9 +155,9 @@ body {
 
 .search-dropdown-label {
   padding: 8px 14px 4px;
-  font-size: 16px;
+  font-size: 13px;
   font-weight: 800;
-  color: var(--maroon-dark);
+  color: var(--maroon-dk);
   letter-spacing: 0.05em;
 }
 
@@ -168,7 +170,6 @@ body {
   font-size: 14px;
   color: var(--text-dark);
   transition: background 0.15s;
-  /*border-radius: 20px;*/
 }
 
 .search-dropdown-item:hover {
@@ -180,7 +181,7 @@ body {
   width: 16px;
   height: 16px;
   flex-shrink: 0;
-  stroke: var(--maroon-dark);
+  stroke: var(--maroon);
   opacity: 0.6;
 }
 
@@ -196,10 +197,10 @@ body {
 .carousel-track {
   display: flex;
   align-items: center;
-  width: 75%;
-  margin-left: 125px;
-  position: relative;
-  margin-top: -120px; /* ✅ pulls carousel UP into the banner */
+  width: 70%;
+  margin-left: 130px;
+  position: fixed;
+  top: 365px; /* ✅ pulls carousel UP into the banner */
   z-index: 0;       /* ✅ sits on top of banner */
   overflow: hidden;
 }
@@ -215,14 +216,14 @@ body {
 
 .carousel-images {
   display: flex;
-  gap: 40px;
+  gap: 36px;
   overflow: hidden;
   overflow-x: scroll;
   scrollbar-width: none;
   scroll-behavior: smooth;
   width: 830px;
-  margin-left: 80px;
-  margin-right: 195px;
+  margin-left: 20px;
+  margin-right: 200px;
   border-radius: 15px;
 }
 
@@ -231,14 +232,13 @@ body {
 }
 
 .carousel-img {
-  width: 250px;        /* ✅ wider to match screenshot */
-  height: 220px;       /* ✅ taller to match screenshot */
+  width: 200px;        /* ✅ wider to match screenshot */
+  height: 180px;       /* ✅ taller to match screenshot */
   border-radius: 15px;
   object-fit: cover;
   border: 4px solid #dec2c6;
-  flex-shrink: 0;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.25); /* ✅ shadow for depth */
-  pointer-events: none;
+  flex-shrink: 0;    /* ✅ prevents images from shrinking when container is too small */
+  pointer-events: all;
   overflow: hidden;
 }
 
@@ -261,7 +261,7 @@ body {
 }
 
 .carousel-arrow.left  {
-  left: 65px;   /* ✅ sits on top of first image */
+  left: 2px;   /* ✅ sits on top of first image */
 }
 
 .carousel-arrow.right {
@@ -279,16 +279,14 @@ body {
 ======================== */
 .directory-panel {
   position: fixed;
-  top: 52px;
+  top: 41px;
   right: 30px;
-  width: 220px;
+  width: 200px;
+  height: 200px;
   display: flex;
   flex-direction: column;
   gap: 16px;
   z-index: 50;
-  max-height: calc(100vh - 160px);
-  overflow-y: visible;
-  overflow-x: visible;
   scrollbar-width: none;
 }
 
@@ -300,7 +298,6 @@ body {
   background: #f5e6e0;
   border-radius: 16px;
   border: 2px solid #dec2c6;
-  padding: 14px 12px;
   box-shadow: 0 4px 16px rgba(107,26,26,0.08);
 }
 
@@ -308,10 +305,11 @@ body {
   font-family: 'Montserrat', sans-serif;
   font-weight: 800;
   font-size: 15px;
-  color: var(--maroon-dark);
+  color: var(--maroon-dk);
   text-align: center;
   margin-bottom: 12px;
   padding-bottom: 8px;
+  padding-top: 8px;
   border-bottom: 1.5px solid #dec2c6;
 }
 
@@ -320,7 +318,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  max-height: 250px;       /* limits how tall the list gets */
+  max-height: 193px;       /* limits how tall the list gets */
   overflow-y: auto;
   scrollbar-width: none;   /* hides scrollbar Firefox */
 }
@@ -356,7 +354,122 @@ body {
 }
 
 .directory-item:hover .directory-icon {
-  stroke: var(--maroon-dark);
+  stroke: var(--maroon-dk);
+}
+
+/* ========================
+   DETAIL CARD
+======================== */
+.detail-card-wrap {
+  position: relative;
+  margin-top: 20px;
+  margin-bottom: 30px;
+  left: 42%;
+  transform: translateX(-50%);
+  width: calc(100% - 320px); /* mirrors the original ~160px gap on each side */
+  max-width: 1200px;          /* optional: prevent it from getting too wide on large screens */
+  min-width: 300px;           /* optional: prevent it from shrinking too small */
+  height: auto;
+  background: var(--cream);
+  border-radius: 16px;
+  border: 1.5px solid var(--cream-md);
+  box-shadow: 0 4px 20px rgba(107,26,26,0.30);
+  padding: 24px 28px;
+  animation: fadeSlideUp 0.3s ease;
+  display: none;
+}
+
+.detail-card-wrap.active {
+  display: block;
+}
+
+@keyframes fadeSlideUp {
+  from { 
+    opacity: 0; 
+    transform: translateX(-50%) translateY(16px); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateX(-50%) translateY(0); 
+  }
+}
+
+.detail-card-title {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 800;
+  font-size: 18px;
+  color: var(--maroon-dk);
+  margin-bottom: 10px;
+}
+
+.detail-card-desc {
+  font-size: 13.5px;
+  color: var(--text-mid);
+  line-height: 1.7;
+  margin-bottom: 18px;
+  text-align: justify;
+}
+
+.detail-card-section-title {
+  font-weight: 800;
+  font-size: 15px;
+  color: var(--maroon);
+  margin-bottom: 8px;
+  margin-top: 14px;
+}
+
+.detail-card-subheading {
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--text-dark);
+  margin-bottom: 4px;
+  margin-top: 10px;
+}
+
+.detail-card-list {
+  list-style: disc;
+  padding-left: 20px;
+  font-size: 13px;
+  color: var(--text-mid);
+  line-height: 1.8;
+  
+}
+/* ========================
+   DETAIL CLOSE BUTTON
+======================== */
+
+.detail-close-btn {
+  position: fixed;
+  margin-top: -440px;        /* adjust to align with your banner's top edge */
+  right: 5px;     /* adjust to sit inside the banner's right edge, clear of the directory panel */
+  border: none;
+  background: transparent;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--cream-dk);
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 4;
+  transition: background 0.15s;
+  z-index: 50;       /* above the banner */
+}
+
+.detail-close-btn:hover { 
+    color: var(--maroon); 
+}
+
+/* Banner image transition */
+.banner-img {
+  transition: opacity 0.4s ease;
+}
+
+.banner-img.fading {
+  opacity: 0;
 }
 
 /* ASK ME (Tupee) */
