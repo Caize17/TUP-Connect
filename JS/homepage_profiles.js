@@ -17,63 +17,32 @@ onAuthStateChanged(auth, async (user) => {
   if (sessionStorage.getItem('guestMode') === 'true') return;
 
   if (user) {
-    // --- YOUR EXISTING CODE FOR RIGHT SIDE ---
-    const emailEl = document.getElementById('profile-email');
-    if (emailEl) emailEl.textContent = user.email;
-
     try {
       const userDocRef = doc(db, "users", user.uid);
       const userSnap = await getDoc(userDocRef);
 
       if (userSnap.exists()) {
         const userData = userSnap.data();
-        
-        // Update name and ID on the right side
-        if (document.getElementById('profile-name')) document.getElementById('profile-name').textContent = userData.fullName || user.displayName || "TUPian";
-        if (document.getElementById('profile-id')) document.getElementById('profile-id').textContent = userData.studentID || "No ID Set";
 
-        // --- NEW: UPDATE THE SIDEBAR AVATAR ---
+        // 1. UPDATE THE SIDEBAR (Always present on all pages)
         const navAvatarWrap = document.getElementById('nav-profile-avatar');
-        
-        if (navAvatarWrap) {
-          if (userData.photoURL) {
-            // Replace the SVG with the User Image
-            navAvatarWrap.innerHTML = `
-              <img src="${userData.photoURL}" 
-                   style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" 
-                   alt="Nav Profile">
-            `;
-          } else {
-            // Keep the SVG if no photo exists
-            navAvatarWrap.innerHTML = `
-              <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-            `;
-          }
+        if (navAvatarWrap && userData.photoURL) {
+          navAvatarWrap.innerHTML = `<img src="${userData.photoURL}" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">`;
         }
 
-        // --- REST OF YOUR RIGHT SIDE PHOTO CODE ---
+        // 2. UPDATE THE RIGHT-BAR (Only if it exists on the current page)
+        const nameEl = document.getElementById('profile-name');
+        const idEl = document.getElementById('profile-id');
         const photoWrap = document.querySelector('.profile-photo-wrap');
-        if (photoWrap) {
-        if (userData && userData.photoURL) {
-          photoWrap.innerHTML = `
-            <img src="${userData.photoURL}" 
-                class="profile-photo" 
-                alt="Profile Picture">
-          `;
-        } else {
-          photoWrap.innerHTML = `
-            <div class="profile-photo-ph">
-              <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                <circle cx="12" cy="7" r="4"></circle>
-              </svg>
-            </div>
-          `;
+
+        if (nameEl) nameEl.textContent = userData.fullName || "TUPian";
+        if (idEl) idEl.textContent = userData.studentID || "No ID Set";
+        if (photoWrap && userData.photoURL) {
+          photoWrap.innerHTML = `<img src="${userData.photoURL}" class="profile-photo" alt="Profile">`;
         }
-      }
       }
     } catch (error) {
-      console.error("Right Bar Fetch Error:", error);
+      console.error("Global Nav Fetch Error:", error);
     }
   } else {
     window.location.href = "../index.html";
