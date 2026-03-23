@@ -1,7 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-import { signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getFirestore, doc, getDoc, updateDoc, collection, query, where, getDocs, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { arrayUnion, arrayRemove, increment } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBpGOdMpx_Mws2EcCq6rbOWfZ-FFuhhfo0",
@@ -69,7 +69,12 @@ onAuthStateChanged(auth, async (user) => {
             USER.photoSrc = userData.photoURL || user.photoURL || "../assets/images/anon_avatar.jpg";
 
             updateProfileUI(userData, user.email); 
+            
+            // ADD THIS LINE TO LOAD THE FEED
+            loadUserPosts(user.uid); 
         }
+    } else {
+        window.location.href = "../index.html";
     }
 });
 
@@ -188,6 +193,113 @@ function showToast(msg) {
   t._timeout = setTimeout(() => t.classList.remove('show'), 2200);
 }
 
+// Inside Profile.js -> renderPost(data, postId)
+function renderPost(data, postId) {
+    const feed = document.getElementById('feed');
+    const postCard = document.createElement('div');
+    postCard.className = 'post-card';
+    postCard.dataset.id = postId;
+
+    // SYNC WITH post.js LOGIC:
+    // Homepage uses data.likedBy.length for the count
+    const likeCount = data.likedBy ? data.likedBy.length : 0; 
+    const commentCount = data.comments || 0; 
+    const repostCount = data.repostedBy ? data.repostedBy.length : 0;
+    
+    // Check if the current user is in the likedBy array
+    const isLikedByMe = data.likedBy && data.likedBy.includes(auth.currentUser?.uid);
+
+    postCard.innerHTML = `
+        <div class="post-header">
+            <div class="post-avatar">
+                <img src="${data.photoURL || '../assets/images/anon_avatar.jpg'}" alt="Avatar">
+            </div>
+            <div class="post-meta">
+                <div class="post-author">${data.author || "TUPian"}</div>
+                <div class="post-time">${formatRelativeTime(data.createdAt.toDate())}</div>
+            </div>
+        </div>
+        <div class="post-body">${data.text || ""}</div>
+        ${data.imageURL ? `<div class="post-images"><img src="${data.imageURL}"></div>` : ''}
+        
+        ${buildReactions(postId, likeCount, commentCount, repostCount, isLikedByMe)}
+    `;
+
+    feed.appendChild(postCard);
+}
+
+async function loadUserPosts(userId) {
+    const feedContainer = document.getElementById('feed');
+    const postsRef = collection(db, "posts");
+    
+    // CHANGE THIS LINE to match your screenshot (userId)
+    const q = query(postsRef, where("userId", "==", userId), orderBy("createdAt", "desc"));
+
+    try {
+        const querySnapshot = await getDocs(q);
+        console.log("Posts found:", querySnapshot.size);
+
+        if (querySnapshot.empty) {
+            feedContainer.innerHTML = '<p class="no-posts">No posts found yet.</p>';
+            return;
+        }
+
+        feedContainer.innerHTML = ''; 
+        querySnapshot.forEach((doc) => {
+            renderPost(doc.data(), doc.id);
+        });
+    } catch (error) {
+        console.error("Feed Error:", error);
+    }
+}
+
+async function toggleLike(postId, btn) {
+    const user = auth.currentUser;
+    if (!user) return;
+
+    const postRef = doc(db, "posts", postId);
+    const likeCountSpan = btn.querySelector('.reaction-likes-count');
+    
+    const isLiking = !btn.classList.contains('heart-active');
+    
+    try {
+        if (isLiking) {
+            btn.classList.add('heart-active');
+            await updateDoc(postRef, {
+                likedBy: arrayUnion(user.uid)
+            });
+            likeCountSpan.textContent = parseInt(likeCountSpan.textContent) + 1;
+        } else {
+            btn.classList.remove('heart-active');
+            await updateDoc(postRef, {
+                likedBy: arrayRemove(user.uid)
+            });
+            likeCountSpan.textContent = Math.max(0, parseInt(likeCountSpan.textContent) - 1);
+        }
+    } catch (error) {
+        console.error("Error toggling like:", error);
+        showToast("Failed to update like.");
+    }
+}
+
+document.getElementById('feed').addEventListener('click', (e) => {
+    const likeBtn = e.target.closest('[data-type="like"]');
+    if (likeBtn) {
+        const postId = likeBtn.dataset.id;
+        toggleLike(postId, likeBtn);
+    }
+    
+    // You can add 'comment' or 'repost' listeners here later!
+});
+
+
+
+
+
+
+
+
+
 document.getElementById('btn-logout')?.addEventListener('click', () => {
     signOut(auth).then(() => {
         localStorage.clear();
@@ -198,6 +310,51 @@ document.getElementById('btn-logout')?.addEventListener('click', () => {
 });
 
 window.toggleChangePhotoMenu = toggleChangePhotoMenu;
+
+// Format time like "2 hours ago"
+function formatRelativeTime(date) {
+  const now = new Date();
+  const diffMs = now - date;
+  const diffSec = Math.floor(diffMs / 1000);
+  const diffMin = Math.floor(diffSec / 60);
+  const diffHour = Math.floor(diffMin / 60);
+  const diffDay = Math.floor(diffHour / 24);
+
+  if (diffSec < 60) return 'Just now';
+  if (diffMin < 60) return `${diffMin} minute${diffMin > 1 ? 's' : ''} ago`;
+  if (diffHour < 24) return `${diffHour} hour${diffHour > 1 ? 's' : ''} ago`;
+  if (diffDay < 7) return `${diffDay} day${diffDay > 1 ? 's' : ''} ago`;
+
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
+// Build the Heart, Comment, Repost buttons
+function buildReactions(postId, likes, comments, reposts, isLikedByMe) {
+  return `
+    <div class="feed-reactions">
+      <button class="feed-reaction-btn ${isLikedByMe ? 'active' : ''}" data-id="${postId}" data-type="like">
+        <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+        <span class="reaction-likes-count">${fmt(likes)}</span> Heart
+      </button>
+      
+      <button class="feed-reaction-btn" data-id="${postId}" data-type="comment">
+        <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <span class="reaction-comments-count">${fmt(comments)}</span> Comment
+      </button>
+
+      <button class="feed-reaction-btn" data-id="${postId}" data-type="repost">
+        <svg viewBox="0 0 24 24"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+        <span class="reaction-reposts-count">${fmt(reposts)}</span> Repost
+      </button>
+    </div>`;
+}
+
+// Format numbers (e.g., 1000 to 1K)
+function fmt(n) {
+  if (n >= 1000000) return (n / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
+  if (n >= 1000) return (n / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
+  return String(n);
+}
 
 
 /**
