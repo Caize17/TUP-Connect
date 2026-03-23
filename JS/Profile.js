@@ -1,3 +1,86 @@
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBpGOdMpx_Mws2EcCq6rbOWfZ-FFuhhfo0",
+  authDomain: "tup-connect-b162d.firebaseapp.com",
+  projectId: "tup-connect-b162d",
+  storageBucket: "tup-connect-b162d.firebasestorage.app",
+  messagingSenderId: "193141013544",
+  appId: "1:193141013544:web:72b403e84aa4d3313f091d"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+let USER = {
+  name: "TUPian",
+  photoSrc: "../assets/images/anon_avatar.jpg" // Default fallback
+};
+
+onAuthStateChanged(auth, async (user) => {
+    if (user) {
+        const userDocRef = doc(db, "users", user.uid);
+        const userSnap = await getDoc(userDocRef);
+
+        if (userSnap.exists()) {
+            const userData = userSnap.data();
+
+            // UPDATE THE GLOBAL USER OBJECT
+            USER.name = userData.fullName || user.displayName || "TUPian";
+            USER.photoSrc = userData.photoURL || user.photoURL || "../assets/images/anon_avatar.jpg";
+
+            // Now, when you call submitPost(), it will use the real photoURL!
+            updateProfileUI(userData, user.email); 
+        }
+    }
+});
+
+function updateProfileUI(userData, email) {
+    // 1. Profile Avatar (The inner image)
+    const profileImg = document.querySelector('.profile-avatar-inner');
+    if (profileImg && userData.photoURL) {
+        profileImg.src = userData.photoURL;
+    }
+
+    // 2. Banner / Cover Photo
+    const bannerImg = document.querySelector('.banner-img');
+    if (bannerImg && userData.coverURL) {
+        bannerImg.src = userData.coverURL;
+    }
+
+    // 3. User Text Info
+    const nameEl = document.querySelector('.profile-name');
+    const idEl = document.querySelector('.profile-id');
+    const emailEl = document.querySelector('.profile-email');
+
+    if (nameEl) nameEl.textContent = userData.fullName || "TUPian";
+    if (idEl) idEl.textContent = userData.studentID || "TUPM-XX-XXXX";
+    if (emailEl) emailEl.textContent = email;
+
+    // 4. Sidebar Sync (Optional but recommended)
+    const sidebarImg = document.querySelector('.sidebar-avatar-img');
+    if (sidebarImg && userData.photoURL) {
+        sidebarImg.src = userData.photoURL;
+    }
+}
+
+// Add this at the bottom of your onAuthStateChanged block or script
+document.getElementById('btn-logout')?.addEventListener('click', () => {
+    signOut(auth).then(() => {
+        // Clear local storage so the next user doesn't see your photo briefly
+        localStorage.clear();
+        window.location.href = "../index.html";
+    }).catch((error) => {
+        console.error("Logout Error:", error);
+    });
+});
+
+
+/**
 const USER = {
   name: document.getElementById('modal-user-name').textContent,
   photoSrc: document.querySelector('#modal-avatar img').src
@@ -613,7 +696,7 @@ function buildCommentModalItem(author, avatar, text, time, isOwn, cIdx) {
 function bindCommentActions() {
   const list = document.getElementById('commentModalList');
 
-  /* Edit button */
+  /* Edit button 
   list.querySelectorAll('.edit-btn').forEach(btn => {
     btn.addEventListener('click', function () {
       const c      = this.dataset.comment;
@@ -625,7 +708,7 @@ function bindCommentActions() {
     });
   });
 
-  /* Cancel edit */
+  /* Cancel edit 
   list.querySelectorAll('.comment-edit-cancel').forEach(btn => {
     btn.addEventListener('click', function () {
       const c      = this.dataset.comment;
@@ -636,7 +719,7 @@ function bindCommentActions() {
     });
   });
 
-  /* Save edit */
+  /* Save edit
   list.querySelectorAll('.comment-edit-save').forEach(btn => {
     btn.addEventListener('click', function () {
       const c       = this.dataset.comment;
@@ -650,7 +733,7 @@ function bindCommentActions() {
       bubble.style.display = '';
       edit.classList.remove('open');
 
-      /* Sync back to comment-data store */
+      /* Sync back to comment-data store 
       if (_currentPostCard) {
         const cds = _currentPostCard.querySelectorAll('.comment-data');
         if (cds[c]) cds[c].dataset.text = newText;
@@ -663,7 +746,7 @@ function bindCommentActions() {
     });
   });
 
-  /* Delete button */
+  /* Delete button 
   list.querySelectorAll('.delete-btn').forEach(btn => {
     btn.addEventListener('click', function () {
       const c    = this.dataset.comment;
@@ -673,7 +756,7 @@ function bindCommentActions() {
       item.style.transform  = 'translateX(12px)';
       setTimeout(() => item.remove(), 200);
 
-      /* Sync back to comment-data store */
+      /* Sync back to comment-data store 
       if (_currentPostCard) {
         const cds = _currentPostCard.querySelectorAll('.comment-data');
         if (cds[c]) cds[c].remove();
@@ -1033,10 +1116,10 @@ document.addEventListener('DOMContentLoaded', () => {
       window.location.href = '../pages/profile.html';
     });
 
-    /* Snap to active button on load */
+    /* Snap to active button on load 
     let active = navWrap.querySelector('.nav-btn.active, .nav-btn-profile.active');
 
-    /* Default to profile if none active */
+    /* Default to profile if none active 
     if (!active) {
       active = profBtn;
       profBtn.classList.add('active');
@@ -1052,3 +1135,4 @@ document.addEventListener('DOMContentLoaded', () => {
   })();
 
 });
+*/

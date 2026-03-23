@@ -1,5 +1,6 @@
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBpGOdMpx_Mws2EcCq6rbOWfZ-FFuhhfo0",
@@ -47,4 +48,14 @@ onAuthStateChanged(auth, async (user) => {
   } else {
     window.location.href = "../index.html";
   }
+});
+
+document.getElementById('btn-logout')?.addEventListener('click', () => {
+    signOut(auth).then(() => {
+        // Clear local storage so the next user doesn't see your photo briefly
+        localStorage.clear();
+        window.location.href = "../index.html";
+    }).catch((error) => {
+        console.error("Logout Error:", error);
+    });
 });

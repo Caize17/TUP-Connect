@@ -290,11 +290,25 @@
         }
       }
 
+      const coverInput = document.getElementById('cover-input');
+      let finalCoverURL = ""; // Default empty
+
+      // NEW: Capture and compress cover photo
+      if (coverInput.files && coverInput.files[0]) {
+          try {
+              // Using a larger maxWidth/Height for the cover since it's a banner
+              finalCoverURL = await compressImage(coverInput.files[0], 800, 400); 
+          } catch (e) {
+              console.error("Cover compression error:", e);
+          }
+      }
+
         const userRef = doc(db, "users", user.uid);
         const dataToSave = {
           studentID: idInput.value.trim(),
           college: collegeSelect.value,
           photoURL: finalPhotoURL,
+          coverURL: finalCoverURL,
           isSetupComplete: true,
           setupDate: new Date()
         };
