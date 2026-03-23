@@ -18,7 +18,7 @@ const db = getFirestore(app);
 
 let USER = {
   name: "TUPian",
-  photoSrc: "../assets/images/anon_avatar.jpg" // Default fallback
+  photoSrc: "../assets/images/anon_avatar.jpg"
 };
 
 onAuthStateChanged(auth, async (user) => {
@@ -29,30 +29,25 @@ onAuthStateChanged(auth, async (user) => {
         if (userSnap.exists()) {
             const userData = userSnap.data();
 
-            // UPDATE THE GLOBAL USER OBJECT
             USER.name = userData.fullName || user.displayName || "TUPian";
             USER.photoSrc = userData.photoURL || user.photoURL || "../assets/images/anon_avatar.jpg";
 
-            // Now, when you call submitPost(), it will use the real photoURL!
             updateProfileUI(userData, user.email); 
         }
     }
 });
 
 function updateProfileUI(userData, email) {
-    // 1. Profile Avatar (The inner image)
     const profileImg = document.querySelector('.profile-avatar-inner');
     if (profileImg && userData.photoURL) {
         profileImg.src = userData.photoURL;
     }
 
-    // 2. Banner / Cover Photo
     const bannerImg = document.querySelector('.banner-img');
     if (bannerImg && userData.coverURL) {
         bannerImg.src = userData.coverURL;
     }
 
-    // 3. User Text Info
     const nameEl = document.querySelector('.profile-name');
     const idEl = document.querySelector('.profile-id');
     const emailEl = document.querySelector('.profile-email');
@@ -61,17 +56,14 @@ function updateProfileUI(userData, email) {
     if (idEl) idEl.textContent = userData.studentID || "TUPM-XX-XXXX";
     if (emailEl) emailEl.textContent = email;
 
-    // 4. Sidebar Sync (Optional but recommended)
     const sidebarImg = document.querySelector('.sidebar-avatar-img');
     if (sidebarImg && userData.photoURL) {
         sidebarImg.src = userData.photoURL;
     }
 }
 
-// Add this at the bottom of your onAuthStateChanged block or script
 document.getElementById('btn-logout')?.addEventListener('click', () => {
     signOut(auth).then(() => {
-        // Clear local storage so the next user doesn't see your photo briefly
         localStorage.clear();
         window.location.href = "../index.html";
     }).catch((error) => {

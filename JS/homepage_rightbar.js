@@ -25,17 +25,15 @@ onAuthStateChanged(auth, async (user) => {
       if (userSnap.exists()) {
         const userData = userSnap.data();
 
-        // 1. UPDATE THE SIDEBAR
         const navAvatarWrap = document.getElementById('nav-profile-avatar');
         if (navAvatarWrap && userData.photoURL) {
           navAvatarWrap.innerHTML = `<img src="${userData.photoURL}" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">`;
         }
 
-        // 2. UPDATE THE RIGHT-BAR
         const nameEl = document.getElementById('profile-name');
         const idEl = document.getElementById('profile-id');
         const photoWrap = document.querySelector('.profile-photo-wrap');
-        const emailEl = document.querySelector('.profile-email'); // Ensure this selector matches your HTML
+        const emailEl = document.querySelector('.profile-email');
 
         if (nameEl) nameEl.textContent = userData.fullName || "TUPian";
         if (idEl) idEl.textContent = userData.studentID || "No ID Set";
@@ -43,7 +41,6 @@ onAuthStateChanged(auth, async (user) => {
           photoWrap.innerHTML = `<img src="${userData.photoURL}" class="profile-photo" alt="Profile">`;
         }
         
-        // FIX: Use user.email from the Auth object
         if (emailEl) emailEl.textContent = user.email; 
       }
     } catch (error) {
@@ -56,7 +53,6 @@ onAuthStateChanged(auth, async (user) => {
 
 document.getElementById('btn-logout')?.addEventListener('click', () => {
     signOut(auth).then(() => {
-        // Clear local storage so the next user doesn't see your photo briefly
         localStorage.clear();
         window.location.href = "../index.html";
     }).catch((error) => {
