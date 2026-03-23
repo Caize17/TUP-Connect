@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 const firebaseConfig = {
@@ -20,6 +20,42 @@ let USER = {
   name: "TUPian",
   photoSrc: "../assets/images/anon_avatar.jpg"
 };
+
+async function compressImage(file, maxWidth = 400, maxHeight = 400) {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (event) => {
+      const img = new Image();
+      img.src = event.target.result;
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > maxWidth) {
+            height *= maxWidth / width;
+            width = maxWidth;
+          }
+        } else {
+          if (height > maxHeight) {
+            width *= maxHeight / height;
+            height = maxHeight;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+
+        // Quality set to 0.9 for better clarity on your profile
+        resolve(canvas.toDataURL('image/jpeg', 0.9)); 
+      };
+    };
+  });
+}
 
 onAuthStateChanged(auth, async (user) => {
     if (user) {
@@ -62,6 +98,96 @@ function updateProfileUI(userData, email) {
     }
 }
 
+function toggleChangePhotoMenu(e) {
+  e.stopPropagation();
+  const dropdown = document.getElementById('changePhotoDropdown');
+  const btn      = e.currentTarget;
+  const rect     = btn.getBoundingClientRect();
+
+  dropdown.style.top   = (rect.bottom + 8) + 'px';
+  dropdown.style.right = (window.innerWidth - rect.right) + 'px';
+  dropdown.classList.toggle('open');
+}
+
+document.addEventListener('click', (e) => {
+  const wrap     = document.querySelector('.change-photo-wrap');
+  const dropdown = document.getElementById('changePhotoDropdown');
+  if (dropdown && wrap && !wrap.contains(e.target)) {
+    dropdown.classList.remove('open');
+  }
+});
+
+// 1. Listen for Profile Photo Selection
+document.getElementById('profilePhotoInput').addEventListener('change', async function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        // Close the menu immediately
+        document.getElementById('changePhotoDropdown').classList.remove('open');
+        
+        const base64 = await compressImage(file, 400, 400); 
+        updateUserPhotosInFirebase('photoURL', base64);
+    }
+});
+
+// 2. Listen for Cover Photo Selection
+document.getElementById('coverPhotoInput').addEventListener('change', async function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        // High-quality compression for Cover Banner (800x400)
+        const base64 = await compressImage(file, 800, 400); 
+        updateUserPhotosInFirebase('coverURL', base64);
+    }
+});
+
+// 3. Function to Save to Firestore
+async function updateUserPhotosInFirebase(field, base64String) {
+    const user = auth.currentUser;
+    if (user) {
+        try {
+            const userRef = doc(db, "users", user.uid);
+            await updateDoc(userRef, {
+                [field]: base64String
+            });
+            
+            showToast("Photo updated successfully!");
+
+            // --- CRITICAL UI UPDATE SECTION ---
+            if (field === 'photoURL') {
+                // This must match your <img class="profile-avatar-inner">
+                const profileImg = document.querySelector('.profile-avatar-inner');
+                if (profileImg) profileImg.src = base64String;
+
+                // This must match your Sidebar ID
+                const navImg = document.querySelector('#nav-profile-avatar img');
+                if (navImg) navImg.src = base64String;
+                
+                // Keep your global USER object in sync for new posts
+                if (typeof USER !== 'undefined') USER.photoSrc = base64String;
+            } 
+            else if (field === 'coverURL') {
+                // This must match your <img class="banner-img">
+                const bannerImg = document.querySelector('.banner-img');
+                if (bannerImg) bannerImg.src = base64String;
+            }
+        } catch (error) {
+            console.error("Error updating photo:", error);
+            showToast("Failed to update photo.");
+        }
+    }
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  if (!t) {
+    console.log("Toast message:", msg); // Fallback if HTML element is missing
+    return;
+  }
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._timeout);
+  t._timeout = setTimeout(() => t.classList.remove('show'), 2200);
+}
+
 document.getElementById('btn-logout')?.addEventListener('click', () => {
     signOut(auth).then(() => {
         localStorage.clear();
@@ -70,6 +196,8 @@ document.getElementById('btn-logout')?.addEventListener('click', () => {
         console.error("Logout Error:", error);
     });
 });
+
+window.toggleChangePhotoMenu = toggleChangePhotoMenu;
 
 
 /**
