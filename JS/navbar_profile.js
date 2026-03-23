@@ -18,24 +18,30 @@ const db = getFirestore(app);
 
 // 3. YOUR LOGIC
 onAuthStateChanged(auth, async (user) => {
-    if (user) {
-        try {
-            const userDocRef = doc(db, "users", user.uid);
-            const userSnap = await getDoc(userDocRef);
+    const navAvatarWrap = document.getElementById('nav-profile-avatar');
+    
+    // 1. Check if we already have the photo saved locally (FAST)
+    const cachedPhoto = localStorage.getItem('userPhoto');
+    if (cachedPhoto && navAvatarWrap) {
+        navAvatarWrap.innerHTML = `<img src="${cachedPhoto}" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">`;
+    }
 
-            if (userSnap.exists()) {
-                const userData = userSnap.data();
-                const navAvatarWrap = document.getElementById('nav-profile-avatar');
+    if (user) {
+        const userDocRef = doc(db, "users", user.uid);
+        const userSnap = await getDoc(userDocRef);
+
+        if (userSnap.exists()) {
+            const userData = userSnap.data();
+            
+            if (userData.photoURL) {
+                // 2. Save it for the next page load
+                localStorage.setItem('userPhoto', userData.photoURL);
                 
-                if (navAvatarWrap && userData.photoURL) {
-                    navAvatarWrap.innerHTML = `
-                        <img src="${userData.photoURL}" 
-                             style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
-                    `;
+                // 3. Update the UI (This confirms the latest photo is used)
+                if (navAvatarWrap) {
+                    navAvatarWrap.innerHTML = `<img src="${userData.photoURL}" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">`;
                 }
             }
-        } catch (e) {
-            console.error("Error loading navbar profile:", e);
         }
     }
 });
