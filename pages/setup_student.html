@@ -250,7 +250,7 @@
         const ctx = canvas.getContext('2d');
         ctx.drawImage(img, 0, 0, width, height);
 
-        resolve(canvas.toDataURL('image/jpeg', 0.7)); 
+        resolve(canvas.toDataURL('image/jpeg', 0.9)); 
       };
     };
   });
@@ -290,11 +290,23 @@
         }
       }
 
+      const coverInput = document.getElementById('cover-input');
+      let finalCoverURL = "";
+
+      if (coverInput.files && coverInput.files[0]) {
+          try {
+              finalCoverURL = await compressImage(coverInput.files[0], 800, 400); 
+          } catch (e) {
+              console.error("Cover compression error:", e);
+          }
+      }
+
         const userRef = doc(db, "users", user.uid);
         const dataToSave = {
           studentID: idInput.value.trim(),
           college: collegeSelect.value,
           photoURL: finalPhotoURL,
+          coverURL: finalCoverURL,
           isSetupComplete: true,
           setupDate: new Date()
         };

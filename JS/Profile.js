@@ -1,3 +1,363 @@
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getFirestore, doc, getDoc, updateDoc, collection, query, where, getDocs, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { arrayUnion, arrayRemove, increment } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBpGOdMpx_Mws2EcCq6rbOWfZ-FFuhhfo0",
+  authDomain: "tup-connect-b162d.firebaseapp.com",
+  projectId: "tup-connect-b162d",
+  storageBucket: "tup-connect-b162d.firebasestorage.app",
+  messagingSenderId: "193141013544",
+  appId: "1:193141013544:web:72b403e84aa4d3313f091d"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+let USER = {
+  name: "TUPian",
+  photoSrc: "../assets/images/anon_avatar.jpg"
+};
+
+async function compressImage(file, maxWidth = 400, maxHeight = 400) {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (event) => {
+      const img = new Image();
+      img.src = event.target.result;
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > maxWidth) {
+            height *= maxWidth / width;
+            width = maxWidth;
+          }
+        } else {
+          if (height > maxHeight) {
+            width *= maxHeight / height;
+            height = maxHeight;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+
+        // Quality set to 0.9 for better clarity on your profile
+        resolve(canvas.toDataURL('image/jpeg', 0.9)); 
+      };
+    };
+  });
+}
+
+onAuthStateChanged(auth, async (user) => {
+    if (user) {
+        const userDocRef = doc(db, "users", user.uid);
+        const userSnap = await getDoc(userDocRef);
+
+        if (userSnap.exists()) {
+            const userData = userSnap.data();
+
+            USER.name = userData.fullName || user.displayName || "TUPian";
+            USER.photoSrc = userData.photoURL || user.photoURL || "../assets/images/anon_avatar.jpg";
+
+            updateProfileUI(userData, user.email); 
+            
+            // ADD THIS LINE TO LOAD THE FEED
+            loadUserPosts(user.uid); 
+        }
+    } else {
+        window.location.href = "../index.html";
+    }
+});
+
+function updateProfileUI(userData, email) {
+    const profileImg = document.querySelector('.profile-avatar-inner');
+    if (profileImg && userData.photoURL) {
+        profileImg.src = userData.photoURL;
+    }
+
+    const bannerImg = document.querySelector('.banner-img');
+    if (bannerImg && userData.coverURL) {
+        bannerImg.src = userData.coverURL;
+    }
+
+    const nameEl = document.querySelector('.profile-name');
+    const idEl = document.querySelector('.profile-id');
+    const emailEl = document.querySelector('.profile-email');
+
+    if (nameEl) nameEl.textContent = userData.fullName || "TUPian";
+    if (idEl) idEl.textContent = userData.studentID || "TUPM-XX-XXXX";
+    if (emailEl) emailEl.textContent = email;
+
+    const sidebarImg = document.querySelector('.sidebar-avatar-img');
+    if (sidebarImg && userData.photoURL) {
+        sidebarImg.src = userData.photoURL;
+    }
+}
+
+function toggleChangePhotoMenu(e) {
+  e.stopPropagation();
+  const dropdown = document.getElementById('changePhotoDropdown');
+  const btn      = e.currentTarget;
+  const rect     = btn.getBoundingClientRect();
+
+  dropdown.style.top   = (rect.bottom + 8) + 'px';
+  dropdown.style.right = (window.innerWidth - rect.right) + 'px';
+  dropdown.classList.toggle('open');
+}
+
+document.addEventListener('click', (e) => {
+  const wrap     = document.querySelector('.change-photo-wrap');
+  const dropdown = document.getElementById('changePhotoDropdown');
+  if (dropdown && wrap && !wrap.contains(e.target)) {
+    dropdown.classList.remove('open');
+  }
+});
+
+// 1. Listen for Profile Photo Selection
+document.getElementById('profilePhotoInput').addEventListener('change', async function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        // Close the menu immediately
+        document.getElementById('changePhotoDropdown').classList.remove('open');
+        
+        const base64 = await compressImage(file, 400, 400); 
+        updateUserPhotosInFirebase('photoURL', base64);
+    }
+});
+
+// 2. Listen for Cover Photo Selection
+document.getElementById('coverPhotoInput').addEventListener('change', async function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        // High-quality compression for Cover Banner (800x400)
+        const base64 = await compressImage(file, 800, 400); 
+        updateUserPhotosInFirebase('coverURL', base64);
+    }
+});
+
+// 3. Function to Save to Firestore
+async function updateUserPhotosInFirebase(field, base64String) {
+    const user = auth.currentUser;
+    if (user) {
+        try {
+            const userRef = doc(db, "users", user.uid);
+            await updateDoc(userRef, {
+                [field]: base64String
+            });
+            
+            showToast("Photo updated successfully!");
+
+            // --- CRITICAL UI UPDATE SECTION ---
+            if (field === 'photoURL') {
+                // This must match your <img class="profile-avatar-inner">
+                const profileImg = document.querySelector('.profile-avatar-inner');
+                if (profileImg) profileImg.src = base64String;
+
+                // This must match your Sidebar ID
+                const navImg = document.querySelector('#nav-profile-avatar img');
+                if (navImg) navImg.src = base64String;
+                
+                // Keep your global USER object in sync for new posts
+                if (typeof USER !== 'undefined') USER.photoSrc = base64String;
+            } 
+            else if (field === 'coverURL') {
+                // This must match your <img class="banner-img">
+                const bannerImg = document.querySelector('.banner-img');
+                if (bannerImg) bannerImg.src = base64String;
+            }
+        } catch (error) {
+            console.error("Error updating photo:", error);
+            showToast("Failed to update photo.");
+        }
+    }
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  if (!t) {
+    console.log("Toast message:", msg); // Fallback if HTML element is missing
+    return;
+  }
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._timeout);
+  t._timeout = setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+// Inside Profile.js -> renderPost(data, postId)
+function renderPost(data, postId) {
+    const feed = document.getElementById('feed');
+    const postCard = document.createElement('div');
+    postCard.className = 'post-card';
+    postCard.dataset.id = postId;
+
+    // SYNC WITH post.js LOGIC:
+    // Homepage uses data.likedBy.length for the count
+    const likeCount = data.likedBy ? data.likedBy.length : 0; 
+    const commentCount = data.comments || 0; 
+    const repostCount = data.repostedBy ? data.repostedBy.length : 0;
+    
+    // Check if the current user is in the likedBy array
+    const isLikedByMe = data.likedBy && data.likedBy.includes(auth.currentUser?.uid);
+
+    postCard.innerHTML = `
+        <div class="post-header">
+            <div class="post-avatar">
+                <img src="${data.photoURL || '../assets/images/anon_avatar.jpg'}" alt="Avatar">
+            </div>
+            <div class="post-meta">
+                <div class="post-author">${data.author || "TUPian"}</div>
+                <div class="post-time">${formatRelativeTime(data.createdAt.toDate())}</div>
+            </div>
+        </div>
+        <div class="post-body">${data.text || ""}</div>
+        ${data.imageURL ? `<div class="post-images"><img src="${data.imageURL}"></div>` : ''}
+        
+        ${buildReactions(postId, likeCount, commentCount, repostCount, isLikedByMe)}
+    `;
+
+    feed.appendChild(postCard);
+}
+
+async function loadUserPosts(userId) {
+    const feedContainer = document.getElementById('feed');
+    const postsRef = collection(db, "posts");
+    
+    // CHANGE THIS LINE to match your screenshot (userId)
+    const q = query(postsRef, where("userId", "==", userId), orderBy("createdAt", "desc"));
+
+    try {
+        const querySnapshot = await getDocs(q);
+        console.log("Posts found:", querySnapshot.size);
+
+        if (querySnapshot.empty) {
+            feedContainer.innerHTML = '<p class="no-posts">No posts found yet.</p>';
+            return;
+        }
+
+        feedContainer.innerHTML = ''; 
+        querySnapshot.forEach((doc) => {
+            renderPost(doc.data(), doc.id);
+        });
+    } catch (error) {
+        console.error("Feed Error:", error);
+    }
+}
+
+async function toggleLike(postId, btn) {
+    const user = auth.currentUser;
+    if (!user) return;
+
+    const postRef = doc(db, "posts", postId);
+    const likeCountSpan = btn.querySelector('.reaction-likes-count');
+    
+    const isLiking = !btn.classList.contains('heart-active');
+    
+    try {
+        if (isLiking) {
+            btn.classList.add('heart-active');
+            await updateDoc(postRef, {
+                likedBy: arrayUnion(user.uid)
+            });
+            likeCountSpan.textContent = parseInt(likeCountSpan.textContent) + 1;
+        } else {
+            btn.classList.remove('heart-active');
+            await updateDoc(postRef, {
+                likedBy: arrayRemove(user.uid)
+            });
+            likeCountSpan.textContent = Math.max(0, parseInt(likeCountSpan.textContent) - 1);
+        }
+    } catch (error) {
+        console.error("Error toggling like:", error);
+        showToast("Failed to update like.");
+    }
+}
+
+document.getElementById('feed').addEventListener('click', (e) => {
+    const likeBtn = e.target.closest('[data-type="like"]');
+    if (likeBtn) {
+        const postId = likeBtn.dataset.id;
+        toggleLike(postId, likeBtn);
+    }
+    
+    // You can add 'comment' or 'repost' listeners here later!
+});
+
+
+
+
+
+
+
+
+
+document.getElementById('btn-logout')?.addEventListener('click', () => {
+    signOut(auth).then(() => {
+        localStorage.clear();
+        window.location.href = "../index.html";
+    }).catch((error) => {
+        console.error("Logout Error:", error);
+    });
+});
+
+window.toggleChangePhotoMenu = toggleChangePhotoMenu;
+
+// Format time like "2 hours ago"
+function formatRelativeTime(date) {
+  const now = new Date();
+  const diffMs = now - date;
+  const diffSec = Math.floor(diffMs / 1000);
+  const diffMin = Math.floor(diffSec / 60);
+  const diffHour = Math.floor(diffMin / 60);
+  const diffDay = Math.floor(diffHour / 24);
+
+  if (diffSec < 60) return 'Just now';
+  if (diffMin < 60) return `${diffMin} minute${diffMin > 1 ? 's' : ''} ago`;
+  if (diffHour < 24) return `${diffHour} hour${diffHour > 1 ? 's' : ''} ago`;
+  if (diffDay < 7) return `${diffDay} day${diffDay > 1 ? 's' : ''} ago`;
+
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
+// Build the Heart, Comment, Repost buttons
+function buildReactions(postId, likes, comments, reposts, isLikedByMe) {
+  return `
+    <div class="feed-reactions">
+      <button class="feed-reaction-btn ${isLikedByMe ? 'active' : ''}" data-id="${postId}" data-type="like">
+        <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+        <span class="reaction-likes-count">${fmt(likes)}</span> Heart
+      </button>
+      
+      <button class="feed-reaction-btn" data-id="${postId}" data-type="comment">
+        <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <span class="reaction-comments-count">${fmt(comments)}</span> Comment
+      </button>
+
+      <button class="feed-reaction-btn" data-id="${postId}" data-type="repost">
+        <svg viewBox="0 0 24 24"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+        <span class="reaction-reposts-count">${fmt(reposts)}</span> Repost
+      </button>
+    </div>`;
+}
+
+// Format numbers (e.g., 1000 to 1K)
+function fmt(n) {
+  if (n >= 1000000) return (n / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
+  if (n >= 1000) return (n / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
+  return String(n);
+}
+
+
+/**
 const USER = {
   name: document.getElementById('modal-user-name').textContent,
   photoSrc: document.querySelector('#modal-avatar img').src
@@ -613,7 +973,7 @@ function buildCommentModalItem(author, avatar, text, time, isOwn, cIdx) {
 function bindCommentActions() {
   const list = document.getElementById('commentModalList');
 
-  /* Edit button */
+  /* Edit button 
   list.querySelectorAll('.edit-btn').forEach(btn => {
     btn.addEventListener('click', function () {
       const c      = this.dataset.comment;
@@ -625,7 +985,7 @@ function bindCommentActions() {
     });
   });
 
-  /* Cancel edit */
+  /* Cancel edit 
   list.querySelectorAll('.comment-edit-cancel').forEach(btn => {
     btn.addEventListener('click', function () {
       const c      = this.dataset.comment;
@@ -636,7 +996,7 @@ function bindCommentActions() {
     });
   });
 
-  /* Save edit */
+  /* Save edit
   list.querySelectorAll('.comment-edit-save').forEach(btn => {
     btn.addEventListener('click', function () {
       const c       = this.dataset.comment;
@@ -650,7 +1010,7 @@ function bindCommentActions() {
       bubble.style.display = '';
       edit.classList.remove('open');
 
-      /* Sync back to comment-data store */
+      /* Sync back to comment-data store 
       if (_currentPostCard) {
         const cds = _currentPostCard.querySelectorAll('.comment-data');
         if (cds[c]) cds[c].dataset.text = newText;
@@ -663,7 +1023,7 @@ function bindCommentActions() {
     });
   });
 
-  /* Delete button */
+  /* Delete button 
   list.querySelectorAll('.delete-btn').forEach(btn => {
     btn.addEventListener('click', function () {
       const c    = this.dataset.comment;
@@ -673,7 +1033,7 @@ function bindCommentActions() {
       item.style.transform  = 'translateX(12px)';
       setTimeout(() => item.remove(), 200);
 
-      /* Sync back to comment-data store */
+      /* Sync back to comment-data store 
       if (_currentPostCard) {
         const cds = _currentPostCard.querySelectorAll('.comment-data');
         if (cds[c]) cds[c].remove();
@@ -1033,10 +1393,10 @@ document.addEventListener('DOMContentLoaded', () => {
       window.location.href = '../pages/profile.html';
     });
 
-    /* Snap to active button on load */
+    /* Snap to active button on load 
     let active = navWrap.querySelector('.nav-btn.active, .nav-btn-profile.active');
 
-    /* Default to profile if none active */
+    /* Default to profile if none active 
     if (!active) {
       active = profBtn;
       profBtn.classList.add('active');
@@ -1052,3 +1412,4 @@ document.addEventListener('DOMContentLoaded', () => {
   })();
 
 });
+*/
