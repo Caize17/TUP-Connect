@@ -287,11 +287,6 @@ body {
   flex-direction: column;
   gap: 16px;
   z-index: 50;
-  scrollbar-width: none;
-}
-
-.directory-panel::-webkit-scrollbar {
-  display: none;
 }
 
 .directory-section {
@@ -320,8 +315,11 @@ body {
   gap: 2px;
   max-height: 193px;       /* limits how tall the list gets */
   overflow-y: auto;
-  scrollbar-width: none;   /* hides scrollbar Firefox */
+  margin-bottom: 10px;
+  scrollbar-width: thin; 
+  scrollbar-color: var(--muted) transparent; 
 }
+
 
 .directory-item {
   display: flex;

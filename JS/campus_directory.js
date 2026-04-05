@@ -23,40 +23,84 @@ const directoryData = {
     },
   },
   'CAFA Building': {
-    img: '../assets/images/TUP_bg.png',
+    img: '../assets/images/cafa.jpg',
     desc: 'The College of Architecture and Fine Arts offers programs that develop creative and technically skilled professionals in architecture, industrial design, and the fine arts.',
     courses: {
       'For Undergraduate Programs:': [
         'Bachelor of Science in Architecture',
-        'Bachelor of Fine Arts major in Industrial Design',
-        'Bachelor of Fine Arts major in Painting',
+        'Bachelor of Fine Arts',
+        'Bachelor in Graphics Technology major in Architecture Technology',
+        'Bachelor in Graphics Technology major in Industrial Design',
+        'Bachelor in Graphics Technology major in Mechanical Drafting Technology'
+      ],
+      'For Graduate Programs:': [
+        'Master in Architecture major in Construction Technology Management',
+        'Master in Graphics Technology'
       ],
     },
   },
   'CIT Building': {
-    img: '../assets/images/TUP_bg.png',
+    img: '../assets/images/cit.jpg',
     desc: 'The College of Industrial Technology trains highly skilled technologists and technicians who are competent in their fields, ready to contribute to national development.',
     courses: {
       'For Undergraduate Programs:': [
-        'Bachelor of Science in Industrial Technology',
-        'Bachelor of Technology in Automotive Technology',
-        'Bachelor of Technology in Electronics Technology',
-        'Bachelor of Technology in Electrical Technology',
+        'Bachelor of Science in Food Technology',
+        'Bachelor of Engineering Technology major in Computer Engineering Technology',
+        'Bachelor of Engineering Technology major in Civil Technology',
+        'Bachelor of Engineering Technology major in Electrical Technology',
+        'Bachelor of Engineering Technology major in Electronics Communication Technology',
+        'Bachelor of Engineering Technology major in Electronics Technology',
+        'Bachelor of Engineering Technology major in Instrumentation and Control Technology',
+        'Bachelor of Engineering Technology major in Mechanical Technology',
+        'Bachelor of Engineering Technology major in Mechatronics Technology',
+        'Bachelor of Engineering Technology major in Railway Technology',
+        'Bachelor of Engineering Technology major in Mechanical Engineering Technology option in Automotive Technology',
+        'Bachelor of Engineering Technology major in Mechanical Engineering Technology option in Foundry Technology',
+        'Bachelor of Engineering Technology major in Mechanical Engineering Technology option in Heating Ventilating & Air-Conditioning / Refrigeration Technology',
+        'Bachelor of Engineering Technology major in Mechanical Engineering Technology option in Power Plant Technology',
+        'Bachelor of Engineering Technology major in Mechanical Engineering Technology option in Welding Technology',
+        'Bachelor of Engineering Technology major in Mechanical Engineering Technology option in Dies and Moulds Technology',
+        'Bachelor of Technology in Apparel and Fashion',
+        'Bachelor of Technology in Nutrition and Food Technology',
+        'Bachelor of Technology in Print Media Technology'
       ],
+      'For Graduate Programs:': [
+        'Master of Technology'
+      ]
     },
   },
   'CIE Building': {
-    img: '../assets/images/TUP_bg.png',
+    img: '../assets/images/cie.jpg',
     desc: 'The College of Industrial Education focuses on developing effective technology teachers and trainers for secondary and post-secondary education institutions.',
     courses: {
       'For Undergraduate Programs:': [
-        'Bachelor of Secondary Education major in Technology and Livelihood Education',
-        'Bachelor of Technology and Livelihood Education',
+        'Bachelor of Technology and Livelihood Education major in Information and Communication Technology',
+        'Bachelor of Technology and Livelihood Education major in Home Economics',
+        'Bachelor of Technology and Livelihood Education major in Industrial Arts',
+        'Bachelor of Technical Vocational Teachers Education major in Animation',
+        'Bachelor of Technical Vocational Teachers Education major in Beauty Care and Wellness',
+        'Bachelor of Technical Vocational Teachers Education major in Computer Programming',
+        'Bachelor of Technical Vocational Teachers Education major in Electrical',
+        'Bachelor of Technical Vocational Teachers Education major in Electronics',
+        'Bachelor of Technical Vocational Teachers Education major in Food Service Management',
+        'Bachelor of Technical Vocational Teachers Education major in Fashion and Garment',
+        'Bachelor of Technical Teacher Education'
       ],
+        'For Graduate Programs:': [
+          'Doctor of Education major in Industrial Education Management',
+          'Doctor of Education major in Career Guidance',
+          'Doctor of Technology',
+          'Doctor of Philosophy major in Technology Management',
+          'Master of Arts in Industrial Education major in Curriculum and Instruction',
+          'Master of Arts in Industrial Education major in Educational Technology',
+          'Master of Arts in Industrial Education major in Administration and Supervision',
+          'Master of Arts in Industrial Education major in Guidance and Counseling',
+          'Master of Arts in Teaching major in Technology and Home Economics'
+        ]
     },
   },
   'COE Building': {
-    img: '../assets/images/TUP_bg.png',
+    img: '../assets/images/coe.jpg',
     desc: 'The College of Engineering develops engineers who apply scientific and mathematical principles to design and build systems, machines, and structures for industry.',
     courses: {
       'For Undergraduate Programs:': [
@@ -65,21 +109,54 @@ const directoryData = {
         'Bachelor of Science in Electronics Engineering',
         'Bachelor of Science in Mechanical Engineering',
       ],
+      'For Graduate Programs:': [
+        'Master of Engineering Program',
+        'Master of Science in Civil Engineering major in General Civil Engineering',
+        'Master of Science in Civil Engineering major in Geotechnical Engineering',
+        'Master of Science in Civil Engineering major in Structural Engineering',
+        'Master of Science in Electrical Engineering major in Power System Engineering',
+        'Master of Science in Electrical Engineering major in Instrumentation and Control Engineering',
+        'Master of Science in Electrical Engineering major in Electronics Engineering',
+        'Master of Science in Electrical Engineering major in Communications Engineering',
+        'Master of Science in Electrical Engineering',
+        'Master of Science in Electrical Engineering major in Computer Engineering',
+        'Master of Science in Mechanical Engineering major in Energy Engineering',
+        'Master of Science in Mechanical Engineering major in Production Technology',
+        'Masters of Engineering Program in Civil Engineering major in Structural Engineering Option',
+        'Masters of Engineering Program in Civil Engineering major in Geotechnical Engineering Option',
+        'Masters of Engineering Program in Civil Engineering major in General Civil Engineering Option',
+        'Masters of Engineering Program in Electrical Engineering major in Power Engineering Option',
+        'Masters of Engineering Program in Electrical Engineering major in Instrumentation and Computer Engineering Option',
+        'Masters of Engineering Program in Electrical Engineering major in Electronics and Communications Engineering Option',
+        'Masters of Engineering Program in Mechanical Engineering major in Refrigeration and Airconditioning Option',
+        'Masters of Engineering Program in Mechanical Engineering major in Heat Power Option',
+        'Masters of Engineering Program in Mechanical Engineering major in Manufacturing and Production Option'
+      ]
     },
   },
   'CLA Building': {
-    img: '../assets/images/TUP_bg.png',
+    img: '../assets/images/cla.jpg',
     desc: 'The College of Liberal Arts provides foundational education in humanities, social sciences, and communication, developing well-rounded and critical-thinking graduates.',
     courses: {
       'For Undergraduate Programs:': [
-        'Bachelor of Arts in English Language Studies',
-        'Bachelor of Arts in Political Science',
-        'Bachelor of Arts in Psychology',
+        'Bachelor of Arts in Management major in Industrial Management',
+        'Bachelor of Science in Entrepreneurship Management', 
+        'Bachelor of Science in Hospitality Management' 
       ],
+      'For Graduate Programs:': [
+        'Doctor of Management Science',
+        'Master in Management',
+      ]
+
     },
   },
+  'Administration Building': {
+    img: '../assets/images/administration.jpeg',
+    desc: 'The Administration Building houses the central administrative offices of the university, including the offices of the President, Vice Presidents, and other key administrative departments that oversee the overall management and operations of the institution.',
+    courses: {},
+  },
   'IRTC Building': {
-    img: '../assets/images/TUP_bg.png',
+    img: '../assets/images/irtc.jpg',
     desc: 'The Instructional Resources and Technology Center supports teaching and learning through technology-enhanced resources, facilities, and instructional media services.',
     courses: {},
   },
@@ -89,27 +166,27 @@ const directoryData = {
     courses: {},
   },
   'Office of Admissions': {
-    img: '../assets/images/TUP_bg.png',
+    img: '../assets/images/OSA(2).jpeg',
     desc: 'The Office of Admissions manages the admission processes for incoming students and coordinates enrollment procedures across all colleges of the university.',
     courses: {},
   },
   'Office of Student Affair': {
-    img: '../assets/images/OSA.jpeg',
+    img: '../assets/images/admission.jpeg',
     desc: 'The Office of Student Affairs oversees student welfare, discipline, co-curricular activities, and student organizations to foster a healthy and engaging campus life.',
     courses: {},
   },
   'University Clinic': {
-    img: '../assets/images/TUP_bg.png',
+    img: '../assets/images/clinic.jpeg',
     desc: 'The University Clinic provides basic medical and health services to students, faculty, and staff, promoting a healthy university community.',
     courses: {},
   },
   'ROTC': {
-    img: '../assets/images/TUP_bg.png',
+    img: '../assets/images/rotc.jpeg',
     desc: 'The Reserve Officers\' Training Corps (ROTC) program provides military training and civic education to students as part of the National Service Training Program.',
     courses: {},
   },
   'Library': {
-    img: '../assets/images/TUP_bg.png',
+    img: '../assets/images/library.jpg',
     desc: 'The University Library provides access to a vast collection of academic materials, journals, and digital resources to support the research and learning needs of the TUP community.',
     courses: {},
   },
@@ -117,17 +194,7 @@ const directoryData = {
     img: '../assets/images/Registrar.jpeg',
     desc: 'The Registrar\'s Office is responsible for maintaining all official academic records of students, processing requests for certifications, and managing enrollment and graduation procedures.',
     courses: {},
-  },
-  'Student Affairs Office': {
-    img: '../assets/images/OSA.jpeg',
-    desc: 'The Student Affairs Office works closely with student organizations and coordinates programs that enhance student development, leadership, and campus engagement.',
-    courses: {},
-  },
-  'Finance Office': {
-    img: '../assets/images/TUP_bg.png',
-    desc: 'The Finance Office manages the financial operations and budget allocations of the university, ensuring fiscal responsibility and compliance with government regulations.',
-    courses: {},
-  },
+  },      
 };
 
 // ========================
