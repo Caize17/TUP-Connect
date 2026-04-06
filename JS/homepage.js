@@ -348,84 +348,82 @@ window.renderFeedPosts = renderFeedPosts;
     }).join('');
 
     attachCommentListeners(listElement);
+};
+
+  function attachCommentListeners(listElement) {
+    if (!listElement || listElement._commentListenersAttached) return;
+    listElement._commentListenersAttached = true;
 
     listElement.addEventListener('click', async function(e) {
-    // 2. Check if a Delete button was clicked
-    const deleteBtn = e.target.closest('.delete-btn');
-    if (deleteBtn) {
+      const deleteBtn = e.target.closest('.delete-btn');
+      if (deleteBtn) {
         const pIdx = deleteBtn.dataset.post;
         const cIdx = deleteBtn.dataset.comment;
         const post = window.FEED_POSTS[pIdx];
         const comment = post.commentList[cIdx];
 
         if (confirm("Delete this comment?")) {
-            try {
-                await window.deleteComment(post.id, comment.id);
-                showToast("Deleted!");
-            } catch (err) {
-                console.error(err);
-            }
+          try {
+            await window.deleteComment(post.id, comment.id);
+            showToast("Deleted!");
+          } catch (err) {
+            console.error(err);
+          }
         }
-        return; // Stop here
-    }
+        return;
+      }
 
-    // 3. Check if an Edit button was clicked
-    const editBtn = e.target.closest('.edit-btn');
-    if (editBtn) {
+      const editBtn = e.target.closest('.edit-btn');
+      if (editBtn) {
         const pIdx = editBtn.dataset.post;
         const cIdx = editBtn.dataset.comment;
-        
-        // Hide the bubble, show the edit wrap
-        document.getElementById(`comment-bubble-${pIdx}-${cIdx}`).style.display = 'none';
-        document.getElementById(`comment-edit-${pIdx}-${cIdx}`).style.display = 'flex';
+        const bubble = document.getElementById(`comment-bubble-${pIdx}-${cIdx}`);
+        const editWrap = document.getElementById(`comment-edit-${pIdx}-${cIdx}`);
+        if (bubble) bubble.style.display = 'none';
+        if (editWrap) editWrap.style.display = 'flex';
         return;
-    }
+      }
 
-    /* Cancel edit */
-    commentList.querySelectorAll('.comment-edit-cancel').forEach(btn => {
-      btn.addEventListener('click', function () {
-        const p        = this.dataset.post;
-        const c        = this.dataset.comment;
-        const bubble   = document.getElementById(`comment-bubble-${p}-${c}`);
+      const cancelBtn = e.target.closest('.comment-edit-cancel');
+      if (cancelBtn) {
+        const p = cancelBtn.dataset.post;
+        const c = cancelBtn.dataset.comment;
+        const bubble = document.getElementById(`comment-bubble-${p}-${c}`);
         const editWrap = document.getElementById(`comment-edit-${p}-${c}`);
-        bubble.style.display = '';
-        editWrap.classList.remove('open');
-      });
-    });
+        if (bubble) bubble.style.display = '';
+        if (editWrap) editWrap.classList.remove('open');
+        return;
+      }
 
-    /* Save edit */
-    commentList.querySelectorAll('.comment-edit-save').forEach(btn => {
-    btn.addEventListener('click', async function () {
-      const pIdx = this.dataset.post;
-      const cIdx = this.dataset.comment;
-      const post = window.FEED_POSTS[pIdx];
-      const commentData = post.commentList[cIdx]; 
-      const commentId = commentData.id; 
-      
-      const input = document.getElementById(`comment-edit-input-${pIdx}-${cIdx}`);
-      const newText = input.value.trim();
-      if (!newText) return;
+      const saveBtn = e.target.closest('.comment-edit-save');
+      if (saveBtn) {
+        const pIdx = saveBtn.dataset.post;
+        const cIdx = saveBtn.dataset.comment;
+        const post = window.FEED_POSTS[pIdx];
+        const commentData = post.commentList[cIdx];
+        const commentId = commentData.id;
+        const input = document.getElementById(`comment-edit-input-${pIdx}-${cIdx}`);
+        if (!input) return;
+        const newText = input.value.trim();
+        if (!newText) return;
 
-      const textEl = document.getElementById(`comment-text-${pIdx}-${cIdx}`);
-      const bubble = document.getElementById(`comment-bubble-${pIdx}-${cIdx}`);
-      const editWrap = document.getElementById(`comment-edit-${pIdx}-${cIdx}`);
-      
-      textEl.textContent = newText;
-      bubble.style.display = '';
-      editWrap.classList.remove('open');
+        const textEl = document.getElementById(`comment-text-${pIdx}-${cIdx}`);
+        const bubble = document.getElementById(`comment-bubble-${pIdx}-${cIdx}`);
+        const editWrap = document.getElementById(`comment-edit-${pIdx}-${cIdx}`);
+        if (textEl) textEl.textContent = newText;
+        if (bubble) bubble.style.display = '';
+        if (editWrap) editWrap.classList.remove('open');
 
-      try {
-        await saveCommentEdit(post.id, commentId, newText);
-        showToast('Comment updated.');
-      } catch (err) {
-        console.error("Failed to save edit:", err);
-        showToast('Error updating comment.');
+        try {
+          await saveCommentEdit(post.id, commentId, newText);
+          showToast('Comment updated.');
+        } catch (err) {
+          console.error('Failed to save edit:', err);
+          showToast('Error updating comment.');
+        }
       }
     });
-  });
-
-});
-};
+  }
 
   function openCommentModal(postIdx) {
     const overlay = document.getElementById('comment-modal-overlay');
@@ -596,6 +594,55 @@ window.renderFeedPosts = renderFeedPosts;
       }));
     }
   })();
+
+// ========================
+// CHATBOT
+// ========================
+
+window.askSuggestion                 = askSuggestion;
+window.toggleChat                    = toggleChat;
+window.sendMessage                   = sendMessage;
+
+function toggleChat() {
+  const modal = document.getElementById('chatModal');
+  modal.classList.toggle('active');
+}
+
+function askSuggestion(text) {
+  document.getElementById('userInput').value = text;
+  sendMessage();
+}
+
+function sendMessage() {
+  const input = document.getElementById('userInput');
+  const body = document.getElementById('chatBody');
+  const text = input.value.trim();
+  if (!text) return;
+
+  // Remove suggestions once user sends a message
+  const suggestions = body.querySelector('.suggestions');
+  if (suggestions) suggestions.remove();
+
+  // User message
+  const userMsg = document.createElement('div');
+  userMsg.className = 'user-message';
+  userMsg.textContent = text;
+  body.appendChild(userMsg);
+  input.value = '';
+  body.scrollTop = body.scrollHeight;
+
+  // Bot reply
+  setTimeout(() => {
+    const botRow = document.createElement('div');
+    botRow.className = 'bot-row';
+    botRow.innerHTML = `
+      <img src="../assets/images/Tupee_logo.png" class="bot-row-avatar">
+      <div class="bot-message">I'm still learning! Check back soon. 😊</div>
+    `;
+    body.appendChild(botRow);
+    body.scrollTop = body.scrollHeight;
+  }, 500);
+}
 
 })();
 

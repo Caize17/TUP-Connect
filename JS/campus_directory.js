@@ -479,4 +479,53 @@ document.addEventListener('DOMContentLoaded', () => {
     rightArrow.addEventListener('click', () => carouselImages.scrollBy({ left:  scrollAmount, behavior: 'smooth' }));
   }
 
+  // ========================
+  // CHATBOT
+  // ========================
+
+  window.askSuggestion                 = askSuggestion;
+  window.toggleChat                    = toggleChat;
+  window.sendMessage                   = sendMessage;
+
+  function toggleChat() {
+    const modal = document.getElementById('chatModal');
+    modal.classList.toggle('active');
+  }
+
+  function askSuggestion(text) {
+    document.getElementById('userInput').value = text;
+    sendMessage();
+  }
+
+  function sendMessage() {
+    const input = document.getElementById('userInput');
+    const body = document.getElementById('chatBody');
+    const text = input.value.trim();
+    if (!text) return;
+
+    // Remove suggestions once user sends a message
+    const suggestions = body.querySelector('.suggestions');
+    if (suggestions) suggestions.remove();
+
+    // User message
+    const userMsg = document.createElement('div');
+    userMsg.className = 'user-message';
+    userMsg.textContent = text;
+    body.appendChild(userMsg);
+    input.value = '';
+    body.scrollTop = body.scrollHeight;
+
+    // Bot reply
+    setTimeout(() => {
+      const botRow = document.createElement('div');
+      botRow.className = 'bot-row';
+      botRow.innerHTML = `
+        <img src="../assets/images/Tupee_logo.png" class="bot-row-avatar">
+        <div class="bot-message">I'm still learning! Check back soon. 😊</div>
+      `;
+      body.appendChild(botRow);
+      body.scrollTop = body.scrollHeight;
+    }, 500);
+  }
+
 });
