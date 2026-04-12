@@ -1,7 +1,7 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { CONFIG } from "./config.js";
 
-const API_KEY = "AIzaSyDlKcTst9LnzvhjHtLOEQ4sn1E4HfD3z9k";
-const genAI = new GoogleGenerativeAI(API_KEY);
+const genAI = new GoogleGenerativeAI(CONFIG.GEMINI_API_KEY);
 
 // Include your knowledge base in the System Instructions
 const model = genAI.getGenerativeModel({ 
