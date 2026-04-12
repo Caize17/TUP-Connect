@@ -1,3 +1,17 @@
+import { GoogleGenerativeAI } from "@google/generative-ai";
+
+const API_KEY = "AIzaSyD3e4BuN3Gz9K2iHa55dBGLR4ynbXRen5k";
+const genAI = new GoogleGenerativeAI(API_KEY);
+
+// Include your knowledge base in the System Instructions
+const model = genAI.getGenerativeModel({ 
+  model: "gemini-3-flash-preview",
+  systemInstruction: `You are Tupee, the AI assistant for TUP Connect. 
+  Use this university data to answer questions: 
+  [PASTE THE TEXT FROM YOUR knowledgeBase.json HERE]
+  Address students as 'TUPian' and use a friendly, helpful Taglish tone.`
+});
+
 let USER = {
   name: "Loading...",
   email: "",
@@ -599,31 +613,30 @@ window.renderFeedPosts = renderFeedPosts;
 // CHATBOT
 // ========================
 
-window.askSuggestion                 = askSuggestion;
-window.toggleChat                    = toggleChat;
-window.sendMessage                   = sendMessage;
+window.askSuggestion = askSuggestion;
+window.toggleChat = toggleChat;
+window.sendMessage = sendMessage;
 
 function toggleChat() {
   const modal = document.getElementById('chatModal');
-  modal.classList.toggle('active');
+  if (modal) modal.classList.toggle('active');
 }
 
 function askSuggestion(text) {
-  document.getElementById('userInput').value = text;
-  sendMessage();
+  const input = document.getElementById('userInput');
+  if (input) {
+    input.value = text;
+    sendMessage();
+  }
 }
 
-function sendMessage() {
+async function sendMessage() {
   const input = document.getElementById('userInput');
   const body = document.getElementById('chatBody');
   const text = input.value.trim();
   if (!text) return;
 
-  // Remove suggestions once user sends a message
-  const suggestions = body.querySelector('.suggestions');
-  if (suggestions) suggestions.remove();
-
-  // User message
+  // 1. Show User Message
   const userMsg = document.createElement('div');
   userMsg.className = 'user-message';
   userMsg.textContent = text;
@@ -631,17 +644,25 @@ function sendMessage() {
   input.value = '';
   body.scrollTop = body.scrollHeight;
 
-  // Bot reply
-  setTimeout(() => {
+  try {
+    // 2. Get Response from Gemini
+    const result = await model.generateContent(text);
+    const response = await result.response;
+    const botText = response.text();
+
+    // 3. Show Bot Message
     const botRow = document.createElement('div');
     botRow.className = 'bot-row';
     botRow.innerHTML = `
       <img src="../assets/images/Tupee_logo.png" class="bot-row-avatar">
-      <div class="bot-message">I'm still learning! Check back soon. 😊</div>
+      <div class="bot-message">${botText.replace(/\n/g, '<br>')}</div>
     `;
     body.appendChild(botRow);
     body.scrollTop = body.scrollHeight;
-  }, 500);
+
+  } catch (error) {
+    console.error("Gemini Error:", error);
+  }
 }
 
 })();

@@ -8,6 +8,14 @@
   <link rel="stylesheet" href="../CSS/homepage.css"/>
   <link rel="stylesheet" href="../CSS/navbar.css"/>
   <link rel="stylesheet" href="../CSS/guest.css"/>
+
+  <script type="importmap">
+  {
+    "imports": {
+      "@google/generative-ai": "https://esm.run/@google/generative-ai"
+    }
+  }
+</script>
 </head>
 <body>
 
@@ -264,7 +272,7 @@
 <!-- External JS (must come after DATA script above) -->
 <script type="module" src="../JS/post.js"></script>
 <script type="module" src="../JS/comments.js"></script>
-<script src="../JS/homepage.js"></script>
+<script type="module" src="../JS/homepage.js"></script>
 <script type="module" src="../JS/homepage_rightbar.js"></script>
 
 <!-- ASK ME - fixed, outside feed -->
