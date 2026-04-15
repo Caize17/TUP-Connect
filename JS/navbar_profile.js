@@ -17,15 +17,22 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 
 // 3. YOUR LOGIC
+(function() {
+    const navAvatarWrap = document.getElementById('nav-profile-avatar');
+    const cache = localStorage.getItem('tup_user_meta');
+    if (cache && navAvatarWrap) {
+        try {
+            const userData = JSON.parse(cache);
+            if (userData.photoURL) {
+                navAvatarWrap.innerHTML = `<img src="${userData.photoURL}" style="width:100%; height:100%; object-fit:cover; border-radius:50%; image-rendering:high-quality;">`;
+            }
+        } catch(e) {}
+    }
+})();
+
 onAuthStateChanged(auth, async (user) => {
     const navAvatarWrap = document.getElementById('nav-profile-avatar');
     
-    // 1. Check if we already have the photo saved locally (FAST)
-    const cachedPhoto = localStorage.getItem('userPhoto');
-    if (cachedPhoto && navAvatarWrap) {
-        navAvatarWrap.innerHTML = `<img src="${cachedPhoto}" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">`;
-    }
-
     if (user) {
         const userDocRef = doc(db, "users", user.uid);
         const userSnap = await getDoc(userDocRef);
@@ -34,12 +41,15 @@ onAuthStateChanged(auth, async (user) => {
             const userData = userSnap.data();
             
             if (userData.photoURL) {
-                // 2. Save it for the next page load
-                localStorage.setItem('userPhoto', userData.photoURL);
+                // Update modern cache
+                const cache = JSON.parse(localStorage.getItem('tup_user_meta') || '{}');
+                cache.photoURL = userData.photoURL;
+                cache.fullName = userData.fullName;
+                localStorage.setItem('tup_user_meta', JSON.stringify(cache));
                 
-                // 3. Update the UI (This confirms the latest photo is used)
+                // Update UI if changed
                 if (navAvatarWrap) {
-                    navAvatarWrap.innerHTML = `<img src="${userData.photoURL}" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">`;
+                    navAvatarWrap.innerHTML = `<img src="${userData.photoURL}" style="width:100%; height:100%; object-fit:cover; border-radius:50%; image-rendering:high-quality;">`;
                 }
             }
         }

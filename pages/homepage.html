@@ -267,6 +267,24 @@
   <img id="lightbox-img" src="" alt="Full view"/>
 </div>
 
+<!-- REPOST MODAL -->
+<div class="modal-overlay" id="repostModal" onclick="closeRepostModalOnOverlay(event)">
+  <div class="create-post-modal" style="height: auto; min-height: 0;">
+    <div class="modal-header">
+      <span class="modal-header-title">Repost</span>
+      <button class="modal-close" onclick="closeRepostModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <textarea class="modal-textarea" id="repostContent" placeholder="Add a quote (optional)..."></textarea>
+      <div class="modal-actions" style="justify-content: flex-end;">
+        <button class="modal-submit" id="repost-submit-btn" onclick="submitRepost()">
+          <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Shared navbar -->
 <script src="../JS/navbar.js"></script>
 <!-- External JS (must come after DATA script above) -->

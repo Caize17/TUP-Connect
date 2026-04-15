@@ -4,11 +4,10 @@
   "description": "",
   "main": "module",
   "scripts": {
-  "dev": "vite",
-  "build": "vite build",
-  "preview": "vite preview"
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
   },
-
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Caize17/TUP-Connect.git"
@@ -22,6 +21,7 @@
   },
   "homepage": "https://github.com/Caize17/TUP-Connect#readme",
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
     "firebase": "^12.10.0"
   },
   "devDependencies": {

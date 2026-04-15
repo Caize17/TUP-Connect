@@ -66,7 +66,7 @@ async function compressImage(file) {
         let width = img.width;
         let height = img.height;
 
-        const MAX_WIDTH = 800;
+        const MAX_WIDTH = 1600;
         if (width > MAX_WIDTH) {
           height *= MAX_WIDTH / width;
           width = MAX_WIDTH;
@@ -77,7 +77,7 @@ async function compressImage(file) {
         const ctx = canvas.getContext('2d');
         ctx.drawImage(img, 0, 0, width, height);
 
-        resolve(canvas.toDataURL('image/jpeg', 0.7));
+        resolve(canvas.toDataURL('image/jpeg', 0.88));
       };
       img.src = e.target.result;
     };
@@ -94,7 +94,7 @@ async function getCompressedImageData(file) {
                 const canvas = document.createElement('canvas');
                 let width = img.width;
                 let height = img.height;
-                const MAX_WIDTH = 800;
+                const MAX_WIDTH = 1600;
 
                 if (width > MAX_WIDTH) {
                     height *= MAX_WIDTH / width;
@@ -105,7 +105,7 @@ async function getCompressedImageData(file) {
                 canvas.height = height;
                 const ctx = canvas.getContext('2d');
                 ctx.drawImage(img, 0, 0, width, height);
-                resolve(canvas.toDataURL('image/jpeg', 0.6));
+                resolve(canvas.toDataURL('image/jpeg', 0.88));
             };
             img.onerror = reject;
             img.src = event.target.result;
@@ -243,16 +243,25 @@ onAuthStateChanged(auth, async (user) => {
   updatePostBox(currentProfile.name, currentProfile.photo);
 
   try {
-    const userDoc = await getDoc(doc(db, "users", user.uid));
-    if (userDoc.exists()) {
-      const userData = userDoc.data();
+    const userDocRef = doc(db, "users", user.uid);
+    const userSnap = await getDoc(userDocRef);
+    if (userSnap.exists()) {
+      const userData = userSnap.data();
       currentProfile.name = userData.fullName || currentProfile.name;
       currentProfile.photo = userData.photoURL || currentProfile.photo;
 
+      // Update global cache for performance
+      const cache = {
+        ...userData,
+        email: user.email,
+        uid: user.uid
+      };
+      localStorage.setItem('tup_user_meta', JSON.stringify(cache));
+      
       updatePostBox(currentProfile.name, currentProfile.photo);
     }
-  } catch (err) { 
-    console.error("Error fetching user doc:", err); 
+  } catch (error) {
+    console.error("Error fetching user data:", error);
   }
 
   const anonToggle = document.getElementById('modal-anon-toggle');
@@ -328,6 +337,42 @@ function updatePostUI(postId, data, currentUid) {
 
     return likeFound && repostFound && commentFound;
 }
+window.formatSmartDate = function(dateObj) {
+  if (!dateObj) return 'Just now';
+  
+  const now = new Date();
+  const diffMs = now - dateObj;
+  const diffSecs = Math.floor(diffMs / 1000);
+  const diffMins = Math.floor(diffSecs / 60);
+  const diffHours = Math.floor(diffMins / 60);
+
+  const isToday = now.toDateString() === dateObj.toDateString();
+  const yesterday = new Date(now);
+  yesterday.setDate(yesterday.getDate() - 1);
+  const isYesterday = yesterday.toDateString() === dateObj.toDateString();
+
+  if (isToday) {
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins} min${diffMins > 1 ? 's' : ''} ago`;
+    return `${diffHours} hr${diffHours > 1 ? 's' : ''} ago`;
+  }
+
+  const timeOptions = { hour: 'numeric', minute: '2-digit', hour12: true };
+  const timeString = dateObj.toLocaleTimeString('en-US', timeOptions);
+
+  if (isYesterday) {
+    return `Yesterday at ${timeString}`;
+  }
+
+  const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const month = monthNames[dateObj.getMonth()];
+  const day = dateObj.getDate();
+
+  if (now.getFullYear() === dateObj.getFullYear()) {
+    return `${month} ${day} at ${timeString}`;
+  }
+  return `${month} ${day}, ${dateObj.getFullYear()} at ${timeString}`;
+};
 
 function formatFirebaseData(snapshot) {
     return snapshot.docs.map(doc => {
@@ -338,15 +383,25 @@ function formatFirebaseData(snapshot) {
         return {
             id: doc.id,
             name: data.author || "Anonymous Puto",
+            userId: data.userId,
+            photoSrc: data.isAnonymous ? "../assets/images/anon_avatar.jpg" : (data.photoURL || null),
             body: data.text,
-            time: dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            time: window.formatSmartDate(dateObj),
             likes: data.likedBy ? data.likedBy.length : 0,
             isLikedByMe: auth.currentUser ? (data.likedBy || []).includes(auth.currentUser.uid) : false,
             comments: data.comments || 0,
             reposts: repostedBy.length,
             isRepostedByMe: auth.currentUser ? repostedBy.includes(auth.currentUser.uid) : false,
-            photoSrc: data.isAnonymous ? "../assets/images/anon_avatar.jpg" : (data.photoURL || null),
-            postImage: data.imageURL || null
+            postImage: data.imageURL || null,
+            repost: !!data.repostOf,
+            repostIdRef: data.repostOf || null,
+            isOwnPost: auth.currentUser ? data.userId === auth.currentUser.uid : false,
+            quote: data.repostOf ? {
+                body: data.repostText,
+                name: data.repostAuthor,
+                photoSrc: data.repostAuthorPhoto,
+                repostImage: data.repostImage
+            } : null
         };
     });
 }
@@ -408,28 +463,207 @@ if (feedContainer) {
   });
 }
 
+let _currentRepostInfo = null;
+
 feedContainer.addEventListener('click', async (e) => {
     const btn = e.target.closest('.feed-reaction-btn[data-type="repost"]');
     if (!btn) return;
 
     const postId = btn.dataset.id; 
-
     const user = auth.currentUser;
     if (!user) return alert("Login to repost!");
 
-    try {
-        const postRef = doc(db, "posts", postId);
-        const isReposted = btn.classList.contains('repost-active');
+    const postData = window.FEED_POSTS?.find(p => p.id === postId);
+    if (!postData) return;
 
-        await updateDoc(postRef, {
-            repostedBy: isReposted ? arrayRemove(user.uid) : arrayUnion(user.uid)
-        });
-        
+    const isReposted = btn.classList.contains('repost-active');
+
+    try {
+        if (isReposted) {
+            const postRef = doc(db, "posts", postId);
+            await updateDoc(postRef, {
+                repostedBy: arrayRemove(user.uid)
+            });
+            btn.classList.remove('repost-active');
+            
+            const toast = document.getElementById('toast');
+            if (toast) {
+                toast.textContent = 'Repost removed!';
+                toast.classList.add('show');
+                setTimeout(() => toast.classList.remove('show'), 2800);
+            }
+        } else {
+            _currentRepostInfo = { btn, postId, postData };
+            document.getElementById('repostModal').classList.add('open');
+            document.getElementById('repostContent').focus();
+        }
     } catch (err) {
         console.error("Repost failed:", err);
     }
 });
 
+window.deletePost = async function(postId, e) {
+    if (!confirm('Are you sure you want to delete this post?')) return;
+    
+    const card = e.target.closest('.feed-post');
+    const user = auth.currentUser;
+    if (!user) return;
+  
+    try {
+        const postRef = doc(db, "posts", postId);
+        const snap = await getDoc(postRef);
+        if (snap.exists()) {
+             const data = snap.data();
+             if (data.repostOf) {
+                 const originalRef = doc(db, "posts", data.repostOf);
+                 await updateDoc(originalRef, {
+                     repostedBy: arrayRemove(user.uid)
+                 });
+             }
+        }
 
+        await deleteDoc(postRef);
+        if (card) {
+            card.style.transition = 'opacity 0.28s, transform 0.28s';
+            card.style.opacity = '0';
+            card.style.transform = 'scale(0.93)';
+            setTimeout(() => card.remove(), 300);
+        }
+        
+        const toast = document.getElementById('toast');
+        if (toast) {
+            toast.textContent = 'Post deleted.';
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2800);
+        }
+    } catch (error) {
+        console.error('Delete error:', error);
+        alert('Failed to delete post.');
+    }
+};
+
+window.editPost = function(postId, e) {
+    const card = e.target.closest('.feed-post');
+    const bodyEl = card.querySelector('.feed-body');
+    if (!bodyEl) return;
+  
+    const originalText = bodyEl.innerHTML
+      .replace(/<br>/g,  '\n')
+      .replace(/&lt;/g,  '<')
+      .replace(/&gt;/g,  '>')
+      .replace(/&amp;/g, '&')
+      .replace(/&quot;/g, '"');
+  
+    bodyEl.style.display = 'none';
+    const editWrap = document.createElement('div');
+    editWrap.className = 'post-edit-wrap';
+    editWrap.innerHTML = `
+      <textarea class="post-edit-textarea">${originalText}</textarea>
+      <div class="post-edit-buttons">
+        <button class="post-edit-save" data-id="${postId}">Save</button>
+        <button class="post-edit-cancel">Cancel</button>
+      </div>
+    `;
+    bodyEl.parentNode.insertBefore(editWrap, bodyEl.nextSibling);
+    
+    setTimeout(() => {
+        const ta = editWrap.querySelector('textarea');
+        ta.focus();
+        ta.setSelectionRange(ta.value.length, ta.value.length);
+    }, 50);
+};
+
+feedContainer.addEventListener('click', async (e) => {
+    if (e.target.classList.contains('post-edit-save')) {
+        const btn = e.target;
+        const postId = btn.dataset.id;
+        const card = btn.closest('.feed-post');
+        const wrap = card.querySelector('.post-edit-wrap');
+        const bodyEl = card.querySelector('.feed-body');
+        const newText = wrap.querySelector('textarea').value.trim();
+
+        if (newText) {
+            btn.disabled = true;
+            btn.textContent = 'Saving...';
+            try {
+                await updateDoc(doc(db, "posts", postId), {
+                    text: newText,
+                    updatedAt: serverTimestamp()
+                });
+                bodyEl.innerHTML = newText.replace(/\n/g, '<br>');
+                wrap.remove();
+                bodyEl.style.display = '';
+            } catch (error) {
+                console.error("Failed to update post:", error);
+                btn.disabled = false;
+                btn.textContent = 'Save';
+            }
+        }
+    }
+    
+    if (e.target.classList.contains('post-edit-cancel')) {
+        const card = e.target.closest('.feed-post');
+        const wrap = card.querySelector('.post-edit-wrap');
+        const bodyEl = card.querySelector('.feed-body');
+        if (wrap) wrap.remove();
+        if (bodyEl) bodyEl.style.display = '';
+    }
+});
+
+window.closeRepostModal = function() {
+    document.getElementById('repostModal').classList.remove('open');
+    _currentRepostInfo = null;
+    const rc = document.getElementById('repostContent');
+    if (rc) rc.value = '';
+};
+
+window.closeRepostModalOnOverlay = function(e) {
+    if (e.target === document.getElementById('repostModal')) {
+        window.closeRepostModal();
+    }
+};
+
+window.submitRepost = async function() {
+    if (!_currentRepostInfo) return;
+    const quote = document.getElementById('repostContent').value.trim();
+    const { btn, postId, postData } = _currentRepostInfo;
+    
+    const user = auth.currentUser;
+    if (!user) return;
+
+    try {
+        await addDoc(collection(db, "posts"), {
+            userId: user.uid,
+            author: currentProfile.name || user.displayName || "TUPian",
+            photoURL: currentProfile.photo || user.photoURL || null,
+            text: quote,
+            imageURL: null,
+            createdAt: serverTimestamp(),
+            likedBy: [],
+            comments: 0,
+            repostOf: postId,
+            repostAuthor: postData.name,
+            repostText: postData.body,
+            repostImage: postData.postImage,
+            repostAuthorPhoto: postData.photoSrc || '../assets/images/anon_avatar.jpg'
+        });
+
+        const postRef = doc(db, "posts", postId);
+        await updateDoc(postRef, {
+            repostedBy: arrayUnion(user.uid)
+        });
+
+        window.closeRepostModal();
+        
+        const toast = document.getElementById('toast');
+        if (toast) {
+            toast.textContent = 'Reposted successfully!';
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2800);
+        }
+    } catch (err) {
+        console.error("Repost submit failed:", err);
+    }
+};
 
 

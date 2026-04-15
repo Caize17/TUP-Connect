@@ -4,7 +4,7 @@ import { CONFIG } from "./config.js";
 const genAI = new GoogleGenerativeAI(CONFIG.GEMINI_API_KEY);
 
 // Include your knowledge base in the System Instructions
-const model = genAI.getGenerativeModel({ 
+const model = genAI.getGenerativeModel({
   model: "gemini-3-flash-preview",
   systemInstruction: `You are Tupee, the AI assistant for TUP Connect. 
   Address students as 'TUPian' and use a friendly, helpful, and slightly witty Taglish tone.
@@ -94,75 +94,75 @@ const model = genAI.getGenerativeModel({
       "topic": "tup add subject",
       "content": "A student may add a subject upon the recommendation of the Department Head and approved by the Dean under the following conditions:\n1. The student is not carrying the maximum unit load per semester/term prescribed in the curriculum\n2. He has not met the authorized load for probationary students\n3. For graduating undergraduate student, he may be allowed to add subject/s not more than six(6) units on top of the semester/term load"
     },
-    { 
+    {
       "topic": "tup drop subject",
       "content": "A student may drop a subject or subjects anytime before the midterm following the procedure below:\n1. A student must write a letter noted (whenever applicable) by the parent/guardian (specifying the reason/s for dropping). The Dean of the college must approve the dropping of the subject/s\n2. The approved letter must be presented to the guidance personnel and a dropping form must be secured\n3. The dropping form must be accomplished and the subject professor and the Dean of the college must sign it.\n4. Copies of the dropping form must be presented to the offices concerned."
     },
-    { 
+    {
       "topic": "tup academic failure",
       "content": "1. Probationary Status: A student is placed on probationary status under any of the following circumstances:\na. He obtains a rating of 5.0% in two subjects in a semester/term\nb. He drops unofficially three or more or all of a subjects without a written consent from the parents\n3. He fails to pass at least 75% of the load for the term\n\n2. Dismissal: A student who is not in the last two years of a five year course or in the last year of a four (4) or three (3) year course is considered dismissed from the official roll of the university under any of the following conditions:\na. He obtains a rating of 5.0 in three (3) subjects\nb. He obtains a dropped or failing grade in one subject while under probation"
     },
-    { 
+    {
       "topic": "tup academic honors",
       "content": "1. A student who completes his course as prescribed by his curriculum shall be rewarded with the corresponding honors provided that he has no grade lower than 2.75 in any of the subject and has not been found guilty of any major offense:\na. Baccalaureatte Programs\n- Summa Cum Laude - 1.00 - 1.20\n- Magna Cum Laude - 1.21-1.45\n- Cum laude - 1.46-1.75/\nb. Pre-Baccalaureatte Programs\n- With Highest Honors - 1.00-1.20\n- With High Honors - 1.21-1.45\n- With Honors - 1.46-1.75\n\n2. A transfer student vying for honors must have completed at least 75% of the total number of academic units of the curriculum in the University"
     },
-    { 
+    {
       "topic": "tup id validation",
       "content": "Process of ID validation:\n1. Present the Certificate of Registration (COR) together with your school ID (ensure the old sticker has been removed).\n2. Accomplish the logbook for proper recording.\n3. Claim your school ID affixed with the new sticker for the current school year"
     },
-    { 
+    {
       "topic": "tup id lost",
       "content": "How to request for ID if lost:\n1. He secures an affidavit of loss of ID.\n2. He gets an application form at the Office of Student Affairs.\n3. He pays the required ID fee at the Cashier’s office.\n4. He proceeds to the ID room for photo and signature capturing"
     },
-    { 
+    {
       "topic": "tup scholarship",
       "content": "Scholarship and educational grants offered by the University are categorized as follows:\n1. Institutionally funded / Internal grants\n2. TUP Employees / Legal Dependents  under the Collective Negotiation Agreement (CNA)\n3. External Grants\n- Industry\n- Non-Government Organization\n- Government, Agencies / Organization\n\nHow to Apply for Scholarship:\n1. The students fill-up the application form available at the Office of Student Affairs (OSA). Attach one ID picture.\n2. Present the following requirements together with the duly accomplished application form:\na. A photocopy of a high school card (for freshmen applicants) or the rating slip from the Office of the Registrar (for sophomore to senior students)\nb. A photocopy of a Registration Form\nc. The Income Tax Return (ITR) of the parents/guardian\nd. The Notice of Admission\ne. A certification of good moral character\nf. An essay - My Autobiography\n3. Interview"
     },
-    { 
+    {
       "topic": "tup leave of absence",
       "content": "Process of Requesting Leave of Absence (LOA):\n\n1. A student may take a leave of absence by submitting a  written request addressed to the  Dean/ Assistant to the  Director of Academic Affairs (ADAA) indicating the reasons and duration for the leave of absence which must not exceed one academic year (2 semesters or 3 terms). The intention of the leave of absence shall be presented to the faculty  adviser/ department head concerned for appropriate action and shall be subject to the approval of the Dean/ Assistant  to the Director of Academic Affairs (ADAA).\n2. No leave of absence shall be granted two weeks before the  last day of classes of a semester/ term. If the inability of the student to continue attending classes within the above period is for reasons of health or similar justifiable cause, the absence shall be considered “excused”. The student shall then be required to present to the faculty members concerned a letter of excuse and to make up for lessons/work missed.\n3. Returning students who did not apply for a leave of absence and have been out of the campus beyond the allowable maximum period of one (1) academic year shall be readmitted on probationary basis within the maximum residency rule."
     },
-    { 
+    {
       "topic": "request certified true copy",
       "content": "How to request for certified true copy:\n1. Proceed to the Office of the Registrar and present the document that needs to be certified true copy (CTC).\n2. Secure and accomplish the form provided by the registrar.\n3. Go to the Cashier’s Office at the Administration Building and pay the fee of ₱100 for the CTC.\n4. Return to the Office of the Registrar and submit the accomplished form together with the official receipt. You will then be issued a claim slip indicating the date when you may claim your CTC (processing usually takes 3–5 working days, depending on the volume of requests)."
     },
-    { 
+    {
       "topic": "request good moral",
       "content": "How to request for Certificate of Good Moral:\n1. Proceed to the Office of Students Affairs (OSA) and request for the Certificate of Good Moral\n2. Secure and accomplish the form provided by the OSA.\n3. Go to the Cashier’s Office at the Administration Building and pay the fee of ₱100 for the Certificate of Good Moral.\n4. Return to the OSA and submit the accomplished form together with the official receipt. You will then be issued a claim slip indicating the date when you may claim your Certificate of Good Moral (processing usually takes 3–5 working days, depending on the volume of requests)."
     },
-    { 
+    {
       "topic": "unaccomplished faculty evaluation",
       "content": "How to request for rating slip if was not able to complete Faculty Evaluation:\n1. Proceed to the Department Head of your College and request your rating slip, stating that you were unable to complete the faculty evaluation.\n2. Complete the required community service for one to two hours.\n3. After completing the community service, return to the Department Head of your College to receive the printed copy of your rating slip."
     },
-    { 
+    {
       "topic": "tup library",
       "content": "The University Library is an important educational repository. It supports the instructional curricula and provides the research needs of the students. The collection of books fall under the following sections:\nGround Floor – Arts and Technology, General Reference Collections;\nSecond Floor – Research Outputs, Graduate School, Filipiniana; Third\nFloor – Archives, Special Collections and Periodicals.\n\nLibrary Hours: Monday to Friday / 7:00am - 7:00pm\nSaturday - 8:00am - 12:00pm ; 1:00pm - 5:00pm\n\nLocation: Between CLA and CIE building"
     },
-    { 
+    {
       "topic": "office of admission",
       "content": "The TUP Office of Admission handles student applications, evaluates requirements, manages entrance exams, provides information to applicants, and releases admission results.\nLocated at the lobby of the College of Science building"
     },
-    { 
+    {
       "topic": "office of Student Affairs",
       "content": "The Office of Student Affairs is one of the  service units under the Vice President for Academic Affairs. It is responsible for providing programs and activities designed to meet the needs of every student, specifically that of having a healthy and productive student life..\nLocated at the lobby of the College of Science building beside office of admission."
     },
-    { 
+    {
       "topic": "tup clinic",
       "content": "The TUP-Medical and Dental Clinic provides health-related services  to the University. It is a team consisting of a physician, dentists, nurses and other trained paramedical staff. They provide routine medical and dental services such as consultations, perform the necessary basic procedures, facilitate the referral of patients to the specialized institutions, conduct the annual medical and dental evaluation of students and employees and provide lectures and other health related activities in cooperation with the other units or organizations of the school.\nLocated at the lobby of the COS building near Gate 1"
     },
-    { 
+    {
       "topic": "tup registrar",
       "content": "The Office of the University Registrar (OUR), with administrative and academic functions, is an inherent and integral part of the institution. The University Registrar is a member of the recommending bodies of the University: the Administrative Council and the Academic Council.\nThe OUR serves as the primary custodian of the school records of all students and alumni. It administers operations in the areas of enrolment, load requirements, credits earned, subject sequence, promotion, graduation, transfer, suspension and the dismissal of students.\nLocated at the lobby of the College of Liberal Arts building"
     },
-    { 
+    {
       "topic": "university information technology center uitc",
       "content": "The University Information Technology Center (UITC) assumes direct responsibility for the development and implementation of all information and communications technology systems, programs and policies that produce meaningful results and allow the possibility of attaining the vision, mission and goals of the University. The Center is supported by the network and telephone management, web development, applications development, the management information system and computer repair and maintenance management units."
     },
-    { 
+    {
       "topic": "covered court",
       "content": "TUP Covered Court serves as a multi-purpose facility that provides a safe and convenient space for various activities. It is primarily used for sports and physical education classes, ensuring that games and exercises can continue regardless of weather conditions. Beyond athletics, it also functions as a venue for student assemblies, cultural events, ceremonies, and other extracurricular activities. In some cases, it can even be utilized for community programs or as an emergency shelter, making it an essential facility that supports both academic and non-academic needs of the university.\n Located in front of College of Industrial Technology"
     },
-    { 
+    {
       "topic": "tup grounds",
       "content": "TUP Grounds serve as a vital open space that supports both academic and non-academic activities. It is commonly used for outdoor sports such as soccer, track and field, and other large-scale athletic events, as well as physical education classes that require wide areas. Beyond athletics, the field also functions as a venue for university celebrations, cultural programs, and community gatherings. In addition, it provides students with space for recreation, relaxation, and social interaction, while also contributing greenery and a healthy environment within the campus.\nLocated beside covered court"
     },
@@ -178,71 +178,71 @@ const model = genAI.getGenerativeModel({
       "topic": "industrial relations and job placement office irjp",
       "content": "The Industrial Relations and Job Placement Office provides the students with an opportunity to gain valuable practical experience in their field of specialization through internship in industry. The Supervised Industrial/On-the-Job training is the unique part of the University curriculum where the students are provided with a real understanding of the demands of industry and a practical application of what they have learned.\nLocation: COS building 1st floor, in front of Office of Student Affairs"
     },
-    { 
-     "topic": "tup president",
+    {
+      "topic": "tup president",
       "content": "Dr. Reynaldo P. Ramos"
     },
-    { 
+    {
       "topic": "basic industrial technology head",
       "content": "Assoc. Prof. Andrew John A. Mabaquiao\n\nEmail: andrewjohn_mabaquiao@tup.edu.ph\nOffice: Basic Industrial Technology (CIT buulding)"
     },
-    { 
+    {
       "topic": "food and apparel technology head",
       "content": "Assoc. Prof. Bernadeth Gilbor\n\nEmail: bernadeth_gilbor@tup.edu.ph\nOffice: Food and Apparel Technology (CIT building)"
     },
-    { 
+    {
       "topic": "graphic and arts head",
       "content": "Assoc. Prof. Lotis Palma-Buco\n\nEmail: lotis_buco@tup.edu.ph\nOffice: Graphics and Arts Department (CAFA building)"
     },
-    { 
+    {
       "topic": "mechanical technology head",
       "content": "Assoc. Prof. Jerry R. Ligaya\n\nEmail: jerry_ligaya@tup.edu.ph\nOffice: Mechanical Engineering Technology (CIT building)"
     },
-    { 
+    {
       "topic": "electrical technology head",
       "content": "Assoc. Prof. Jennifer D. Andador\n\nEmail: jennifer_andador@tup.edu.ph or eet@tup.edu.ph\nOffice: Electrical Engineering Technology (CIT building)"
     },
-    { 
+    {
       "topic": "civil technology head",
       "content": "Assoc. Prof. Samuel M. Pacba\n\nEmail: samuel_pacba@tup.edu.ph or eet@tup.edu.ph\nOffice: Civil Engineering Technology (CIT building)"
     },
-    { 
+    {
       "topic": "electronic technology 0ic-head",
       "content": "Assoc. Prof. Aimee G. Acoba\n\nEmail: aimee_acoba@tup.edu.ph or eet@tup.edu.ph\nOffice: Electronic Engineering Technology (CIT building)"
     },
-    { 
+    {
       "topic": "industrial technology dean",
       "content": "Assoc. Prof. Mary Ann R. Codera\n\nEmail: mayann_codera@tup.edu.ph\n Office: Located in CIT building"
     },
-    { 
+    {
       "topic": "industrial education dean",
       "content": "Dr. Apollo P. Portez\n\nEmail: apollo_portez@tup.edu.ph or cie@tup.edu.ph\nOffice: Located in CIE building"
     },
-    { 
+    {
       "topic": "industrial education secretary",
       "content": "Asst. Prof. Nestor M. Muricia\n\nEmail: nestor_muricia or cie@tup.edu.ph\nOffice: Located in CIE building"
     },
-    { 
+    {
       "topic": "student teaching head",
       "content": "Assoc. Prof. Dr. Sylvia B. Guevarra\n\nEmail: sylvia_guevarra@tup.edu.ph or st@tup.edu.ph\nOffice: Student Teaching Department in CIE building"
     },
-    { 
+    {
       "topic": "technical arts head",
       "content": "Assoc. Prof. Allan Villariza\n\nEmail: allan_villariza@tup.edu.ph or tad@tup.edu.ph\nOffice: Technical Arts Department in CIE building"
     },
-    { 
+    {
       "topic": "home economics head",
       "content": "Assoc. Prof. Dorothy Manalansan\n\nEmail: dorothy_manalansan@tup.edu.ph or he@tup.edu.ph\nOffice: Home Economics Department in CIE building"
     },
-    { 
+    {
       "topic": "college of engineering dean",
       "content": "Dr. Lean karlo S. Tolentinon\nEmail: leankarlo_tolentino@tup.edu.ph or coe@tup.edu.ph\nOffice: Located in COE building"
     },
-    { 
+    {
       "topic": "college of engineering secretary",
       "content": "Engr. Jessica Velasco\n\nEmail: jessica_velascon@tup.edu.ph\nOffice: Located in COE building"
     },
-    { 
+    {
       "topic": "electrical engineering head",
       "content": "Engr. Roel M. Mendoza\n\nEmail: roel_mendoza@tup.edu.ph\nOffice: Electrical Engineering Department in COE building"
     },
@@ -361,7 +361,7 @@ const model = genAI.getGenerativeModel({
     {
       "topic": "how to go to tup via bus",
       "content": "Ride a bus going to Lawton, Manila City Hall, or Taft Avenue. Get off near Manila City Hall or SM Manila and walk towards Ayala Boulevard. TUP Manila is located along Ayala Boulevard near these landmarks."
-}
+    }
   ])}`
 });
 
@@ -370,7 +370,7 @@ let USER = {
   email: "",
   studentId: "",
   photoSrc: null,
-  logoSrc:   "../assets/images/logo.png",
+  logoSrc: "../assets/images/logo.png",
 };
 
 let POST = null;
@@ -421,10 +421,10 @@ let FEED_POSTS = [];
      USER DATA
   ════════════════════════════════════════ */
 
-  document.getElementById('profile-name').textContent    = USER.name      || '—';
-  document.getElementById('profile-email').textContent   = USER.email     || '—';
-  document.getElementById('profile-id').textContent      = USER.studentId || '—';
-  document.getElementById('modal-user-name').textContent = USER.name      || 'Guest';
+  document.getElementById('profile-name').textContent = USER.name || '—';
+  document.getElementById('profile-email').textContent = USER.email || '—';
+  document.getElementById('profile-id').textContent = USER.studentId || '—';
+  document.getElementById('modal-user-name').textContent = USER.name || 'Guest';
 
   if (USER.photoSrc) {
     document.getElementById('profile-photo-wrap').innerHTML =
@@ -433,14 +433,14 @@ let FEED_POSTS = [];
     const navProfileAvatar = document.getElementById('nav-profile-avatar');
     if (navProfileAvatar) {
       navProfileAvatar.innerHTML =
-        `<img src="${USER.photoSrc}" alt="Me" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+        `<img src="${USER.photoSrc}" alt="Me" style="width:100%;height:100%;object-fit:cover;border-radius:50%;image-rendering:high-quality;">`;
     }
 
     const el = document.getElementById('comment-avatar-wrap');
-    el.innerHTML = `<img src="${USER.photoSrc}" alt="Me" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"/>`;
+    el.innerHTML = `<img src="${USER.photoSrc}" alt="Me" style="width:100%;height:100%;object-fit:cover;border-radius:50%;image-rendering:high-quality;"/>`;
 
     document.getElementById('modal-avatar').innerHTML =
-      `<img src="${USER.photoSrc}" alt="Me" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+      `<img src="${USER.photoSrc}" alt="Me" style="width:100%;height:100%;object-fit:cover;border-radius:50%;image-rendering:high-quality;">`;
   }
 
   /* ════════════════════════════════════════
@@ -448,19 +448,19 @@ let FEED_POSTS = [];
   ════════════════════════════════════════ */
 
   if (POST) {
-    document.getElementById('count-likes').textContent    = fmt(POST.likes);
+    document.getElementById('count-likes').textContent = fmt(POST.likes);
     document.getElementById('count-thumbsup').textContent = fmt(POST.thumbsUp);
-    document.getElementById('count-reposts').textContent  = fmt(POST.reposts);
+    document.getElementById('count-reposts').textContent = fmt(POST.reposts);
     document.getElementById('post-timestamp').textContent = POST.timestamp;
-    document.getElementById('post-title').textContent     = POST.title;
-    document.getElementById('post-body').innerHTML        = POST.body.map(p => `<p>${p}</p>`).join('');
-    document.getElementById('poster-org').textContent      = POST.posterOrg;
+    document.getElementById('post-title').textContent = POST.title;
+    document.getElementById('post-body').innerHTML = POST.body.map(p => `<p>${p}</p>`).join('');
+    document.getElementById('poster-org').textContent = POST.posterOrg;
     document.getElementById('poster-headline').textContent = POST.posterHeadline;
-    document.getElementById('poster-subtext').textContent  = POST.posterSubtext;
-    document.getElementById('poster-date').textContent     = POST.posterDate;
-    document.getElementById('poster-desc').textContent     = POST.posterDesc;
-    document.getElementById('poster-handle').textContent   = POST.posterHandle + ' ✉';
-    document.getElementById('poster-colleges').innerHTML   =
+    document.getElementById('poster-subtext').textContent = POST.posterSubtext;
+    document.getElementById('poster-date').textContent = POST.posterDate;
+    document.getElementById('poster-desc').textContent = POST.posterDesc;
+    document.getElementById('poster-handle').textContent = POST.posterHandle + ' ✉';
+    document.getElementById('poster-colleges').innerHTML =
       POST.posterColleges.map(c => `<div class="p-college">${c}</div>`).join('');
   } else {
     const annCard = document.getElementById('ann-card');
@@ -477,7 +477,7 @@ let FEED_POSTS = [];
   if (POST) {
     (function () {
       const body = document.getElementById('post-body');
-      const btn  = document.getElementById('view-more-btn');
+      const btn = document.getElementById('view-more-btn');
       let expanded = false;
       body.classList.add('is-clamped');
       requestAnimationFrame(() => {
@@ -499,12 +499,12 @@ let FEED_POSTS = [];
     const imgs = POST.images || [];
     if (imgs.length > 0) {
       document.getElementById('poster-card-inner').style.display = 'none';
-      const shown    = Math.min(imgs.length, 4);
-      const extra    = imgs.length - shown;
+      const shown = Math.min(imgs.length, 4);
+      const extra = imgs.length - shown;
       const countCls = imgs.length === 1 ? 'count-1'
-                     : imgs.length === 2 ? 'count-2'
-                     : imgs.length === 3 ? 'count-3'
-                     : 'count-4';
+        : imgs.length === 2 ? 'count-2'
+          : imgs.length === 3 ? 'count-3'
+            : 'count-4';
       const cells = imgs.slice(0, shown).map((src, i) => {
         const isLast = i === shown - 1 && extra > 0;
         return `<div class="gi"><img src="${src}" alt="post image"/>${isLast ? `<div class="gi-more">+${extra + 1}</div>` : ''}</div>`;
@@ -520,13 +520,13 @@ let FEED_POSTS = [];
      FEED POSTS
   ════════════════════════════════════════ */
 
-function renderFeedPosts() {
-  const posts = window.FEED_POSTS || [];
-  const feed = document.getElementById('feed-posts');
-  if (!feed) return;
+  function renderFeedPosts() {
+    const posts = window.FEED_POSTS || [];
+    const feed = document.getElementById('feed-posts');
+    if (!feed) return;
 
-  if (posts.length === 0) {
-    feed.innerHTML = `
+    if (posts.length === 0) {
+      feed.innerHTML = `
         <div class="empty-state">
           <div class="empty-state-icon">
             <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
@@ -534,49 +534,54 @@ function renderFeedPosts() {
           <div class="empty-state-title">No posts yet</div>
           <div class="empty-state-sub">Be the first one to share something with your fellow TUPians!</div>
         </div>`;
-    return;
-  }
+      return;
+    }
 
-  feed.innerHTML = posts.map((fp, idx) => {
-    const avatarHtml = fp.photoSrc ?
-      `<img class="feed-avatar" src="${fp.photoSrc}" alt="${fp.name}"/>` :
-      `<div class="feed-avatar-ph"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>`;
+    feed.innerHTML = posts.map((fp, idx) => {
+      const avatarHtml = fp.photoSrc ?
+        `<img class="feed-avatar" src="${fp.photoSrc}" alt="${fp.name}"/>` :
+        `<div class="feed-avatar-ph"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>`;
 
-    // Safety: Header / Repost logic
-    const headerMeta = fp.repost ?
-      `<div class="feed-meta">
+      // Safety: Header / Repost logic
+      const headerMeta = fp.repost ?
+        `<div class="feed-meta">
             <div class="feed-name">
               <svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:var(--muted);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;vertical-align:middle;margin-right:3px;"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
               ${fp.name} <span style="font-weight:600;color:var(--muted);">reposted</span>
             </div>
             <div class="feed-time">${fp.time}</div>
            </div>` :
-      `<div class="feed-meta">
+        `<div class="feed-meta">
             <div class="feed-name">${fp.name}</div>
             <div class="feed-time">${fp.time}</div>
            </div>`;
 
-    // Safety Check for Quote
-    const quoteHtml = (fp.quote && fp.quote.body) ? `
-        <div class="feed-quote">
-          <div class="feed-quote-header">
-            ${fp.quote.photoSrc ? `<div class="feed-quote-avatar"><img src="${fp.quote.photoSrc}"/></div>` : `<div class="feed-quote-avatar"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>`}
-            <span class="feed-quote-name">${fp.quote.name}</span>
+      // Safety Check for Quote
+      const quoteHtml = (fp.quote && (fp.quote.body || fp.quote.repostImage)) ? `
+        <div class="repost-quote-card">
+          <div class="repost-quote-header">
+            <div class="repost-quote-avatar">
+              ${fp.quote.photoSrc ? `<img src="${fp.quote.photoSrc}" style="image-rendering: high-quality;"/>` : `<svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`}
+            </div>
+            <div class="repost-quote-meta">
+              <div class="repost-quote-author">${fp.quote.name}</div>
+            </div>
           </div>
-          <div class="feed-quote-body">${fp.quote.body.replace(/\n/g, '<br>')}</div>
+          ${fp.quote.body ? `<div class="repost-quote-body">${fp.quote.body.replace(/\n/g, '<br>')}</div>` : ''}
+          ${fp.quote.repostImage ? `<img src="${fp.quote.repostImage}" class="feed-post-img" style="width:100%; border-radius:8px; margin-top:10px; display:block; image-rendering: high-quality;">` : ''}
         </div>` : '';
 
-    const imageTag = fp.postImage 
-    ? `<img src="${fp.postImage}" class="feed-post-img" style="width:100%; border-radius:8px; margin-top:10px; display:block;">` 
-    : '';
+      const imageTag = fp.postImage
+        ? `<img src="${fp.postImage}" class="feed-post-img" style="width:100%; border-radius:8px; margin-top:10px; display:block;">`
+        : '';
 
-    const bodyHtml = fp.body ? `
+      const bodyHtml = fp.body ? `
     <div class="feed-body" id="feed-body-${idx}">${fp.body}</div>
     ${imageTag} <button class="feed-view-more" id="feed-vm-${idx}">View more ▾</button>` : (imageTag ? imageTag : '');
 
-    // Safety Check for Comments
-    const firstComment = (fp.commentList && fp.commentList.length > 0) ? fp.commentList[0] : null;
-    const commentPreviewHtml = (fp.comments > 0 && firstComment) ? `
+      // Safety Check for Comments
+      const firstComment = (fp.commentList && fp.commentList.length > 0) ? fp.commentList[0] : null;
+      const commentPreviewHtml = (fp.comments > 0 && firstComment) ? `
         <div class="feed-comments-section">
           <button class="feed-view-comments" data-post="${idx}">View all ${fp.comments} comments</button>
           <div class="feed-comment-preview">
@@ -590,7 +595,7 @@ function renderFeedPosts() {
           </div>
         </div>` : '';
 
-    return `
+      return `
       <div class="feed-post">
         <div class="feed-post-header">
           ${avatarHtml}
@@ -599,7 +604,16 @@ function renderFeedPosts() {
             <svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg>
           </button>
           <div class="post-menu-dropdown" id="post-menu-${idx}">
-            <button class="post-menu-item" data-post="${idx}" data-action="report">Report Post</button>
+            ${fp.isOwnPost ? `
+               <div class="post-menu-item" onclick="editPost('${fp.id}', event)">
+                 <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Edit Post
+               </div>
+               <div class="post-menu-item danger" onclick="deletePost('${fp.id}', event)">
+                 <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg> Delete
+               </div>
+            ` : `
+               <div class="post-menu-item danger" data-post="${idx}" data-action="report">Report Post</div>
+            `}
           </div>
         </div>
         ${bodyHtml}
@@ -620,34 +634,34 @@ function renderFeedPosts() {
         </div>
         ${commentPreviewHtml}
       </div>`;
-  }).join('');
+    }).join('');
 
-  posts.forEach((fp, idx) => {
-    if (!fp.body) return;
-    const bodyEl = document.getElementById(`feed-body-${idx}`);
-    const vmBtn = document.getElementById(`feed-vm-${idx}`);
-    if (!bodyEl || !vmBtn) return;
-    bodyEl.classList.add('is-clamped');
-    if (bodyEl.scrollHeight > bodyEl.clientHeight) {
-      vmBtn.classList.add('visible');
-    }
-    vmBtn.onclick = () => {
-      const isExpanded = bodyEl.classList.toggle('is-clamped');
-      vmBtn.textContent = isExpanded ? 'View more ▾' : 'View less ▴';
-    };
-  });
-}
+    posts.forEach((fp, idx) => {
+      if (!fp.body) return;
+      const bodyEl = document.getElementById(`feed-body-${idx}`);
+      const vmBtn = document.getElementById(`feed-vm-${idx}`);
+      if (!bodyEl || !vmBtn) return;
+      bodyEl.classList.add('is-clamped');
+      if (bodyEl.scrollHeight > bodyEl.clientHeight) {
+        vmBtn.classList.add('visible');
+      }
+      vmBtn.onclick = () => {
+        const isExpanded = bodyEl.classList.toggle('is-clamped');
+        vmBtn.textContent = isExpanded ? 'View more ▾' : 'View less ▴';
+      };
+    });
+  }
 
-window.renderFeedPosts = renderFeedPosts;
+  window.renderFeedPosts = renderFeedPosts;
 
   /* ════════════════════════════════════════
      LIGHTBOX
   ════════════════════════════════════════ */
 
-  const lightbox    = document.getElementById('lightbox');
-  const lbImg       = document.getElementById('lightbox-img');
-  const openLB      = src => { lbImg.src = src; lightbox.classList.add('open'); };
-  const closeLB     = ()  => { lightbox.classList.remove('open'); lbImg.src = ''; };
+  const lightbox = document.getElementById('lightbox');
+  const lbImg = document.getElementById('lightbox-img');
+  const openLB = src => { lbImg.src = src; lightbox.classList.add('open'); };
+  const closeLB = () => { lightbox.classList.remove('open'); lbImg.src = ''; };
   const mediaGridEl = document.getElementById('media-grid');
 
   if (mediaGridEl) {
@@ -663,27 +677,27 @@ window.renderFeedPosts = renderFeedPosts;
   ════════════════════════════════════════ */
 
   const commentOverlay = document.getElementById('comment-modal-overlay');
-  const commentList    = document.getElementById('comment-list');
+  const commentList = document.getElementById('comment-list');
 
-  window.renderComments = function(postIdx) {
+  window.renderComments = function (postIdx) {
     const fp = window.FEED_POSTS ? window.FEED_POSTS[postIdx] : null;
-    const listElement = document.getElementById('comment-list'); 
+    const listElement = document.getElementById('comment-list');
     if (!fp || !listElement) return;
 
     listElement.innerHTML = (fp.commentList || []).map((c, cIdx) => {
-    if(cIdx === 0) console.log("First comment data:", c);
+      if (cIdx === 0) console.log("First comment data:", c);
 
-    let rawPhoto = c.photoURL;
-   
-    if (c.isOwn && (rawPhoto === 'anon' || !rawPhoto)) {
-            rawPhoto = window.cachedPhoto;
+      let rawPhoto = c.photoURL;
+
+      if (c.isOwn && (rawPhoto === 'anon' || !rawPhoto)) {
+        rawPhoto = window.cachedPhoto;
       }
 
-    const validPhoto = (rawPhoto && rawPhoto !== 'anon') ? rawPhoto : null;
-    const avatarHtml = window.getAvatar(validPhoto, c.author);
-    
+      const validPhoto = (rawPhoto && rawPhoto !== 'anon') ? rawPhoto : null;
+      const avatarHtml = window.getAvatar(validPhoto, c.author);
 
-        return `
+
+      return `
         <div class="comment-item" id="comment-item-${postIdx}-${cIdx}">
             <div class="comment-item-avatar">${avatarHtml}</div>
             <div class="comment-item-content">
@@ -698,30 +712,32 @@ window.renderFeedPosts = renderFeedPosts;
                     </button>
                     <button class="comment-edit-cancel" data-post="${postIdx}" data-comment="${cIdx}">✕</button>
                 </div>
-                <div class="comment-item-time">${c.time || ''}</div>
-                ${c.isOwn ? `
-                <div class="comment-item-actions">
-                    <button class="comment-action-btn edit-btn" data-post="${postIdx}" data-comment="${cIdx}">
-                        <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-                        Edit
-                    </button>
-                    <button class="comment-action-btn delete-btn" data-post="${postIdx}" data-comment="${cIdx}">
-                        <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
-                        Delete
-                    </button>
-                </div>` : ''}
+                <div class="comment-footer">
+                    <div class="comment-item-time">${c.time || ''}</div>
+                    ${c.isOwn ? `
+                    <div class="comment-item-actions">
+                        <button class="comment-action-btn edit-btn" data-post="${postIdx}" data-comment="${cIdx}">
+                            <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                            Edit
+                        </button>
+                        <button class="comment-action-btn delete-btn" data-post="${postIdx}" data-comment="${cIdx}">
+                            <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                            Delete
+                        </button>
+                    </div>` : ''}
+                </div>
             </div>
         </div>`;
     }).join('');
 
     attachCommentListeners(listElement);
-};
+  };
 
   function attachCommentListeners(listElement) {
     if (!listElement || listElement._commentListenersAttached) return;
     listElement._commentListenersAttached = true;
 
-    listElement.addEventListener('click', async function(e) {
+    listElement.addEventListener('click', async function (e) {
       const deleteBtn = e.target.closest('.delete-btn');
       if (deleteBtn) {
         const pIdx = deleteBtn.dataset.post;
@@ -794,30 +810,30 @@ window.renderFeedPosts = renderFeedPosts;
 
   function openCommentModal(postIdx) {
     const overlay = document.getElementById('comment-modal-overlay');
-    const inputAvatar = document.getElementById('comment-input-avatar'); 
+    const inputAvatar = document.getElementById('comment-input-avatar');
     const inputField = document.getElementById('comment-input-field');
 
     const currentUser = window.auth ? window.auth.currentUser : null;
 
     if (inputAvatar && currentUser) {
-        inputAvatar.innerHTML = window.avatarHtmlFor(currentUser.photoURL, currentUser.displayName);
+      inputAvatar.innerHTML = window.avatarHtmlFor(currentUser.photoURL, currentUser.displayName);
     }
 
     if (overlay) {
-        overlay.dataset.post = postIdx;
-        overlay.classList.add('open');
+      overlay.dataset.post = postIdx;
+      overlay.classList.add('open');
 
-        if (window.renderComments) {
-            window.renderComments(postIdx);
-        }
+      if (window.renderComments) {
+        window.renderComments(postIdx);
+      }
 
-        if (inputField) {
-            setTimeout(() => inputField.focus(), 150);
-        }
+      if (inputField) {
+        setTimeout(() => inputField.focus(), 150);
+      }
     }
   }
 
-  function closeCommentModal() { 
+  function closeCommentModal() {
     const overlay = document.getElementById('comment-modal-overlay');
     const inputField = document.getElementById('comment-input-field');
     if (overlay) overlay.classList.remove('open');
@@ -834,21 +850,21 @@ window.renderFeedPosts = renderFeedPosts;
      CREATE POST MODAL
   ════════════════════════════════════════ */
 
-  const overlay    = document.getElementById('create-post-overlay');
-  const textarea   = document.getElementById('post-textarea');
-  const submitBtn  = document.getElementById('modal-submit-btn');
+  const overlay = document.getElementById('create-post-overlay');
+  const textarea = document.getElementById('post-textarea');
+  const submitBtn = document.getElementById('modal-submit-btn');
   const attachWrap = document.getElementById('modal-attachments');
-  const fileInput  = document.getElementById('modal-file-input');
+  const fileInput = document.getElementById('modal-file-input');
   const anonToggle = document.getElementById('modal-anon-toggle');
 
-  function openModal()  { overlay.classList.add('open'); setTimeout(() => textarea.focus(), 100); }
-  function closeModal() { 
-    if (overlay) overlay.classList.remove('open'); 
+  function openModal() { overlay.classList.add('open'); setTimeout(() => textarea.focus(), 100); }
+  function closeModal() {
+    if (overlay) overlay.classList.remove('open');
 
     if (typeof window.resetPostModal === 'function') {
-        window.resetPostModal();
+      window.resetPostModal();
     } else {
-        console.warn("resetPostModal function not found!");
+      console.warn("resetPostModal function not found!");
     }
   }
 
@@ -868,7 +884,7 @@ window.renderFeedPosts = renderFeedPosts;
   });
 
   anonToggle.addEventListener('change', function () {
-    const nameEl   = document.getElementById('modal-user-name');
+    const nameEl = document.getElementById('modal-user-name');
     const avatarEl = document.getElementById('modal-avatar');
     if (this.checked) {
       nameEl.textContent = 'Anonymous Puto';
@@ -887,10 +903,10 @@ window.renderFeedPosts = renderFeedPosts;
     Array.from(this.files).forEach(file => {
       const reader = new FileReader();
       reader.onload = e => {
-        const thumb     = document.createElement('img');
-        thumb.src       = e.target.result;
+        const thumb = document.createElement('img');
+        thumb.src = e.target.result;
         thumb.className = 'modal-attach-thumb';
-        thumb.title     = 'Click to remove';
+        thumb.title = 'Click to remove';
         thumb.addEventListener('click', () => thumb.remove());
         attachWrap.appendChild(thumb);
       };
@@ -904,9 +920,9 @@ window.renderFeedPosts = renderFeedPosts;
 
   // BACKEND TEAM: wire these
   document.getElementById('btn-settings').addEventListener('click', () => { console.log('Settings'); });
-  document.getElementById('btn-likes')?.addEventListener('click',    () => {});
-  document.getElementById('btn-thumbsup')?.addEventListener('click', () => {});
-  document.getElementById('btn-reposts')?.addEventListener('click',  () => {});
+  document.getElementById('btn-likes')?.addEventListener('click', () => { });
+  document.getElementById('btn-thumbsup')?.addEventListener('click', () => { });
+  document.getElementById('btn-reposts')?.addEventListener('click', () => { });
 
   /* ════════════════════════════════════════
      KEYBOARD SHORTCUTS
@@ -921,17 +937,17 @@ window.renderFeedPosts = renderFeedPosts;
   ════════════════════════════════════════ */
 
   (function () {
-    const navWrap  = document.getElementById('sidebar-nav');
+    const navWrap = document.getElementById('sidebar-nav');
     const teardrop = document.getElementById('nav-teardrop');
-    const navBtns  = Array.from(navWrap.querySelectorAll('.nav-btn'));
-    const profBtn  = document.getElementById('sidebar-avatar-wrap');
-    const allBtns  = [...navBtns, profBtn];
+    const navBtns = Array.from(navWrap.querySelectorAll('.nav-btn'));
+    const profBtn = document.getElementById('sidebar-avatar-wrap');
+    const allBtns = [...navBtns, profBtn];
     const TD_BASE_H = 66;
 
     function moveTo(item) {
       const wrapRect = navWrap.getBoundingClientRect();
       const itemRect = item.getBoundingClientRect();
-      const centerY  = itemRect.top + itemRect.height / 2 - wrapRect.top;
+      const centerY = itemRect.top + itemRect.height / 2 - wrapRect.top;
       teardrop.style.top = (centerY - TD_BASE_H / 2) + 'px';
     }
 
@@ -962,70 +978,72 @@ window.renderFeedPosts = renderFeedPosts;
     }
   })();
 
-// ========================
-// CHATBOT
-// ========================
+  // ========================
+  // CHATBOT
+  // ========================
 
-window.askSuggestion = askSuggestion;
-window.toggleChat = toggleChat;
-window.sendMessage = sendMessage;
+  window.askSuggestion = askSuggestion;
+  window.toggleChat = toggleChat;
+  window.sendMessage = sendMessage;
 
-function toggleChat() {
-  const modal = document.getElementById('chatModal');
-  if (modal) modal.classList.toggle('active');
-}
-
-function askSuggestion(text) {
-  const input = document.getElementById('userInput');
-  if (input) {
-    input.value = text;
-    sendMessage();
+  function toggleChat() {
+    const modal = document.getElementById('chatModal');
+    if (modal) modal.classList.toggle('active');
   }
-}
 
-async function sendMessage() {
-  const input = document.getElementById('userInput');
-  const body = document.getElementById('chatBody');
-  const text = input.value.trim();
-  if (!text) return;
+  function askSuggestion(text) {
+    const input = document.getElementById('userInput');
+    if (input) {
+      input.value = text;
+      sendMessage();
+    }
+  }
 
-  // 1. Show User Message
-  const userMsg = document.createElement('div');
-  userMsg.className = 'user-message';
-  userMsg.textContent = text;
-  body.appendChild(userMsg);
-  input.value = '';
-  body.scrollTop = body.scrollHeight;
+  window.toggleChat = toggleChat;
 
-  try {
-    // 2. Get Response from Gemini
-    const result = await model.generateContent(text);
-    const response = await result.response;
-    const botText = response.text();
+  async function sendMessage() {
+    const input = document.getElementById('userInput');
+    const body = document.getElementById('chatBody');
+    const text = input.value.trim();
+    if (!text) return;
 
-    // ════════════════════════════════════════
-    // 3. FORMATTING LOGIC (Dito ilalagay)
-    // ════════════════════════════════════════
-    let formattedResponse = botText
-      .replace(/\*\*(.*?)\*\*/g, '<b>$1</b>')
-      .replace(/^\* /gm, '• ')                
-      .replace(/\n/g, '<br>');               
+    // 1. Show User Message
+    const userMsg = document.createElement('div');
+    userMsg.className = 'user-message';
+    userMsg.textContent = text;
+    body.appendChild(userMsg);
+    input.value = '';
+    body.scrollTop = body.scrollHeight;
 
-    const botRow = document.createElement('div');
-    botRow.className = 'bot-row';
-    botRow.innerHTML = `
+    try {
+      // 2. Get Response from Gemini
+      const result = await model.generateContent(text);
+      const response = await result.response;
+      const botText = response.text();
+
+      // ════════════════════════════════════════
+      // 3. FORMATTING LOGIC (Dito ilalagay)
+      // ════════════════════════════════════════
+      let formattedResponse = botText
+        .replace(/\*\*(.*?)\*\*/g, '<b>$1</b>')
+        .replace(/^\* /gm, '• ')
+        .replace(/\n/g, '<br>');
+
+      const botRow = document.createElement('div');
+      botRow.className = 'bot-row';
+      botRow.innerHTML = `
       <img src="../assets/images/Tupee_logo.png" class="bot-row-avatar">
       <div class="bot-message">${formattedResponse}</div>
     `;
-    body.appendChild(botRow);
-    body.scrollTop = body.scrollHeight;
+      body.appendChild(botRow);
+      body.scrollTop = body.scrollHeight;
 
-  } catch (error) {
-    console.error("Gemini Error:", error);
+    } catch (error) {
+      console.error("Gemini Error:", error);
+    }
   }
-}
-
+  window.renderFeedPosts = renderFeedPosts;
+  window.FEED_POSTS = FEED_POSTS;
 })();
 
-window.renderFeedPosts = renderFeedPosts;
-window.FEED_POSTS = FEED_POSTS;
+

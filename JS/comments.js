@@ -124,18 +124,22 @@ function listenForComments(postId) {
       const data = doc.data();
       const user = auth.currentUser;
 
-      let finalPhoto = data.photoURL || data.photoSrc || "anon";
+      // Global cache or Auth data
+      const livePhoto = window.cachedPhoto || user?.photoURL || "../assets/images/anon_avatar.jpg";
+      const liveName  = user?.displayName || "TUPian";
 
-      if (user && data.userId === user.uid) {
-          finalPhoto = user.photoURL || "anon"; 
-      }
+      const isOwn = user && data.userId === user.uid;
+      
+      const finalPhoto = isOwn ? livePhoto : (data.photoURL || data.photoSrc || "../assets/images/anon_avatar.jpg");
+      const finalAuthor = isOwn ? liveName : (data.author || "Anonymous");
 
       return {
         id: doc.id,
         ...data,
+        author: finalAuthor,
         photoURL: finalPhoto,
-        isOwn: auth.currentUser ? (data.userId === auth.currentUser.uid) : false,
-        time: data.createdAt ? data.createdAt.toDate().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'Just now'
+        isOwn: isOwn,
+        time: data.createdAt ? (window.formatSmartDate ? window.formatSmartDate(data.createdAt.toDate()) : data.createdAt.toDate().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})) : 'Just now'
       };
     });
 

@@ -44,25 +44,64 @@ async function compressImage(file, maxWidth = 400, maxHeight = 400) {
         canvas.height = height;
         const ctx = canvas.getContext('2d');
         ctx.drawImage(img, 0, 0, width, height);
-        resolve(canvas.toDataURL('image/jpeg', 0.9));
+        resolve(canvas.toDataURL('image/jpeg', 0.95));
       };
     };
   });
 }
 
 // ========================
+// INSTANT UI PRE-FILL (STALE-WHILE-REVALIDATE)
+// ========================
+(function() {
+    const cache = localStorage.getItem('tup_user_meta');
+    if (cache) {
+        try {
+            const data = JSON.parse(cache);
+            // Sync global USER object so subsequent renders (posts) use it
+            USER.name = data.fullName || USER.name;
+            USER.photoSrc = data.photoURL || USER.photoSrc;
+
+            // Pre-fill UI so it's instant
+            document.addEventListener('DOMContentLoaded', () => {
+              updateProfileUI(data, data.email || '');
+            });
+        } catch(e) {}
+    }
+})();
+
+// ========================
 // AUTH STATE
 // ========================
 onAuthStateChanged(auth, async (user) => {
   if (user) {
+    // 1. Parallel: Load posts immediately (Don't wait for user doc)
+    loadUserPosts(user.uid);
+
+    // 2. Parallel: Fetch latest user doc to refresh cache & UI
     const userDocRef = doc(db, "users", user.uid);
-    const userSnap   = await getDoc(userDocRef);
-    if (userSnap.exists()) {
-      const userData = userSnap.data();
-      USER.name     = userData.fullName || user.displayName || "TUPian";
-      USER.photoSrc = userData.photoURL || user.photoURL   || "../assets/images/anon_avatar.jpg";
-      updateProfileUI(userData, user.email);
-      loadUserPosts(user.uid);
+    try {
+      const userSnap = await getDoc(userDocRef);
+      if (userSnap.exists()) {
+        const userData = userSnap.data();
+        
+        // Sync global USER object
+        USER.name     = userData.fullName || user.displayName || "TUPian";
+        USER.photoSrc = userData.photoURL || user.photoURL   || "../assets/images/anon_avatar.jpg";
+        
+        // Update Cache
+        const cache = {
+          ...userData,
+          email: user.email,
+          uid: user.uid
+        };
+        localStorage.setItem('tup_user_meta', JSON.stringify(cache));
+
+        // Update UI with fresh data
+        updateProfileUI(userData, user.email);
+      }
+    } catch(err) {
+      console.error("Profile fetch error:", err);
     }
   } else {
     window.location.href = "../index.html";
@@ -97,7 +136,22 @@ function updateProfileUI(userData, email) {
 
   const modalAvatarEl = document.getElementById('modal-avatar');
   if (modalAvatarEl && userData.photoURL) {
-    modalAvatarEl.innerHTML = `<img src="${userData.photoURL}" alt="Me" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+    modalAvatarEl.innerHTML = `<img src="${userData.photoURL}" alt="Me" style="width:100%;height:100%;object-fit:cover;border-radius:50%;image-rendering:high-quality;">`;
+  }
+
+  // Update all "Write a comment" avatars in the feed
+  document.querySelectorAll('.comment-input-row .comment-avatar img').forEach(img => {
+      if (userData.photoURL) img.src = userData.photoURL;
+  });
+
+  // Also ensure sidebar avatar is updated if present
+  const sidebarAvatarWrap = document.getElementById('sidebar-avatar-wrap');
+  if (sidebarAvatarWrap) {
+    const sideAv = sidebarAvatarWrap.querySelector('img') || sidebarAvatarWrap.querySelector('.nav-profile-avatar');
+    if (sideAv) {
+       if (sideAv.tagName === 'IMG') sideAv.src = userData.photoURL;
+       else sideAv.innerHTML = `<img src="${userData.photoURL}" style="width:100%; height:100%; object-fit:cover; border-radius:50%; image-rendering:high-quality;">`;
+    }
   }
 
   const modalNameEl = document.getElementById('modal-user-name');
@@ -141,14 +195,14 @@ document.getElementById('profilePhotoInput').addEventListener('change', async fu
   const file = e.target.files[0];
   if (!file) return;
   document.getElementById('changePhotoDropdown').classList.remove('open');
-  const base64 = await compressImage(file, 400, 400);
+  const base64 = await compressImage(file, 800, 800);
   updateUserPhotosInFirebase('photoURL', base64);
 });
 
 document.getElementById('coverPhotoInput').addEventListener('change', async function (e) {
   const file = e.target.files[0];
   if (!file) return;
-  const base64 = await compressImage(file, 800, 400);
+  const base64 = await compressImage(file, 1920, 640);
   updateUserPhotosInFirebase('coverURL', base64);
 });
 
@@ -185,7 +239,7 @@ async function updateUserPhotosInFirebase(field, base64String) {
       const anonToggle = document.getElementById('anonToggle');
       if (anonToggle && !anonToggle.checked) {
         const modalAvatarEl = document.getElementById('modal-avatar');
-        if (modalAvatarEl) modalAvatarEl.innerHTML = `<img src="${imgSrc}" alt="Me" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+        if (modalAvatarEl) modalAvatarEl.innerHTML = `<img src="${imgSrc}" alt="Me" style="width:100%;height:100%;object-fit:cover;border-radius:50%;image-rendering:high-quality;">`;
       }
 
       document.querySelectorAll('.post-card').forEach(card => {
@@ -256,23 +310,41 @@ function getTemplate(id) {
   return div.innerHTML;
 }
 
-function formatRelativeTime(date) {
+function formatRelativeTime(dateObj) {
+  if (!dateObj) return 'Just now';
+  
   const now = new Date();
-  const diffMs = now - date;
-  const diffSec = Math.floor(diffMs / 1000);
-  const diffMin = Math.floor(diffSec / 60);
-  const diffHour = Math.floor(diffMin / 60);
-  const diffDay = Math.floor(diffHour / 24);
+  const diffMs = now - dateObj;
+  const diffSecs = Math.floor(diffMs / 1000);
+  const diffMins = Math.floor(diffSecs / 60);
+  const diffHours = Math.floor(diffMins / 60);
 
-  if (diffSec < 60) return 'Just now';
-  if (diffMin < 60) return `${diffMin} minute${diffMin > 1 ? 's' : ''} ago`;
-  if (diffHour < 24) return `${diffHour} hour${diffHour > 1 ? 's' : ''} ago`;
-  if (diffDay < 7) return `${diffDay} day${diffDay > 1 ? 's' : ''} ago`;
+  const isToday = now.toDateString() === dateObj.toDateString();
+  const yesterday = new Date(now);
+  yesterday.setDate(yesterday.getDate() - 1);
+  const isYesterday = yesterday.toDateString() === dateObj.toDateString();
 
-  // For older, return formatted date
-  return date.toLocaleDateString('en-US', {
-    month: 'short', day: 'numeric', year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined
-  });
+  if (isToday) {
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins} min${diffMins > 1 ? 's' : ''} ago`;
+    return `${diffHours} hr${diffHours > 1 ? 's' : ''} ago`;
+  }
+
+  const timeOptions = { hour: 'numeric', minute: '2-digit', hour12: true };
+  const timeString = dateObj.toLocaleTimeString('en-US', timeOptions);
+
+  if (isYesterday) {
+    return `Yesterday at ${timeString}`;
+  }
+
+  const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const month = monthNames[dateObj.getMonth()];
+  const day = dateObj.getDate();
+
+  if (now.getFullYear() === dateObj.getFullYear()) {
+    return `${month} ${day} at ${timeString}`;
+  }
+  return `${month} ${day}, ${dateObj.getFullYear()} at ${timeString}`;
 }
 
 function escapeHTML(str) {
@@ -330,15 +402,11 @@ function renderPost(data, postId) {
   if (data.repostOf) {
     // Repost
     bodyHtml = `
-      <div class="repost-label">
-        <svg viewBox="0 0 24 24" class="repost-label-icon"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg> 
-        ${data.userId === auth.currentUser?.uid ? 'You' : data.author} Reposted
-        </div>
       ${data.text ? `<div class="repost-quote-text">${data.text}</div>` : ''}
       <div class="repost-quote-card">
         <div class="repost-quote-header">
           <div class="repost-quote-avatar">
-            <img src="${data.repostAuthorPhoto || '../assets/images/anon_avatar.jpg'}" alt="${data.repostAuthor}">
+            <img src="${data.repostAuthorPhoto || '../assets/images/anon_avatar.jpg'}" alt="${data.repostAuthor}" style="image-rendering: high-quality;">
           </div>
           <div class="repost-quote-meta">
             <div class="repost-quote-author">${data.repostAuthor}</div>
@@ -346,10 +414,10 @@ function renderPost(data, postId) {
           </div>
         </div>
         <div class="repost-quote-body">${data.repostText}</div>
-        ${data.repostImage ? `<div class="post-images" style="display:flex; justify-content:center; align-items:center; text-align: center;"><img src="${data.repostImage}" style="max-width: 100%; height: auto;"></div>` : ''}
+        ${data.repostImage ? `<div class="post-images" style="display:flex; justify-content:center; align-items:center; text-align: center;"><img src="${data.repostImage}" class="post-image" style="image-rendering: high-quality;"></div>` : ''}
       </div>`;
   } else {
-    bodyHtml = `${data.text ? `<div class="post-body">${data.text}</div>` : ''}${data.imageURL ? `<div class="post-images" style="display:flex; justify-content:center; align-items:center;"><img src="${data.imageURL}" style="max-width: 100%; height: auto; object-fit: cover;"></div>` : ''}`;
+    bodyHtml = `${data.text ? `<div class="post-body">${data.text}</div>` : ''}${data.imageURL ? `<div class="post-images" style="display:flex; justify-content:center; align-items:center;"><img src="${data.imageURL}" class="post-image"></div>` : ''}`;
   }
 
   postCard.innerHTML = `
@@ -358,7 +426,11 @@ function renderPost(data, postId) {
         <img src="${data.photoURL || '../assets/images/anon_avatar.jpg'}" alt="Avatar">
       </div>
       <div class="post-meta">
-        <div class="post-author">${data.author || "TUPian"}</div>
+        <div class="post-author">
+          ${data.repostOf ? `<svg viewBox="0 0 24 24" style="width:12px; height:12px; stroke:var(--muted); fill:none; stroke-width:2.5; stroke-linecap:round; stroke-linejoin:round; vertical-align:middle; margin-right:4px; margin-top:-2px;"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>` : ''}
+          ${data.author || "TUPian"}
+          ${data.repostOf ? `<span style="font-weight:600; color:var(--muted); font-size: 13px; margin-left: 4px;">reposted</span>` : ''}
+        </div>
         <div class="post-time">${formatRelativeTime(data.createdAt.toDate())}</div>
       </div>
       <button class="post-menu" onclick="toggleMenu(event, '${menuId}')">
@@ -606,16 +678,28 @@ document.addEventListener('click', () => {
 });
 
 // ========================
-// DELETE POST
-// ========================
 async function deletePost(e) {
+  if (!confirm('Are you sure you want to delete this post?')) return;
+
   const card = e.target.closest('.post-card');
   const postId = card.dataset.id;
   const user = auth.currentUser;
   if (!user) return;
 
   try {
-    await deleteDoc(doc(db, "posts", postId));
+    const postRef = doc(db, "posts", postId);
+    const snap = await getDoc(postRef);
+    if (snap.exists()) {
+      const data = snap.data();
+      if (data.repostOf) {
+        const originalRef = doc(db, "posts", data.repostOf);
+        await updateDoc(originalRef, {
+          repostedBy: arrayRemove(user.uid)
+        });
+      }
+    }
+
+    await deleteDoc(postRef);
     card.style.transition = 'opacity 0.28s, transform 0.28s';
     card.style.opacity    = '0';
     card.style.transform  = 'scale(0.93)';
@@ -825,18 +909,20 @@ function buildCommentModalItem(author, avatar, text, time, isOwn, cIdx, userId =
         </button>
         <button class="comment-edit-cancel" data-comment="${cIdx}">✕</button>
       </div>
-      <div class="comment-modal-item-time" data-timestamp="${time}">${formatRelativeTime(new Date(time))}</div>
-      ${isOwn ? `
-      <div class="comment-item-actions">
-        <button class="comment-action-btn edit-btn" data-comment="${cIdx}">
-          <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-          Edit
-        </button>
-        <button class="comment-action-btn delete-btn" data-comment="${cIdx}">
-          <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
-          Delete
-        </button>
-      </div>` : ''}
+      <div class="comment-footer">
+        <div class="comment-modal-item-time" data-timestamp="${time}">${formatRelativeTime(new Date(time))}</div>
+        ${isOwn ? `
+        <div class="comment-item-actions">
+          <button class="comment-action-btn edit-btn" data-comment="${cIdx}">
+            <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            Edit
+          </button>
+          <button class="comment-action-btn delete-btn" data-comment="${cIdx}">
+            <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+            Delete
+          </button>
+        </div>` : ''}
+      </div>
     </div>`;
   return item;
 }
@@ -1014,14 +1100,21 @@ function updateFeedCommentPreview(card) {
       const ref = card.querySelector('.view-comments') || card.querySelector('.comment-input-row');
       card.insertBefore(preview, ref);
     }
+    
+    // Live override for current user's comments
+    const currentUID = auth.currentUser?.uid;
+    const isOwn = latest.dataset.userId === currentUID;
+    const displayName = isOwn ? (USER.name || "TUPian") : latest.dataset.author;
+    const displayAvatar = isOwn ? (USER.photoSrc || '../assets/images/anon_avatar.jpg') : latest.dataset.avatar;
+
     preview.innerHTML = `
-      <div class="comment-modal-item" data-user-id="${latest.dataset.userId || ''}">
+      <div class="comment-modal-item" data-user-id="${latest.dataset.userId || ''}" style="cursor: pointer;" onclick="scrollToTop()">
         <div class="comment-modal-item-avatar">
-          <img src="${latest.dataset.avatar}" alt="${escapeHTML(latest.dataset.author)}" onerror="this.parentElement.textContent='👤'">
+          <img src="${displayAvatar}" alt="${escapeHTML(displayName)}" style="image-rendering: high-quality;" onerror="this.parentElement.textContent='👤'">
         </div>
         <div class="comment-modal-item-content">
           <div class="comment-modal-item-bubble">
-            <div class="comment-modal-item-author">${escapeHTML(latest.dataset.author)}</div>
+            <div class="comment-modal-item-author" style="cursor: pointer;">${escapeHTML(displayName)}</div>
             <div class="comment-modal-item-text">${escapeHTML(latest.dataset.text)}</div>
           </div>
           <div class="comment-modal-item-time" data-timestamp="${latest.dataset.time}">${formatRelativeTime(new Date(latest.dataset.time))}</div>
@@ -1030,6 +1123,10 @@ function updateFeedCommentPreview(card) {
   } else if (preview) {
     preview.remove();
   }
+}
+
+function scrollToTop() {
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 // ========================

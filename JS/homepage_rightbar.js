@@ -27,7 +27,7 @@ onAuthStateChanged(auth, async (user) => {
 
         const navAvatarWrap = document.getElementById('nav-profile-avatar');
         if (navAvatarWrap && userData.photoURL) {
-          navAvatarWrap.innerHTML = `<img src="${userData.photoURL}" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">`;
+          navAvatarWrap.innerHTML = `<img src="${userData.photoURL}" style="width:100%; height:100%; object-fit:cover; border-radius:50%; image-rendering: high-quality;">`;
         }
 
         const nameEl = document.getElementById('profile-name');
