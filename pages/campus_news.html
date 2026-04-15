@@ -4,276 +4,16 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=1280, initial-scale=1.0"/>
   <title>TUP Konek – Campus News</title>
-  <style>html,body{ background:#FFF4E7!important }</style>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,400;0,600;0,700;0,800;0,900;1,700&family=Playfair+Display:ital,wght@0,700;1,500&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="../CSS/navbar.css"/>
   <link rel="stylesheet" href="../CSS/guest.css"/>
-  <style>
-
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    body {
-      font-family: 'Montserrat', sans-serif;
-      background: #FFF4E7;
-      color: #2a1a1a;
-      min-height: 100vh;
-      display: flex;
-      overflow-x: hidden;
-      min-width: 1280px;
-    }
-
-    .main {
-      margin-left: 128px;
-      flex: 1;
-      display: flex;
-      min-height: 100vh;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .side-tabs {
-      position: fixed;
-      right: 28px;
-      top: 50%;
-      transform: translateY(-50%);
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      z-index: 50;
-    }
-
-    .side-tab {
-      writing-mode: vertical-rl;
-      text-orientation: mixed;
-      transform: rotate(180deg);
-      padding: 20px 14px;
-      border-radius: 50px;
-      font-size: 12px;
-      font-weight: 800;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      cursor: default;
-      border: 2px solid rgba(107,26,26,0.15);
-      background: rgba(255,255,255,0.6);
-      color: #b08080;
-      backdrop-filter: blur(10px);
-      transition: all 0.3s ease;
-      position: relative;
-      overflow: hidden;
-      user-select: none;
-    }
-
-    .side-tab.active {
-      background: #6B1A1A;
-      color: #FFF4E7;
-      border-color: #6B1A1A;
-      box-shadow: 0 8px 28px rgba(107,26,26,0.35);
-    }
-
-    .side-tab .soon-pip {
-      position: absolute;
-      top: 8px;
-      right: 50%;
-      transform: translateX(50%);
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: #C9A84C;
-      animation: pip 2s ease-in-out infinite;
-    }
-
-    @keyframes pip {
-      0%,100% { opacity: 1; transform: translateX(50%) scale(1); }
-      50%      { opacity: 0.4; transform: translateX(50%) scale(0.7); }
-    }
-
-    .content {
-      flex: 1;
-      padding: 48px 100px 48px 40px;
-      display: flex;
-      flex-direction: column;
-      gap: 0;
-      max-width: calc(100vw - 228px);
-    }
-
-    .page-label {
-      font-size: 11px;
-      font-weight: 800;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-      color: #b08080;
-      margin-bottom: 10px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .page-label::before {
-      content: '';
-      display: inline-block;
-      width: 28px;
-      height: 2px;
-      background: #6B1A1A;
-      border-radius: 2px;
-    }
-
-    .hero-wrap { position: relative; margin-bottom: 52px; }
-
-    .hero-title {
-      font-family: 'Playfair Display', serif;
-      font-size: 72px;
-      font-weight: 700;
-      line-height: 1.0;
-      color: #2a1a1a;
-      margin-bottom: 6px;
-    }
-    .hero-title em {
-      font-style: italic;
-      font-weight: 500;
-      color: #6B1A1A;
-    }
-
-    .hero-sub {
-      font-size: 15px;
-      font-weight: 500;
-      color: #9b7070;
-      line-height: 1.7;
-      max-width: 520px;
-      margin-top: 18px;
-      margin-bottom: 32px;
-    }
-
-    .soon-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      background: #6B1A1A;
-      color: #FFF4E7;
-      font-size: 11px;
-      font-weight: 800;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      padding: 8px 18px;
-      border-radius: 99px;
-      margin-bottom: 24px;
-      animation: badgePulse 3s ease-in-out infinite;
-    }
-    .soon-badge-dot {
-      width: 7px; height: 7px;
-      border-radius: 50%;
-      background: #C9A84C;
-      animation: pip 1.5s ease-in-out infinite;
-    }
-    @keyframes badgePulse {
-      0%,100% { box-shadow: 0 0 0 0 rgba(107,26,26,0); }
-      50%      { box-shadow: 0 0 0 8px rgba(107,26,26,0.12); }
-    }
-
-    .divider {
-      width: 100%;
-      height: 1.5px;
-      background: linear-gradient(90deg, rgba(107,26,26,0.2), transparent);
-      margin-bottom: 44px;
-    }
-
-    .features-label {
-      font-size: 11px;
-      font-weight: 800;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      color: #b08080;
-      margin-bottom: 20px;
-    }
-
-    .features-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 18px;
-      max-width: 780px;
-    }
-
-    .feat-card {
-      background: rgba(255,255,255,0.7);
-      border: 1.5px solid rgba(107,26,26,0.1);
-      border-radius: 20px;
-      padding: 24px 26px;
-      backdrop-filter: blur(10px);
-      position: relative;
-      overflow: hidden;
-      transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
-    }
-    .feat-card::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 3px;
-      background: linear-gradient(90deg, #6B1A1A, #8B2A2A);
-      opacity: 0;
-      transition: opacity 0.25s ease;
-    }
-    .feat-card:hover { transform: translateY(-4px); box-shadow: 0 12px 36px rgba(107,26,26,0.12); border-color: rgba(107,26,26,0.2); }
-    .feat-card:hover::before { opacity: 1; }
-    .feat-card.wide { grid-column: 1 / -1; }
-
-    .feat-icon {
-      width: 44px; height: 44px;
-      border-radius: 12px;
-      background: rgba(107,26,26,0.08);
-      display: flex; align-items: center; justify-content: center;
-      margin-bottom: 16px;
-    }
-
-    .feat-title { font-size: 15px; font-weight: 800; color: #2a1a1a; margin-bottom: 7px; }
-    .feat-desc  { font-size: 13px; font-weight: 500; color: #9b7070; line-height: 1.65; }
-
-    .mini-tabs  { display: flex; gap: 8px; margin-top: 16px; }
-    .mini-tab   { padding: 6px 14px; border-radius: 99px; font-size: 11px; font-weight: 700; letter-spacing: 0.04em; }
-    .mini-tab.active   { background: #6B1A1A; color: #FFF4E7; }
-    .mini-tab.inactive { background: rgba(107,26,26,0.08); color: #9b7070; }
-
-    .mock-posts { margin-top: 16px; display: flex; flex-direction: column; gap: 10px; }
-    .mock-post  { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: rgba(255,244,231,0.8); border-radius: 10px; border: 1px solid rgba(107,26,26,0.08); }
-    .mock-avatar { width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0; }
-    .mock-lines  { flex: 1; display: flex; flex-direction: column; gap: 5px; }
-    .mock-line   { height: 8px; border-radius: 99px; background: rgba(107,26,26,0.1); }
-    .mock-line.short { width: 40%; }
-    .mock-line.long  { width: 75%; }
-    .mock-line.name  { width: 30%; background: rgba(107,26,26,0.2); }
-
-    .mock-announcement { margin-top: 16px; padding: 14px 16px; background: rgba(107,26,26,0.05); border-left: 3px solid #6B1A1A; border-radius: 0 10px 10px 0; }
-    .mock-ann-title    { font-size: 12px; font-weight: 800; color: #6B1A1A; margin-bottom: 6px; }
-    .mock-ann-lines    { display: flex; flex-direction: column; gap: 5px; }
-
-    .feat-lock { position: absolute; bottom: 16px; right: 16px; width: 28px; height: 28px; border-radius: 50%; background: rgba(107,26,26,0.08); display: flex; align-items: center; justify-content: center; }
-
-    .deco-circle { position: fixed; border-radius: 50%; pointer-events: none; z-index: 0; }
-    .deco-1 { width: 500px; height: 500px; top: -120px; right: 80px; background: radial-gradient(circle, rgba(107,26,26,0.06) 0%, transparent 70%); }
-    .deco-2 { width: 300px; height: 300px; bottom: 40px; left: 200px; background: radial-gradient(circle, rgba(201,168,76,0.07) 0%, transparent 70%); }
-
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(20px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-    .anim-1 { animation: fadeUp 0.5s ease both; }
-    .anim-2 { animation: fadeUp 0.5s 0.08s ease both; }
-    .anim-3 { animation: fadeUp 0.5s 0.16s ease both; }
-    .anim-4 { animation: fadeUp 0.5s 0.24s ease both; }
-    .anim-5 { animation: fadeUp 0.5s 0.32s ease both; }
-
-    .ask-me-wrap { position: fixed; right: -30px; bottom: -30px; cursor: pointer; animation: float 2.5s ease-in-out infinite; z-index: 99; pointer-events: none; }
-    .ask-me-img  { width: 200px; height: 200px; object-fit: contain; }
-    @keyframes float {
-      0%, 100% { transform: translateY(0); }
-      50%       { transform: translateY(-8px); }
-    }
-
-  </style>
+  <link rel="stylesheet" href="../CSS/campus_news.css"/>
 </head>
 <body>
 
   <div class="deco-circle deco-1"></div>
   <div class="deco-circle deco-2"></div>
 
-  <!-- SIDEBAR -->
   <aside class="sidebar">
     <div class="sidebar-logo">
       <img src="../assets/images/logo.png" class="TUP-Konek-logo" alt="TUP Konek">
@@ -298,116 +38,162 @@
     </div>
   </aside>
 
-  <!-- RIGHT TABS -->
   <div class="side-tabs">
-    <div class="side-tab active">Org Feed</div>
-    <div class="side-tab"><span class="soon-pip"></span>Bulletin Board</div>
+    <div class="side-tab" id="tab-org" data-section="org">Org Feed</div>
+    <div class="side-tab active" id="tab-bulletin" data-section="bulletin">Bulletin Board</div>
   </div>
 
-  <!-- MAIN -->
   <div class="main">
     <div class="content">
 
-      <div class="page-label anim-1">Campus News</div>
+      <section class="section-panel hidden" id="section-org">
+        <div class="page-label anim-1">Campus News</div>
+        <div class="hero-wrap anim-2">
+          <h1 class="hero-title">Organization <em>Feed</em></h1>
+          <p class="hero-sub">Stay updated with your student orgs — events, announcements, and more.</p>
+        </div>
+        <div class="org-tabs anim-3">
+          <button class="org-tab active" data-college="my">My College (COS)</button>
+          <button class="org-tab" data-college="all">All Colleges</button>
+        </div>
+        <div class="org-feed-list anim-4" id="org-feed-list">
+          <div class="empty-state" id="org-empty">
+            <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            <p>No org posts yet.</p>
+          </div>
+        </div>
+      </section>
 
-      <div class="hero-wrap anim-2">
-        <div class="soon-badge"><span class="soon-badge-dot"></span>Coming Soon</div>
-        <h1 class="hero-title">Stay in the<br><em>loop.</em></h1>
-        <p class="hero-sub">Campus News is being cooked up — a space where your orgs, colleges, and the University Student Government all speak directly to you. Here's a sneak peek at what's coming.</p>
+      <section class="section-panel" id="section-bulletin">
+
+        <div class="bulletin-header anim-1">
+          <div>
+            <h1 class="hero-title">Official <em>Announcements</em></h1>
+          </div>
+        </div>
+
+        <div class="cn-search-wrap anim-2">
+          <div class="cn-search-bar">
+            <svg viewBox="0 0 24 24" class="cn-search-icon"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" id="cn-search-input" class="cn-search-input" placeholder="Search announcements…"/>
+          </div>
+          <div class="cn-filter-wrap">
+            <button class="cn-filter-btn" id="cn-filter-btn" title="Filter by date">
+              <span class="cn-filter-label">Filter Posts</span>
+              <span class="cn-filter-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                  <line x1="16" y1="2" x2="16" y2="6"/>
+                  <line x1="8" y1="2" x2="8" y2="6"/>
+                  <line x1="3" y1="10" x2="21" y2="10"/>
+                </svg>
+              </span>
+            </button>
+            </div>
+        </div>
+
+        <div class="bulletin-section-label anim-3" id="pinned-label" style="display:none;">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="#6B1A1A"><path d="M16 2H8a1 1 0 0 0-.7 1.71L9 5.41V11l-2.7 2.7A1 1 0 0 0 7 15h4v6l1 1 1-1v-6h4a1 1 0 0 0 .71-1.71L15 11V5.41l1.71-1.7A1 1 0 0 0 16 2z"/></svg>
+          Pinned Announcement
+        </div>
+        <div id="pinned-post-slot" class="anim-3"></div>
+
+        <div class="bulletin-section-label anim-4" id="all-announcements-label">All Announcements</div>
+        <div class="bulletin-feed anim-4" id="bulletin-feed">
+          <div class="empty-state" id="bulletin-empty">
+            <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            <p>No announcements yet.</p>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+
+  <aside class="cn-right-panel">
+
+    <div class="profile-card">
+      <div class="profile-card-top">
+        <div class="profile-name"  id="cn-profile-name"></div>
+        <div class="profile-email" id="cn-profile-email"></div>
       </div>
-
-      <div class="divider anim-3"></div>
-      <div class="features-label anim-3">What's inside</div>
-
-      <div class="features-grid">
-
-        <div class="feat-card wide anim-4">
-          <div style="display:flex;align-items:flex-start;gap:16px;">
-            <div class="feat-icon">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6B1A1A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
-                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-              </svg>
-            </div>
-            <div style="flex:1;">
-              <div class="feat-title">Organization Feed</div>
-              <div class="feat-desc">Posts from student orgs — events, updates, announcements. Two tabs: your college's orgs, and the whole university.</div>
-              <div class="mini-tabs">
-                <div class="mini-tab active">My College (COS)</div>
-                <div class="mini-tab inactive">All Colleges</div>
-              </div>
-              <div class="mock-posts">
-                <div class="mock-post">
-                  <img class="mock-avatar" src="https://api.dicebear.com/7.x/shapes/svg?seed=cos&backgroundColor=6B1A1A" alt="">
-                  <div class="mock-lines"><div class="mock-line name"></div><div class="mock-line long"></div><div class="mock-line short"></div></div>
-                </div>
-                <div class="mock-post">
-                  <img class="mock-avatar" src="https://api.dicebear.com/7.x/shapes/svg?seed=dev&backgroundColor=4a1010" alt="">
-                  <div class="mock-lines"><div class="mock-line name"></div><div class="mock-line long" style="width:60%"></div><div class="mock-line short" style="width:35%"></div></div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="feat-lock">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#6B1A1A" stroke-width="2.5" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-          </div>
+      <hr class="profile-divider"/>
+      <div class="profile-photo-wrap">
+        <div class="profile-photo-ph" id="cn-profile-photo-wrap">
+          <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
         </div>
+      </div>
+      <div class="profile-id" id="cn-profile-id">—</div>
+    </div>
 
-        <div class="feat-card anim-5">
-          <div class="feat-icon">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6B1A1A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-              <polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
-            </svg>
-          </div>
-          <div class="feat-title">Bulletin Board</div>
-          <div class="feat-desc">Official announcements from Admin and the USG. Pinned, important, and always visible to every student.</div>
-          <div class="mock-announcement">
-            <div class="mock-ann-title">📌 USG General Assembly</div>
-            <div class="mock-ann-lines">
-              <div class="mock-line long" style="background:rgba(107,26,26,0.15)"></div>
-              <div class="mock-line short" style="background:rgba(107,26,26,0.1)"></div>
-            </div>
-          </div>
-          <div class="feat-lock">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#6B1A1A" stroke-width="2.5" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-          </div>
+    <div class="quick-card">
+      <div class="quick-title">Links</div>
+      <div class="cn-links-list">
+        <div class="cn-link-item">
+          <span class="cn-link-label">Website:</span>
+          <a href="https://www.tup.edu.ph" target="_blank" class="cn-link-val">www.tup.edu.ph</a>
         </div>
-
-        <div class="feat-card anim-5">
-          <div class="feat-icon">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6B1A1A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-            </svg>
-          </div>
-          <div class="feat-title">College-Based Feed</div>
-          <div class="feat-desc">Your college is detected from your registration. Your feed defaults to orgs in your college — but you can always explore all.</div>
-          <div style="margin-top:14px;display:flex;flex-direction:column;gap:6px;">
-            <div style="display:flex;align-items:center;gap:8px;">
-              <div style="width:8px;height:8px;border-radius:50%;background:#6B1A1A;flex-shrink:0;"></div>
-              <span style="font-size:12px;font-weight:600;color:#9b7070;">Registered college auto-detected</span>
-            </div>
-            <div style="display:flex;align-items:center;gap:8px;">
-              <div style="width:8px;height:8px;border-radius:50%;background:#C9A84C;flex-shrink:0;"></div>
-              <span style="font-size:12px;font-weight:600;color:#9b7070;">Browse outside your college anytime</span>
-            </div>
-          </div>
-          <div class="feat-lock">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#6B1A1A" stroke-width="2.5" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-          </div>
+        <div class="cn-link-item">
+          <span class="cn-link-label">Student Portal:</span>
+          <a href="https://ers.tup.edu.ph/aims/students" target="_blank" class="cn-link-val">ers.tup.edu.ph/aims/students</a>
         </div>
+        <div class="cn-link-item">
+          <span class="cn-link-label">Applicants Portal:</span>
+          <a href="https://ers.tup.edu.ph/aims/applicants" target="_blank" class="cn-link-val">ers.tup.edu.ph/aims/applicants</a>
+        </div>
+      </div>
+    </div>
 
+    <div class="quick-card">
+      <div class="quick-title">Quick Actions</div>
+      <button class="quick-btn" id="cn-btn-settings">
+        <span class="quick-btn-icon">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        </span>
+        <span class="quick-btn-label">Settings</span>
+        <span class="quick-btn-arrow">→</span>
+      </button>
+      <button class="quick-btn" id="cn-btn-logout">
+        <span class="quick-btn-icon">
+          <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        </span>
+        <span class="quick-btn-label">Logout</span>
+      </button>
+    </div>
+
+  </aside>
+
+  <div class="comment-modal-overlay hidden" id="cn-comment-modal-overlay">
+    <div class="comment-modal" id="cn-comment-modal">
+      <div class="comment-modal-header">
+        <span class="comment-modal-title">Comments</span>
+        <button class="comment-modal-close" id="cn-comment-modal-close">✕</button>
+      </div>
+      <div class="comment-list" id="cn-comment-list"></div>
+      <div class="comment-input-row">
+        <div class="comment-input-avatar" id="comment-input-avatar">
+          <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        </div>
+        <div class="comment-input-wrap">
+          <input class="comment-input-field" id="cn-comment-input-field" placeholder="Share your thoughts..." maxlength="500"/>
+          <button class="comment-send-btn" id="cn-comment-send-btn">
+            <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </button>
+        </div>
       </div>
     </div>
   </div>
 
+  <div id="cn-toast" class="cn-toast"></div>
+
   <div class="ask-me-wrap">
-    <img src="../assets/images/Tupee.png" class="ask-me-img">
+    <img src="../assets/images/Tupee.png" class="ask-me-img" alt="Tupee">
   </div>
 
   <script src="../JS/navbar.js"></script>
-  <script type="module" src="../JS/navbar_profile.js" ></script>
+  <script type="module" src="../JS/navbar_profile.js"></script>
   <script src="../JS/guest.js"></script>
+  <script type="module" src="../JS/campus_news.js"></script>
 
 </body>
 </html>
