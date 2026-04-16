@@ -369,15 +369,15 @@ function buildReactions(postId, likes = 0, comments = 0, reposts = 0, isLikedByM
     <div class="feed-reactions">
       <button class="feed-reaction-btn ${isLikedByMe ? 'heart-active' : ''}" data-id="${postId}" data-type="like">
         <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-        <span class="reaction-likes-count">${fmt(likes)}</span> Heart
+        <span class="likes-count">${fmt(likes)}</span> Heart
       </button>
       <button class="feed-reaction-btn" data-id="${postId}" data-type="comment">
         <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-        <span class="reaction-comments-count">${fmt(comments)}</span> Comment
+        <span class="comments-count">${fmt(comments)}</span> Comments
       </button>
       <button class="feed-reaction-btn" data-id="${postId}" data-type="repost">
         <svg viewBox="0 0 24 24"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
-        <span class="reaction-reposts-count">${fmt(reposts)}</span> Repost
+        <span class="reposts-count">${fmt(reposts)}</span> Repost
       </button>
     </div>`;
 }
@@ -556,6 +556,22 @@ function loadUserPosts(userId) {
       feedContainer.innerHTML = '<p class="no-posts">No posts found yet.</p>';
       return;
     }
+
+    const changes = snapshot.docChanges();
+    const isInitialLoad = !feedContainer.querySelector('.post-card');
+    const hasStructureChange = changes.some(c => c.type === 'added' || c.type === 'removed');
+
+    // If it's just a modification (like count change), update in place to avoid flicker
+    if (!isInitialLoad && !hasStructureChange) {
+      changes.forEach(change => {
+        if (change.type === 'modified') {
+          updatePostInPlace(change.doc.id, change.doc.data());
+        }
+      });
+      return;
+    }
+
+    // Full render for structure changes or initial load
     feedContainer.innerHTML = '';
     snapshot.forEach((d) => renderPost(d.data(), d.id));
 
@@ -576,50 +592,52 @@ function loadUserPosts(userId) {
   });
 }
 
+/**
+ * Updates a specific post's UI elements without re-rendering the whole card.
+ * Prevents flickering during likes/comments updates.
+ */
+function updatePostInPlace(postId, data) {
+  const card = document.querySelector(`.post-card[data-id="${postId}"]`);
+  if (!card) return;
+
+  const user = auth.currentUser;
+  const currentUid = user ? user.uid : null;
+
+  // 1. Update Likes
+  const likes = data.likedBy || [];
+  const isLikedByMe = currentUid && likes.includes(currentUid);
+  const likeBtn = card.querySelector('.feed-reaction-btn[data-type="like"]');
+  if (likeBtn) {
+    likeBtn.classList.toggle('heart-active', isLikedByMe);
+    const countSpan = likeBtn.querySelector('.likes-count');
+    if (countSpan) countSpan.textContent = fmt(likes.length);
+  }
+
+  // 2. Update Comments
+  const commentsCount = data.commentsCount || 0;
+  const commentBtn = card.querySelector('.feed-reaction-btn[data-type="comment"]');
+  if (commentBtn) {
+    const countSpan = commentBtn.querySelector('.comments-count');
+    if (countSpan) countSpan.textContent = fmt(commentsCount);
+  }
+
+  // 3. Update Reposts
+  const reposts = data.repostedBy || [];
+  const isRepostedByMe = currentUid && reposts.includes(currentUid);
+  const repostBtn = card.querySelector('.feed-reaction-btn[data-type="repost"]');
+  if (repostBtn) {
+    repostBtn.classList.toggle('repost-active', isRepostedByMe);
+    const countSpan = repostBtn.querySelector('.reposts-count');
+    if (countSpan) countSpan.textContent = fmt(reposts.length);
+  }
+  
+  // 4. Update specific data attributes and preview
+  updateFeedCommentPreview(card);
+}
+
 // ========================
 // LIKE TOGGLE → FIREBASE
 // ========================
-async function toggleLike(postId, btn) {
-  const user = auth.currentUser;
-  if (!user) return;
-
-  const postRef       = doc(db, "posts", postId);
-  const likeCountSpan = btn.querySelector('.reaction-likes-count');
-  const isLiking      = !btn.classList.contains('heart-active');
-
-  if (isLiking) {
-    const rect   = btn.getBoundingClientRect();
-    const cx     = rect.left + rect.width  / 2;
-    const cy     = rect.top  + rect.height / 2;
-    [0,45,90,135,180,225,270,315].forEach(angle => {
-      const p   = document.createElement('div');
-      p.className = 'heart-burst';
-      const rad  = angle * Math.PI / 180;
-      const dist = 28 + Math.random() * 14;
-      p.style.setProperty('--dx', `${Math.cos(rad) * dist}px`);
-      p.style.setProperty('--dy', `${Math.sin(rad) * dist}px`);
-      p.style.left = `${cx - 3}px`;
-      p.style.top  = `${cy - 3}px`;
-      document.body.appendChild(p);
-      setTimeout(() => p.remove(), 600);
-    });
-  }
-
-  try {
-    if (isLiking) {
-      btn.classList.add('heart-active');
-      await updateDoc(postRef, { likedBy: arrayUnion(user.uid) });
-      likeCountSpan.textContent = parseInt(likeCountSpan.textContent) + 1;
-    } else {
-      btn.classList.remove('heart-active');
-      await updateDoc(postRef, { likedBy: arrayRemove(user.uid) });
-      likeCountSpan.textContent = Math.max(0, parseInt(likeCountSpan.textContent) - 1);
-    }
-  } catch (error) {
-    console.error("Error toggling like:", error);
-    showToast("Failed to update like.");
-  }
-}
 
 // ========================
 // REPOST CLICK
@@ -996,7 +1014,7 @@ function bindCommentActions() {
           item.style.transform  = 'translateX(12px)';
           setTimeout(() => item.remove(), 200);
           if (cds[c]) cds[c].remove();
-          const countEl = _currentPostCard.querySelector('.reaction-comments-count');
+          const countEl = _currentPostCard.querySelector('.comments-count');
           if (countEl) countEl.textContent = Math.max(0, parseInt(countEl.textContent) - 1);
           updateFeedCommentPreview(_currentPostCard);
           showToast('Comment deleted.');
@@ -1076,7 +1094,7 @@ async function submitModalComment() {
     console.error('Failed to save comment:', error);
   }
 
-  const countEl = _currentPostCard.querySelector('.reaction-comments-count');
+  const countEl = _currentPostCard.querySelector('.comments-count');
   if (countEl) countEl.textContent = parseInt(countEl.textContent) + 1;
   updateFeedCommentPreview(_currentPostCard);
 
@@ -1200,7 +1218,7 @@ async function createRepost(btn, quote = '') {
       repostedBy: arrayUnion(user.uid)
     });
 
-    const countSpan = btn.querySelector('.reaction-reposts-count');
+    const countSpan = btn.querySelector('.reposts-count');
     if (countSpan) countSpan.textContent = fmt(parseInt(countSpan.textContent || '0') + 1);
     btn.lastChild.textContent = ' Reposted';
 
@@ -1446,13 +1464,9 @@ document.getElementById('feed').addEventListener('click', async (e) => {
       if (!isLiked) {
         await updateDoc(postRef, { likedBy: arrayUnion(user.uid) });
         btn.classList.add('heart-active');
-        const countEl = btn.querySelector('.reaction-likes-count');
-        if (countEl) countEl.textContent = parseInt(countEl.textContent) + 1;
       } else {
         await updateDoc(postRef, { likedBy: arrayRemove(user.uid) });
         btn.classList.remove('heart-active');
-        const countEl = btn.querySelector('.reaction-likes-count');
-        if (countEl) countEl.textContent = Math.max(0, parseInt(countEl.textContent) - 1);
       }
     } else if (type === 'comment') {
       openCommentModal(btn);

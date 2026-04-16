@@ -1213,29 +1213,30 @@ body {
 }
 
 @keyframes heartPop {
-  0% {
-    transform: scale(1);
-  }
-
-  30% {
-    transform: scale(1.5);
-  }
-
-  55% {
-    transform: scale(0.88);
-  }
-
-  75% {
-    transform: scale(1.18);
-  }
-
-  100% {
-    transform: scale(1);
-  }
+  0% { transform: scale(1); }
+  30% { transform: scale(1.5); }
+  55% { transform: scale(0.88); }
+  75% { transform: scale(1.2); }
+  100% { transform: scale(1); }
 }
 
 .feed-reaction-btn.heart-active svg {
   animation: heartPop .45s cubic-bezier(.36, .07, .19, .97) both;
+}
+
+/* ── REPOST ACTIVE ── */
+.feed-reaction-btn.repost-active {
+  color: #1a9e5c;
+}
+
+.feed-reaction-btn.repost-active svg {
+  stroke: #1a9e5c;
+  animation: repostSpin .4s ease both;
+}
+
+@keyframes repostSpin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
 .heart-burst {

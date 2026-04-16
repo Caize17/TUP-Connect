@@ -1,15 +1,15 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { 
-    getFirestore, 
-    collection, onSnapshot,
-    serverTimestamp, 
-    query, orderBy, increment,
-    doc, getDoc, addDoc, deleteDoc, updateDoc,
-    arrayUnion, arrayRemove
+import {
+  getFirestore,
+  collection, onSnapshot,
+  serverTimestamp,
+  query, orderBy, increment,
+  doc, getDoc, addDoc, deleteDoc, updateDoc,
+  arrayUnion, arrayRemove
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-import { 
-    getStorage, ref, uploadBytes, getDownloadURL 
+import {
+  getStorage, ref, uploadBytes, getDownloadURL
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
 const firebaseConfig = {
@@ -30,12 +30,12 @@ const auth = getAuth(app);
 const storage = getStorage(app);
 
 const imageInput = document.getElementById('modal-file-input');
-const imagePreview = document.getElementById('post-image-preview'); 
+const imagePreview = document.getElementById('post-image-preview');
 const addImageBtn = document.getElementById('modal-photo-btn');
 const closeBtn = document.getElementById('modal-close-btn');
 
 if (addImageBtn && imageInput) {
-  imageInput.addEventListener('change', function() {
+  imageInput.addEventListener('change', function () {
     const file = this.files[0];
     const attachments = document.getElementById('modal-attachments');
     const preview = document.getElementById('post-image-preview');
@@ -44,11 +44,11 @@ if (addImageBtn && imageInput) {
       const reader = new FileReader();
       reader.onload = (e) => {
         if (preview) {
-            preview.src = e.target.result;
-            preview.style.display = 'block';
+          preview.src = e.target.result;
+          preview.style.display = 'block';
         }
         if (attachments) {
-            attachments.style.display = 'block';
+          attachments.style.display = 'block';
         }
       };
       reader.readAsDataURL(file);
@@ -86,83 +86,83 @@ async function compressImage(file) {
 }
 
 async function getCompressedImageData(file) {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = (event) => {
-            const img = new Image();
-            img.onload = () => {
-                const canvas = document.createElement('canvas');
-                let width = img.width;
-                let height = img.height;
-                const MAX_WIDTH = 1600;
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+        const MAX_WIDTH = 1600;
 
-                if (width > MAX_WIDTH) {
-                    height *= MAX_WIDTH / width;
-                    width = MAX_WIDTH;
-                }
+        if (width > MAX_WIDTH) {
+          height *= MAX_WIDTH / width;
+          width = MAX_WIDTH;
+        }
 
-                canvas.width = width;
-                canvas.height = height;
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0, width, height);
-                resolve(canvas.toDataURL('image/jpeg', 0.88));
-            };
-            img.onerror = reject;
-            img.src = event.target.result;
-        };
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-    });
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL('image/jpeg', 0.88));
+      };
+      img.onerror = reject;
+      img.src = event.target.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
 }
 
-const submitBtn  = document.getElementById('modal-submit-btn');
+const submitBtn = document.getElementById('modal-submit-btn');
 const anonToggle = document.getElementById('modal-anon-toggle');
-const overlay    = document.getElementById('create-post-overlay');
+const overlay = document.getElementById('create-post-overlay');
 
-window.resetPostModal = function() {
-    const liveTextarea = document.getElementById('post-textarea');
-    const attachments = document.getElementById('modal-attachments');
-    const fileInput = document.getElementById('modal-file-input');
-    const anonToggle = document.getElementById('modal-anon-toggle');
+window.resetPostModal = function () {
+  const liveTextarea = document.getElementById('post-textarea');
+  const attachments = document.getElementById('modal-attachments');
+  const fileInput = document.getElementById('modal-file-input');
+  const anonToggle = document.getElementById('modal-anon-toggle');
 
-    if (liveTextarea) liveTextarea.value = '';
+  if (liveTextarea) liveTextarea.value = '';
 
-    if (fileInput) fileInput.value = ""; 
+  if (fileInput) fileInput.value = "";
 
-    if (attachments) {
-        attachments.innerHTML = '';
-        attachments.style.display = 'none';
-    }
+  if (attachments) {
+    attachments.innerHTML = '';
+    attachments.style.display = 'none';
+  }
 
-    if (anonToggle) {
-        anonToggle.checked = false;
-    }
+  if (anonToggle) {
+    anonToggle.checked = false;
+  }
 
-    if (typeof updatePostBox === 'function' && currentProfile) {
-        updatePostBox(currentProfile.name, currentProfile.photo);
-    }
+  if (typeof updatePostBox === 'function' && currentProfile) {
+    updatePostBox(currentProfile.name, currentProfile.photo);
+  }
 };
 
 async function uploadPostToFirestore(text, imageData, isAnonymous) {
-    const user = auth.currentUser;
-    let name = currentProfile.name;
-    let photo = currentProfile.photo;
+  const user = auth.currentUser;
+  let name = currentProfile.name;
+  let photo = currentProfile.photo;
 
-    if (isAnonymous) {
-        name = "Anonymous Puto";
-        photo = "../assets/images/anon_avatar.jpg";
-    }
+  if (isAnonymous) {
+    name = "Anonymous Puto";
+    photo = "../assets/images/anon_avatar.jpg";
+  }
 
-    return await addDoc(collection(db, "posts"), {
-        text: text,
-        imageURL: imageData,
-        userId: user?.uid || "unknown",
-        author: name,
-        photoURL: photo,
-        isAnonymous: isAnonymous,
-        createdAt: serverTimestamp(),
-        likes: 0
-    });
+  return await addDoc(collection(db, "posts"), {
+    text: text,
+    imageURL: imageData,
+    userId: user?.uid || "unknown",
+    author: name,
+    photoURL: photo,
+    isAnonymous: isAnonymous,
+    createdAt: serverTimestamp(),
+    likes: 0
+  });
 }
 
 /**
@@ -170,16 +170,16 @@ async function uploadPostToFirestore(text, imageData, isAnonymous) {
  * @param {boolean} isOpen - true to open, false to close
  */
 function setModalSelection(isOpen) {
-    const overlay = document.getElementById('create-post-overlay');
-    if (!overlay) return;
-    
-    if (isOpen) {
-        overlay.classList.add('open');
-        setTimeout(() => document.getElementById('post-textarea')?.focus(), 100);
-    } else {
-        overlay.classList.remove('open');
-        resetPostModal(); 
-    }
+  const overlay = document.getElementById('create-post-overlay');
+  if (!overlay) return;
+
+  if (isOpen) {
+    overlay.classList.add('open');
+    setTimeout(() => document.getElementById('post-textarea')?.focus(), 100);
+  } else {
+    overlay.classList.remove('open');
+    resetPostModal();
+  }
 }
 
 if (submitBtn) {
@@ -206,9 +206,9 @@ if (submitBtn) {
       }
 
       await uploadPostToFirestore(text, finalImageData, isAnon);
- 
-      setModalSelection(false); 
-      
+
+      setModalSelection(false);
+
     } catch (err) {
       console.error("❌ Post Error:", err);
       alert("Failed to post: " + err.message);
@@ -229,7 +229,7 @@ onAuthStateChanged(auth, async (user) => {
 
     if (postBoxNameEl) postBoxNameEl.textContent = name;
 
-    const imgHTML = photo 
+    const imgHTML = photo
       ? `<img src="${photo}" alt="${name}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`
       : `<svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`;
 
@@ -239,7 +239,7 @@ onAuthStateChanged(auth, async (user) => {
 
   currentProfile.name = user.displayName || "TUPian";
   currentProfile.photo = user.photoURL;
-  
+
   updatePostBox(currentProfile.name, currentProfile.photo);
 
   try {
@@ -257,7 +257,7 @@ onAuthStateChanged(auth, async (user) => {
         uid: user.uid
       };
       localStorage.setItem('tup_user_meta', JSON.stringify(cache));
-      
+
       updatePostBox(currentProfile.name, currentProfile.photo);
     }
   } catch (error) {
@@ -271,75 +271,75 @@ onAuthStateChanged(auth, async (user) => {
     const newToggle = document.getElementById('modal-anon-toggle');
 
     newToggle.addEventListener('change', (e) => {
-    const modalName = document.getElementById('modal-user-name');
-    const modalAvatar = document.getElementById('modal-avatar');
+      const modalName = document.getElementById('modal-user-name');
+      const modalAvatar = document.getElementById('modal-avatar');
 
-    if (e.target.checked) {
+      if (e.target.checked) {
         if (modalName) modalName.textContent = "Anonymous Puto";
         if (modalAvatar) {
-            modalAvatar.innerHTML = `<img src="../assets/images/anon_avatar.jpg" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
+          modalAvatar.innerHTML = `<img src="../assets/images/anon_avatar.jpg" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
         }
-    } else {
+      } else {
         if (modalName) modalName.textContent = currentProfile.name;
         if (modalAvatar) {
-            modalAvatar.innerHTML = currentProfile.photo 
-                ? `<img src="${currentProfile.photo}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`
-                : `<svg>...</svg>`;
+          modalAvatar.innerHTML = currentProfile.photo
+            ? `<img src="${currentProfile.photo}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`
+            : `<svg>...</svg>`;
         }
-    }
+      }
     });
   }
 });
 
 function updatePostUI(postId, data, currentUid) {
-    const localPost = window.FEED_POSTS?.find(p => p.id === postId);
+  const localPost = window.FEED_POSTS?.find(p => p.id === postId);
 
-    const updateReaction = (type, countKey, activeClass, isMeKey) => {
+  const updateReaction = (type, countKey, activeClass, isMeKey) => {
     const btn = document.querySelector(`.feed-reaction-btn[data-id="${postId}"][data-type="${type}"]`);
     if (!btn) return false;
 
-    const countSpan = btn.querySelector(`.${type}s-count`); 
+    const countSpan = btn.querySelector(`.${type}s-count`);
 
     const rawData = data[countKey];
     let count = 0;
 
     if (Array.isArray(rawData)) {
-        count = rawData.length;
+      count = rawData.length;
     } else if (typeof rawData === 'number') {
-        count = rawData;
+      count = rawData;
     } else {
-        count = data[type] || 0;
+      count = data[type] || 0;
     }
 
     if (countSpan) {
 
-        countSpan.textContent = typeof fmt === 'function' ? fmt(count) : count;
+      countSpan.textContent = typeof fmt === 'function' ? fmt(count) : count;
     }
 
     const dataArray = Array.isArray(rawData) ? rawData : [];
     const isMe = currentUid ? dataArray.includes(currentUid) : false;
-    
+
     if (activeClass) {
-        btn.classList.toggle(activeClass, isMe);
+      btn.classList.toggle(activeClass, isMe);
     }
 
     if (localPost) {
-        localPost[type + 's'] = count;
-        localPost[isMeKey] = isMe;
+      localPost[type + 's'] = count;
+      localPost[isMeKey] = isMe;
     }
-    
+
     return true;
-};
+  };
 
-    const likeFound = updateReaction('like', 'likedBy', 'heart-active', 'isLikedByMe');
-    const repostFound = updateReaction('repost', 'repostedBy', 'repost-active', 'isRepostedByMe');
-    const commentFound = updateReaction('comment', 'comments', '', '');
+  const likeFound = updateReaction('like', 'likedBy', 'heart-active', 'isLikedByMe');
+  const repostFound = updateReaction('repost', 'repostedBy', 'repost-active', 'isRepostedByMe');
+  const commentFound = updateReaction('comment', 'comments', '', '');
 
-    return likeFound && repostFound && commentFound;
+  return likeFound && repostFound && commentFound;
 }
-window.formatSmartDate = function(dateObj) {
+window.formatSmartDate = function (dateObj) {
   if (!dateObj) return 'Just now';
-  
+
   const now = new Date();
   const diffMs = now - dateObj;
   const diffSecs = Math.floor(diffMs / 1000);
@@ -375,56 +375,56 @@ window.formatSmartDate = function(dateObj) {
 };
 
 function formatFirebaseData(snapshot) {
-    return snapshot.docs.map(doc => {
-        const data = doc.data();
-        const dateObj = data.createdAt ? data.createdAt.toDate() : new Date();
-        const repostedBy = data.repostedBy || [];
-        
-        return {
-            id: doc.id,
-            name: data.author || "Anonymous Puto",
-            userId: data.userId,
-            photoSrc: data.isAnonymous ? "../assets/images/anon_avatar.jpg" : (data.photoURL || null),
-            body: data.text,
-            time: window.formatSmartDate(dateObj),
-            likes: data.likedBy ? data.likedBy.length : 0,
-            isLikedByMe: auth.currentUser ? (data.likedBy || []).includes(auth.currentUser.uid) : false,
-            comments: data.comments || 0,
-            reposts: repostedBy.length,
-            isRepostedByMe: auth.currentUser ? repostedBy.includes(auth.currentUser.uid) : false,
-            postImage: data.imageURL || null,
-            repost: !!data.repostOf,
-            repostIdRef: data.repostOf || null,
-            isOwnPost: auth.currentUser ? data.userId === auth.currentUser.uid : false,
-            quote: data.repostOf ? {
-                body: data.repostText,
-                name: data.repostAuthor,
-                photoSrc: data.repostAuthorPhoto,
-                repostImage: data.repostImage
-            } : null
-        };
-    });
+  return snapshot.docs.map(doc => {
+    const data = doc.data();
+    const dateObj = data.createdAt ? data.createdAt.toDate() : new Date();
+    const repostedBy = data.repostedBy || [];
+
+    return {
+      id: doc.id,
+      name: data.author || "Anonymous Puto",
+      userId: data.userId,
+      photoSrc: data.isAnonymous ? "../assets/images/anon_avatar.jpg" : (data.photoURL || null),
+      body: data.text,
+      time: window.formatSmartDate(dateObj),
+      likes: data.likedBy ? data.likedBy.length : 0,
+      isLikedByMe: auth.currentUser ? (data.likedBy || []).includes(auth.currentUser.uid) : false,
+      comments: data.comments || 0,
+      reposts: repostedBy.length,
+      isRepostedByMe: auth.currentUser ? repostedBy.includes(auth.currentUser.uid) : false,
+      postImage: data.imageURL || null,
+      repost: !!data.repostOf,
+      repostIdRef: data.repostOf || null,
+      isOwnPost: auth.currentUser ? data.userId === auth.currentUser.uid : false,
+      quote: data.repostOf ? {
+        body: data.repostText,
+        name: data.repostAuthor,
+        photoSrc: data.repostAuthorPhoto,
+        repostImage: data.repostImage
+      } : null
+    };
+  });
 }
 
 const q = query(collection(db, "posts"), orderBy("createdAt", "desc"));
 
 onSnapshot(q, (snapshot) => {
-    let needsFullRender = false;
-    const currentUid = auth.currentUser?.uid;
+  let needsFullRender = false;
+  const currentUid = auth.currentUser?.uid;
 
-    snapshot.docChanges().forEach((change) => {
-        if (change.type === "modified") {
-            const success = updatePostUI(change.doc.id, change.doc.data(), currentUid);
-            if (!success) needsFullRender = true;
-        } else {
-            needsFullRender = true;
-        }
-    });
-
-    if (needsFullRender || !window.FEED_POSTS || window.FEED_POSTS.length === 0) {
-        window.FEED_POSTS = formatFirebaseData(snapshot);
-        if (window.renderFeedPosts) window.renderFeedPosts();
+  snapshot.docChanges().forEach((change) => {
+    if (change.type === "modified") {
+      const success = updatePostUI(change.doc.id, change.doc.data(), currentUid);
+      if (!success) needsFullRender = true;
+    } else {
+      needsFullRender = true;
     }
+  });
+
+  if (needsFullRender || !window.FEED_POSTS || window.FEED_POSTS.length === 0) {
+    window.FEED_POSTS = formatFirebaseData(snapshot);
+    if (window.renderFeedPosts) window.renderFeedPosts();
+  }
 });
 
 const feedContainer = document.getElementById('feed-posts');
@@ -466,204 +466,204 @@ if (feedContainer) {
 let _currentRepostInfo = null;
 
 feedContainer.addEventListener('click', async (e) => {
-    const btn = e.target.closest('.feed-reaction-btn[data-type="repost"]');
-    if (!btn) return;
+  const btn = e.target.closest('.feed-reaction-btn[data-type="repost"]');
+  if (!btn) return;
 
-    const postId = btn.dataset.id; 
-    const user = auth.currentUser;
-    if (!user) return alert("Login to repost!");
+  const postId = btn.dataset.id;
+  const user = auth.currentUser;
+  if (!user) return alert("Login to repost!");
 
-    const postData = window.FEED_POSTS?.find(p => p.id === postId);
-    if (!postData) return;
+  const postData = window.FEED_POSTS?.find(p => p.id === postId);
+  if (!postData) return;
 
-    const isReposted = btn.classList.contains('repost-active');
+  const isReposted = btn.classList.contains('repost-active');
 
-    try {
-        if (isReposted) {
-            const postRef = doc(db, "posts", postId);
-            await updateDoc(postRef, {
-                repostedBy: arrayRemove(user.uid)
-            });
-            btn.classList.remove('repost-active');
-            
-            const toast = document.getElementById('toast');
-            if (toast) {
-                toast.textContent = 'Repost removed!';
-                toast.classList.add('show');
-                setTimeout(() => toast.classList.remove('show'), 2800);
-            }
-        } else {
-            _currentRepostInfo = { btn, postId, postData };
-            document.getElementById('repostModal').classList.add('open');
-            document.getElementById('repostContent').focus();
-        }
-    } catch (err) {
-        console.error("Repost failed:", err);
+  try {
+    if (isReposted) {
+      const postRef = doc(db, "posts", postId);
+      await updateDoc(postRef, {
+        repostedBy: arrayRemove(user.uid)
+      });
+      btn.classList.remove('repost-active');
+
+      const toast = document.getElementById('toast');
+      if (toast) {
+        toast.textContent = 'Repost removed!';
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 2800);
+      }
+    } else {
+      _currentRepostInfo = { btn, postId, postData };
+      document.getElementById('repostModal').classList.add('open');
+      document.getElementById('repostContent').focus();
     }
+  } catch (err) {
+    console.error("Repost failed:", err);
+  }
 });
 
-window.deletePost = async function(postId, e) {
-    if (!confirm('Are you sure you want to delete this post?')) return;
-    
-    const card = e.target.closest('.feed-post');
-    const user = auth.currentUser;
-    if (!user) return;
-  
-    try {
-        const postRef = doc(db, "posts", postId);
-        const snap = await getDoc(postRef);
-        if (snap.exists()) {
-             const data = snap.data();
-             if (data.repostOf) {
-                 const originalRef = doc(db, "posts", data.repostOf);
-                 await updateDoc(originalRef, {
-                     repostedBy: arrayRemove(user.uid)
-                 });
-             }
-        }
+window.deletePost = async function (postId, e) {
+  if (!confirm('Are you sure you want to delete this post?')) return;
 
-        await deleteDoc(postRef);
-        if (card) {
-            card.style.transition = 'opacity 0.28s, transform 0.28s';
-            card.style.opacity = '0';
-            card.style.transform = 'scale(0.93)';
-            setTimeout(() => card.remove(), 300);
-        }
-        
-        const toast = document.getElementById('toast');
-        if (toast) {
-            toast.textContent = 'Post deleted.';
-            toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), 2800);
-        }
-    } catch (error) {
-        console.error('Delete error:', error);
-        alert('Failed to delete post.');
+  const card = e.target.closest('.feed-post');
+  const user = auth.currentUser;
+  if (!user) return;
+
+  try {
+    const postRef = doc(db, "posts", postId);
+    const snap = await getDoc(postRef);
+    if (snap.exists()) {
+      const data = snap.data();
+      if (data.repostOf) {
+        const originalRef = doc(db, "posts", data.repostOf);
+        await updateDoc(originalRef, {
+          repostedBy: arrayRemove(user.uid)
+        });
+      }
     }
+
+    await deleteDoc(postRef);
+    if (card) {
+      card.style.transition = 'opacity 0.28s, transform 0.28s';
+      card.style.opacity = '0';
+      card.style.transform = 'scale(0.93)';
+      setTimeout(() => card.remove(), 300);
+    }
+
+    const toast = document.getElementById('toast');
+    if (toast) {
+      toast.textContent = 'Post deleted.';
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2800);
+    }
+  } catch (error) {
+    console.error('Delete error:', error);
+    alert('Failed to delete post.');
+  }
 };
 
-window.editPost = function(postId, e) {
-    const card = e.target.closest('.feed-post');
-    const bodyEl = card.querySelector('.feed-body');
-    if (!bodyEl) return;
-  
-    const originalText = bodyEl.innerHTML
-      .replace(/<br>/g,  '\n')
-      .replace(/&lt;/g,  '<')
-      .replace(/&gt;/g,  '>')
-      .replace(/&amp;/g, '&')
-      .replace(/&quot;/g, '"');
-  
-    bodyEl.style.display = 'none';
-    const editWrap = document.createElement('div');
-    editWrap.className = 'post-edit-wrap';
-    editWrap.innerHTML = `
+window.editPost = function (postId, e) {
+  const card = e.target.closest('.feed-post');
+  const bodyEl = card.querySelector('.feed-body');
+  if (!bodyEl) return;
+
+  const originalText = bodyEl.innerHTML
+    .replace(/<br>/g, '\n')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&amp;/g, '&')
+    .replace(/&quot;/g, '"');
+
+  bodyEl.style.display = 'none';
+  const editWrap = document.createElement('div');
+  editWrap.className = 'post-edit-wrap';
+  editWrap.innerHTML = `
       <textarea class="post-edit-textarea">${originalText}</textarea>
       <div class="post-edit-buttons">
         <button class="post-edit-save" data-id="${postId}">Save</button>
         <button class="post-edit-cancel">Cancel</button>
       </div>
     `;
-    bodyEl.parentNode.insertBefore(editWrap, bodyEl.nextSibling);
-    
-    setTimeout(() => {
-        const ta = editWrap.querySelector('textarea');
-        ta.focus();
-        ta.setSelectionRange(ta.value.length, ta.value.length);
-    }, 50);
+  bodyEl.parentNode.insertBefore(editWrap, bodyEl.nextSibling);
+
+  setTimeout(() => {
+    const ta = editWrap.querySelector('textarea');
+    ta.focus();
+    ta.setSelectionRange(ta.value.length, ta.value.length);
+  }, 50);
 };
 
 feedContainer.addEventListener('click', async (e) => {
-    if (e.target.classList.contains('post-edit-save')) {
-        const btn = e.target;
-        const postId = btn.dataset.id;
-        const card = btn.closest('.feed-post');
-        const wrap = card.querySelector('.post-edit-wrap');
-        const bodyEl = card.querySelector('.feed-body');
-        const newText = wrap.querySelector('textarea').value.trim();
+  if (e.target.classList.contains('post-edit-save')) {
+    const btn = e.target;
+    const postId = btn.dataset.id;
+    const card = btn.closest('.feed-post');
+    const wrap = card.querySelector('.post-edit-wrap');
+    const bodyEl = card.querySelector('.feed-body');
+    const newText = wrap.querySelector('textarea').value.trim();
 
-        if (newText) {
-            btn.disabled = true;
-            btn.textContent = 'Saving...';
-            try {
-                await updateDoc(doc(db, "posts", postId), {
-                    text: newText,
-                    updatedAt: serverTimestamp()
-                });
-                bodyEl.innerHTML = newText.replace(/\n/g, '<br>');
-                wrap.remove();
-                bodyEl.style.display = '';
-            } catch (error) {
-                console.error("Failed to update post:", error);
-                btn.disabled = false;
-                btn.textContent = 'Save';
-            }
-        }
+    if (newText) {
+      btn.disabled = true;
+      btn.textContent = 'Saving...';
+      try {
+        await updateDoc(doc(db, "posts", postId), {
+          text: newText,
+          updatedAt: serverTimestamp()
+        });
+        bodyEl.innerHTML = newText.replace(/\n/g, '<br>');
+        wrap.remove();
+        bodyEl.style.display = '';
+      } catch (error) {
+        console.error("Failed to update post:", error);
+        btn.disabled = false;
+        btn.textContent = 'Save';
+      }
     }
-    
-    if (e.target.classList.contains('post-edit-cancel')) {
-        const card = e.target.closest('.feed-post');
-        const wrap = card.querySelector('.post-edit-wrap');
-        const bodyEl = card.querySelector('.feed-body');
-        if (wrap) wrap.remove();
-        if (bodyEl) bodyEl.style.display = '';
-    }
+  }
+
+  if (e.target.classList.contains('post-edit-cancel')) {
+    const card = e.target.closest('.feed-post');
+    const wrap = card.querySelector('.post-edit-wrap');
+    const bodyEl = card.querySelector('.feed-body');
+    if (wrap) wrap.remove();
+    if (bodyEl) bodyEl.style.display = '';
+  }
 });
 
-window.closeRepostModal = function() {
-    document.getElementById('repostModal').classList.remove('open');
-    _currentRepostInfo = null;
-    const rc = document.getElementById('repostContent');
-    if (rc) rc.value = '';
+window.closeRepostModal = function () {
+  document.getElementById('repostModal').classList.remove('open');
+  _currentRepostInfo = null;
+  const rc = document.getElementById('repostContent');
+  if (rc) rc.value = '';
 };
 
-window.closeRepostModalOnOverlay = function(e) {
-    if (e.target === document.getElementById('repostModal')) {
-        window.closeRepostModal();
-    }
+window.closeRepostModalOnOverlay = function (e) {
+  if (e.target === document.getElementById('repostModal')) {
+    window.closeRepostModal();
+  }
 };
 
-window.submitRepost = async function() {
-    if (!_currentRepostInfo) return;
-    const quote = document.getElementById('repostContent').value.trim();
-    const { btn, postId, postData } = _currentRepostInfo;
-    
-    const user = auth.currentUser;
-    if (!user) return;
+window.submitRepost = async function () {
+  if (!_currentRepostInfo) return;
+  const quote = document.getElementById('repostContent').value.trim();
+  const { btn, postId, postData } = _currentRepostInfo;
 
-    try {
-        await addDoc(collection(db, "posts"), {
-            userId: user.uid,
-            author: currentProfile.name || user.displayName || "TUPian",
-            photoURL: currentProfile.photo || user.photoURL || null,
-            text: quote,
-            imageURL: null,
-            createdAt: serverTimestamp(),
-            likedBy: [],
-            comments: 0,
-            repostOf: postId,
-            repostAuthor: postData.name,
-            repostText: postData.body,
-            repostImage: postData.postImage,
-            repostAuthorPhoto: postData.photoSrc || '../assets/images/anon_avatar.jpg'
-        });
+  const user = auth.currentUser;
+  if (!user) return;
 
-        const postRef = doc(db, "posts", postId);
-        await updateDoc(postRef, {
-            repostedBy: arrayUnion(user.uid)
-        });
+  try {
+    await addDoc(collection(db, "posts"), {
+      userId: user.uid,
+      author: currentProfile.name || user.displayName || "TUPian",
+      photoURL: currentProfile.photo || user.photoURL || null,
+      text: quote,
+      imageURL: null,
+      createdAt: serverTimestamp(),
+      likedBy: [],
+      comments: 0,
+      repostOf: postId,
+      repostAuthor: postData.name,
+      repostText: postData.body,
+      repostImage: postData.postImage,
+      repostAuthorPhoto: postData.photoSrc || '../assets/images/anon_avatar.jpg'
+    });
 
-        window.closeRepostModal();
-        
-        const toast = document.getElementById('toast');
-        if (toast) {
-            toast.textContent = 'Reposted successfully!';
-            toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), 2800);
-        }
-    } catch (err) {
-        console.error("Repost submit failed:", err);
+    const postRef = doc(db, "posts", postId);
+    await updateDoc(postRef, {
+      repostedBy: arrayUnion(user.uid)
+    });
+
+    window.closeRepostModal();
+
+    const toast = document.getElementById('toast');
+    if (toast) {
+      toast.textContent = 'Reposted successfully!';
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2800);
     }
+  } catch (err) {
+    console.error("Repost submit failed:", err);
+  }
 };
 
 

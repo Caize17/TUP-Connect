@@ -52,16 +52,16 @@ function formatRelativeTime(date) {
 function toggleChangePhotoMenu(e) {
   e.stopPropagation();
   const dropdown = document.getElementById('changePhotoDropdown');
-  const btn      = e.currentTarget;
-  const rect     = btn.getBoundingClientRect();
+  const btn = e.currentTarget;
+  const rect = btn.getBoundingClientRect();
 
-  dropdown.style.top   = (rect.bottom + 8) + 'px';
+  dropdown.style.top = (rect.bottom + 8) + 'px';
   dropdown.style.right = (window.innerWidth - rect.right) + 'px';
   dropdown.classList.toggle('open');
 }
 
 document.addEventListener('click', (e) => {
-  const wrap     = document.querySelector('.change-photo-wrap');
+  const wrap = document.querySelector('.change-photo-wrap');
   const dropdown = document.getElementById('changePhotoDropdown');
   if (dropdown && wrap && !wrap.contains(e.target)) {
     dropdown.classList.remove('open');
@@ -79,7 +79,7 @@ document.addEventListener('click', function (e) {
 
   // ── LIKE ──
   if (type === 'like') {
-    const countEl = btn.querySelector('.reaction-likes-count');
+    const countEl = btn.querySelector('.likes-count');
     const postIdx = btn.dataset.post !== undefined ? parseInt(btn.dataset.post) : null;
     const base = (postIdx !== null && FEED_POSTS?.[postIdx])
       ? FEED_POSTS[postIdx].likes
@@ -105,7 +105,7 @@ document.addEventListener('click', function (e) {
         p.style.setProperty('--dx', `${Math.cos(rad) * dist}px`);
         p.style.setProperty('--dy', `${Math.sin(rad) * dist}px`);
         p.style.left = `${cx - 3}px`;
-        p.style.top  = `${cy - 3}px`;
+        p.style.top = `${cy - 3}px`;
         document.body.appendChild(p);
         setTimeout(() => p.remove(), 600);
       });
@@ -171,15 +171,15 @@ function buildReactions(idx = null, likes = 0, comments = 0, reposts = 0) {
     <div class="feed-reactions">
       <button class="feed-reaction-btn" ${postAttr} data-type="like">
         <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-        <span class="reaction-likes-count">${fmt(likes)}</span> Heart
+        <span class="likes-count">${fmt(likes)}</span> Heart
       </button>
       <button class="feed-reaction-btn" ${postAttr} data-type="comment">
         <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-        <span class="reaction-comments-count">${comments}</span> Comment
+        <span class="comments-count">${fmt(comments)}</span> Comments
       </button>
       <button class="feed-reaction-btn" ${postAttr} data-type="repost">
         <svg viewBox="0 0 24 24"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
-        <span class="reaction-reposts-count">${fmt(reposts)}</span> Repost
+        <span class="reposts-count">${fmt(reposts)}</span> Repost
       </button>
     </div>`;
 }
@@ -190,26 +190,26 @@ function buildReactions(idx = null, likes = 0, comments = 0, reposts = 0) {
 function createRepostCard(btn, quote = '') {
   const originalCard = btn.closest('.post-card');
 
-  const author   = originalCard.querySelector('.post-author')?.textContent || 'Unknown';
-  const time     = originalCard.querySelector('.post-time')?.textContent   || '';
-  const body     = originalCard.querySelector('.post-body')?.innerHTML     || '';
+  const author = originalCard.querySelector('.post-author')?.textContent || 'Unknown';
+  const time = originalCard.querySelector('.post-time')?.textContent || '';
+  const body = originalCard.querySelector('.post-body')?.innerHTML || '';
   const avatarEl = originalCard.querySelector('.post-avatar img');
-  const avatar   = avatarEl ? avatarEl.src : '';
+  const avatar = avatarEl ? avatarEl.src : '';
   const imagesEl = originalCard.querySelector('.post-images');
   const imagesHTML = imagesEl ? imagesEl.outerHTML : '';
 
-  const now     = new Date();
+  const now = new Date();
   const dateStr = now.toLocaleDateString('en-US', {
     month: 'long', day: '2-digit', year: 'numeric'
   }) + ' at ' + now.toLocaleTimeString('en-US', {
     hour: '2-digit', minute: '2-digit'
   });
 
-  const menuId   = 'menu-' + Date.now();
+  const menuId = 'menu-' + Date.now();
   const repostId = 'repost-' + Date.now();
-  const card     = document.createElement('div');
+  const card = document.createElement('div');
   card.className = 'post-card';
-  card.id        = repostId;
+  card.id = repostId;
 
   // Use getTemplate() to correctly read from <template> elements
   card.innerHTML = `
@@ -289,10 +289,10 @@ function createRepostCard(btn, quote = '') {
 // ========================
 // POST MODAL
 // ========================
-const fileInput  = document.getElementById('modal-file-input');
+const fileInput = document.getElementById('modal-file-input');
 const attachWrap = document.getElementById('modal-attachments');
-const submitBtn  = document.getElementById('modal-submit-btn');
-const textarea   = document.getElementById('postContent') || document.getElementById('post-textarea');
+const submitBtn = document.getElementById('modal-submit-btn');
+const textarea = document.getElementById('postContent') || document.getElementById('post-textarea');
 
 function updateSubmitButton() {
   const hasContent = textarea && textarea.value.trim().length > 0;
@@ -320,10 +320,10 @@ fileInput.addEventListener('change', function () {
   Array.from(this.files).forEach(file => {
     const reader = new FileReader();
     reader.onload = ev => {
-      const thumb     = document.createElement('img');
-      thumb.src       = ev.target.result;
+      const thumb = document.createElement('img');
+      thumb.src = ev.target.result;
       thumb.className = 'modal-attach-thumb';
-      thumb.title     = 'Click to remove';
+      thumb.title = 'Click to remove';
       thumb.addEventListener('click', () => {
         thumb.remove();
         updateSubmitButton(); // Update button state after removing image
@@ -351,16 +351,16 @@ function closeModalOnOverlay(e) {
 
 function submitPost() {
   const content = document.getElementById('postContent').value.trim();
-  
+
   // Collect attached images from the modal
   const thumbs = Array.from(attachWrap.querySelectorAll('.modal-attach-thumb'));
-  
+
   if (!content && thumbs.length === 0) { showToast('Write something first!'); return; }
 
-  const author  = 'Puto-Manila Organization';
-  const avatar  = USER.photoSrc;
+  const author = 'Puto-Manila Organization';
+  const avatar = USER.photoSrc;
 
-  const now     = new Date();
+  const now = new Date();
   const dateStr = now.toLocaleDateString('en-US', {
     month: 'long', day: '2-digit', year: 'numeric'
   }) + ' at ' + now.toLocaleTimeString('en-US', {
@@ -373,7 +373,7 @@ function submitPost() {
     : '';
 
   const menuId = 'menu-' + Date.now();
-  const card   = document.createElement('div');
+  const card = document.createElement('div');
   card.className = 'post-card';
 
   card.innerHTML = `
@@ -433,8 +433,8 @@ function submitPost() {
 function deletePost(e) {
   const card = e.target.closest('.post-card');
   card.style.transition = 'opacity 0.28s, transform 0.28s';
-  card.style.opacity    = '0';
-  card.style.transform  = 'scale(0.93)';
+  card.style.opacity = '0';
+  card.style.transform = 'scale(0.93)';
   setTimeout(() => card.remove(), 300);
   showToast('Post deleted.');
 }
@@ -514,7 +514,7 @@ function escapeHTML(str) {
 
 function fmt(n) {
   if (n >= 1000000) return (n / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
-  if (n >= 1000)    return (n / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
+  if (n >= 1000) return (n / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
   return String(n);
 }
 
@@ -612,9 +612,9 @@ function bindCommentActions() {
   /* Edit button */
   list.querySelectorAll('.edit-btn').forEach(btn => {
     btn.addEventListener('click', function () {
-      const c      = this.dataset.comment;
+      const c = this.dataset.comment;
       const bubble = document.getElementById(`comment-modal-bubble-${c}`);
-      const edit   = document.getElementById(`comment-modal-edit-${c}`);
+      const edit = document.getElementById(`comment-modal-edit-${c}`);
       bubble.style.display = 'none';
       edit.classList.add('open');
       document.getElementById(`comment-modal-edit-input-${c}`).focus();
@@ -624,9 +624,9 @@ function bindCommentActions() {
   /* Cancel edit */
   list.querySelectorAll('.comment-edit-cancel').forEach(btn => {
     btn.addEventListener('click', function () {
-      const c      = this.dataset.comment;
+      const c = this.dataset.comment;
       const bubble = document.getElementById(`comment-modal-bubble-${c}`);
-      const edit   = document.getElementById(`comment-modal-edit-${c}`);
+      const edit = document.getElementById(`comment-modal-edit-${c}`);
       bubble.style.display = '';
       edit.classList.remove('open');
     });
@@ -635,13 +635,13 @@ function bindCommentActions() {
   /* Save edit */
   list.querySelectorAll('.comment-edit-save').forEach(btn => {
     btn.addEventListener('click', function () {
-      const c       = this.dataset.comment;
-      const input   = document.getElementById(`comment-modal-edit-input-${c}`);
+      const c = this.dataset.comment;
+      const input = document.getElementById(`comment-modal-edit-input-${c}`);
       const newText = input.value.trim();
       if (!newText) return;
       const textEl = document.getElementById(`comment-modal-text-${c}`);
       const bubble = document.getElementById(`comment-modal-bubble-${c}`);
-      const edit   = document.getElementById(`comment-modal-edit-${c}`);
+      const edit = document.getElementById(`comment-modal-edit-${c}`);
       textEl.textContent = newText;
       bubble.style.display = '';
       edit.classList.remove('open');
@@ -662,11 +662,11 @@ function bindCommentActions() {
   /* Delete button */
   list.querySelectorAll('.delete-btn').forEach(btn => {
     btn.addEventListener('click', function () {
-      const c    = this.dataset.comment;
+      const c = this.dataset.comment;
       const item = document.getElementById(`comment-modal-item-${c}`);
       item.style.transition = 'opacity 0.2s, transform 0.2s';
-      item.style.opacity    = '0';
-      item.style.transform  = 'translateX(12px)';
+      item.style.opacity = '0';
+      item.style.transform = 'translateX(12px)';
       setTimeout(() => item.remove(), 200);
 
       /* Sync back to comment-data store */
@@ -701,7 +701,7 @@ function handleModalCommentKey(e) {
 
 function submitModalComment() {
   const input = document.getElementById('commentModalInput');
-  const text  = input.value.trim();
+  const text = input.value.trim();
   if (!text) return;
 
   const now = new Date();
@@ -715,12 +715,12 @@ function submitModalComment() {
   if (_currentPostCard) {
     const store = _currentPostCard.querySelector('.comments-data');
     const cd = document.createElement('div');
-    cd.className        = 'comment-data';
-    cd.dataset.author   = 'Puto-Manila Organization';
-    cd.dataset.avatar   =  USER.photoSrc || '../assets/images/anon_avatar.jpg';
-    cd.dataset.text     = text;
-    cd.dataset.time     = now.toISOString();
-    cd.dataset.isOwn    = 'true';
+    cd.className = 'comment-data';
+    cd.dataset.author = 'Puto-Manila Organization';
+    cd.dataset.avatar = USER.photoSrc || '../assets/images/anon_avatar.jpg';
+    cd.dataset.text = text;
+    cd.dataset.time = now.toISOString();
+    cd.dataset.isOwn = 'true';
     store.appendChild(cd);
 
     const countEl = _currentPostCard.querySelector('.reaction-comments-count');
@@ -827,9 +827,9 @@ function closeRepostViewModalOnOverlay(e) {
 
 function updateFeedCommentPreview(card) {
   const allComments = card.querySelectorAll('.comment-data');
-  const count       = allComments.length;
-  const viewMore    = card.querySelector('.view-comments');
-  let   preview     = card.querySelector('.feed-comment-preview');
+  const count = allComments.length;
+  const viewMore = card.querySelector('.view-comments');
+  let preview = card.querySelector('.feed-comment-preview');
 
   if (viewMore) viewMore.style.display = count > 1 ? 'block' : 'none';
 
@@ -863,7 +863,7 @@ function updateFeedCommentPreview(card) {
 // SUBMIT BUTTON OPACITY
 // ========================
 document.addEventListener('DOMContentLoaded', () => {
-  const commentInput  = document.getElementById('commentModalInput');
+  const commentInput = document.getElementById('commentModalInput');
   const commentSubmit = document.querySelector('.comment-modal-submit');
   commentInput.addEventListener('input', () => {
     commentSubmit.style.opacity = commentInput.value.trim() ? '1' : '0.35';
@@ -874,11 +874,11 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('profilePhotoInput').click();
   });
 
-  document.getElementById('profilePhotoInput').addEventListener('change', function(e) {
+  document.getElementById('profilePhotoInput').addEventListener('change', function (e) {
     const file = e.target.files[0];
     if (file) {
       const reader = new FileReader();
-      reader.onload = function(e) {
+      reader.onload = function (e) {
         const imgSrc = e.target.result;
         document.querySelector('.profile-avatar-inner').src = imgSrc;
         document.querySelector('.post-input-img').src = imgSrc;
@@ -889,7 +889,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Update modal avatar
         const modalAvatarEl = document.getElementById('modal-avatar');
         modalAvatarEl.innerHTML = `<img src="${imgSrc}" alt="Me" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
-        
+
         // Update all post avatars on the page
         document.querySelectorAll('.post-avatar img').forEach(avatar => {
           // Only update if the post is from the current user (not anonymous/reposts)
@@ -899,7 +899,7 @@ document.addEventListener('DOMContentLoaded', () => {
             avatar.src = imgSrc;
           }
         });
-        
+
         // Update repost quote avatars in all posts
         document.querySelectorAll('.repost-quote-avatar img').forEach(avatar => {
           const repostCard = avatar.closest('.repost-quote-card');
@@ -908,12 +908,12 @@ document.addEventListener('DOMContentLoaded', () => {
             avatar.src = imgSrc;
           }
         });
-        
+
         // Update comment input avatars in all post cards
         document.querySelectorAll('.comment-input-row .comment-avatar img').forEach(avatar => {
           avatar.src = imgSrc;
         });
-        
+
         // Update comment modal avatars in all posts
         document.querySelectorAll('.comment-modal-item-avatar img').forEach(avatar => {
           const commentItem = avatar.closest('.comment-modal-item');
@@ -922,13 +922,13 @@ document.addEventListener('DOMContentLoaded', () => {
             avatar.src = imgSrc;
           }
         });
-        
+
         // Update comment modal input avatar
         const commentModalAvatar = document.querySelector('.comment-modal-avatar img');
         if (commentModalAvatar) {
           commentModalAvatar.src = imgSrc;
         }
-        
+
         // Update repost view modal avatars
         document.querySelectorAll('#repostViewModal .comment-modal-item-avatar img').forEach(avatar => {
           const repostViewItem = avatar.closest('.comment-modal-item');
@@ -947,11 +947,11 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('coverPhotoInput').click();
   });
 
-  document.getElementById('coverPhotoInput').addEventListener('change', function(e) {
+  document.getElementById('coverPhotoInput').addEventListener('change', function (e) {
     const file = e.target.files[0];
     if (file) {
       const reader = new FileReader();
-      reader.onload = function(e) {
+      reader.onload = function (e) {
         document.querySelector('.banner-img').src = e.target.result;
       };
       reader.readAsDataURL(file);
@@ -959,7 +959,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // Event listener for comment preview bubble
-  document.addEventListener('click', function(e) {
+  document.addEventListener('click', function (e) {
     const bubble = e.target.closest('.feed-comment-preview .comment-modal-item-bubble');
     if (bubble) {
       openCommentModal(bubble);
@@ -976,18 +976,18 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }, 60000); // 1 minute
 
-    (function () {
-    const navWrap  = document.getElementById('sidebar-nav');
+  (function () {
+    const navWrap = document.getElementById('sidebar-nav');
     const teardrop = document.getElementById('nav-teardrop');
-    const navBtns  = Array.from(navWrap.querySelectorAll('.nav-btn'));
-    const profBtn  = document.getElementById('sidebar-avatar-wrap');
-    const allBtns  = [...navBtns, profBtn];
+    const navBtns = Array.from(navWrap.querySelectorAll('.nav-btn'));
+    const profBtn = document.getElementById('sidebar-avatar-wrap');
+    const allBtns = [...navBtns, profBtn];
     const TD_BASE_H = 66;
 
     function moveTo(item) {
       const wrapRect = navWrap.getBoundingClientRect();
       const itemRect = item.getBoundingClientRect();
-      const centerY  = itemRect.top + itemRect.height / 2 - wrapRect.top;
+      const centerY = itemRect.top + itemRect.height / 2 - wrapRect.top;
       teardrop.style.top = (centerY - TD_BASE_H / 2) + 'px';
     }
 
@@ -998,9 +998,9 @@ document.addEventListener('DOMContentLoaded', () => {
         moveTo(this);
 
         const route = this.dataset.route;
-        if (route === 'home')        window.location.href = '../pages/homepage.html';
+        if (route === 'home') window.location.href = '../pages/homepage.html';
         if (route === 'campus news') window.location.href = '../pages/campus_news.html';
-        if (route === 'campus')      window.location.href = '../pages/campus_directory.html';
+        if (route === 'campus') window.location.href = '../pages/campus_directory.html';
       });
     });
 

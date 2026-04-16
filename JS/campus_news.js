@@ -27,30 +27,30 @@ import {
 // ─────────────────────────────────────────────
 
 const firebaseConfig = {
-  apiKey:            "AIzaSyBpGOdMpx_Mws2EcCq6rbOWfZ-FFuhhfo0",
-  authDomain:        "tup-connect-b162d.firebaseapp.com",
-  projectId:         "tup-connect-b162d",
-  storageBucket:     "tup-connect-b162d.firebasestorage.app",
+  apiKey: "AIzaSyBpGOdMpx_Mws2EcCq6rbOWfZ-FFuhhfo0",
+  authDomain: "tup-connect-b162d.firebaseapp.com",
+  projectId: "tup-connect-b162d",
+  storageBucket: "tup-connect-b162d.firebasestorage.app",
   messagingSenderId: "193141013544",
-  appId:             "1:193141013544:web:72b403e84aa4d3313f091d"
+  appId: "1:193141013544:web:72b403e84aa4d3313f091d"
 };
 
-const app  = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
+const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
 const auth = getAuth(app);
-const db   = getFirestore(app);
+const db = getFirestore(app);
 
 // ─────────────────────────────────────────────
 // STATE
 // ─────────────────────────────────────────────
 
-let currentUser     = null;
+let currentUser = null;
 let currentUserRole = 'Student';
 let currentUserName = null;
-let allPosts        = [];
-let activeFilter    = 'all';   // 'all' | 'today' | 'week' | 'month' | 'custom'
-let customFrom      = null;
-let customTo        = null;
-let activePostId    = null;    // for comment modal
+let allPosts = [];
+let activeFilter = 'all';   // 'all' | 'today' | 'week' | 'month' | 'custom'
+let customFrom = null;
+let customTo = null;
+let activePostId = null;    // for comment modal
 
 // ─────────────────────────────────────────────
 // HELPERS
@@ -60,9 +60,9 @@ function timeAgo(ts) {
   if (!ts) return '';
   const date = ts.toDate ? ts.toDate() : new Date(ts);
   const diff = (Date.now() - date.getTime()) / 1000;
-  if (diff < 60)        return 'just now';
-  if (diff < 3600)      return `${Math.floor(diff / 60)}m ago`;
-  if (diff < 86400)     return `${Math.floor(diff / 3600)}h ago`;
+  if (diff < 60) return 'just now';
+  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
   if (diff < 7 * 86400) return `${Math.floor(diff / 86400)}d ago`;
   return date.toLocaleDateString('en-PH', { month: 'short', day: 'numeric' });
 }
@@ -91,8 +91,8 @@ function postDate(post) {
 
 function applyDateFilter(posts) {
   if (activeFilter === 'all') return posts;
-  const now  = new Date();
-  const sod  = new Date(now.getFullYear(), now.getMonth(), now.getDate()); // start of day
+  const now = new Date();
+  const sod = new Date(now.getFullYear(), now.getMonth(), now.getDate()); // start of day
 
   return posts.filter(p => {
     const d = postDate(p);
@@ -109,7 +109,7 @@ function applyDateFilter(posts) {
     }
     if (activeFilter === 'custom' && dpState.fromDate && dpState.toDate) {
       const from = new Date(dpState.fromDate); from.setHours(0, 0, 0, 0);
-      const to   = new Date(dpState.toDate);   to.setHours(23, 59, 59, 999);
+      const to = new Date(dpState.toDate); to.setHours(23, 59, 59, 999);
       return d >= from && d <= to;
     }
     return true;
@@ -124,8 +124,8 @@ function applySearchFilter(posts, q) {
   if (!q) return posts;
   const lq = q.toLowerCase();
   return posts.filter(p =>
-    (p.title  || '').toLowerCase().includes(lq) ||
-    (p.body   || '').toLowerCase().includes(lq) ||
+    (p.title || '').toLowerCase().includes(lq) ||
+    (p.body || '').toLowerCase().includes(lq) ||
     (p.author || '').toLowerCase().includes(lq)
   );
 }
@@ -144,12 +144,12 @@ function getFilteredPosts() {
 // ─────────────────────────────────────────────
 
 function renderBulletinPage(posts) {
-  const uid        = currentUser?.uid ?? null;
+  const uid = currentUser?.uid ?? null;
   const pinnedPost = posts.find(p => p.pinned) ?? null;
   const otherPosts = posts.filter(p => !p.pinned);
 
   // Pinned slot
-  const pinnedSlot  = document.getElementById('pinned-post-slot');
+  const pinnedSlot = document.getElementById('pinned-post-slot');
   const pinnedLabel = document.getElementById('pinned-label');
 
   if (pinnedPost && pinnedSlot) {
@@ -158,11 +158,11 @@ function renderBulletinPage(posts) {
     wireViewMore(`pb-body-${pinnedPost.id}`, `pb-viewmore-${pinnedPost.id}`);
   } else {
     if (pinnedLabel) pinnedLabel.style.display = 'none';
-    if (pinnedSlot)  pinnedSlot.innerHTML = '';
+    if (pinnedSlot) pinnedSlot.innerHTML = '';
   }
 
   // Feed
-  const feed       = document.getElementById('bulletin-feed');
+  const feed = document.getElementById('bulletin-feed');
   const emptyState = document.getElementById('bulletin-empty');
   if (!feed) return;
 
@@ -195,14 +195,14 @@ function renderBulletinPage(posts) {
 // ─────────────────────────────────────────────
 
 function renderPinnedCard(post, uid) {
-  const likeCount    = (post.likes    || []).length;
-  const repostCount  = (post.reposts  || []).length;
+  const likeCount = (post.likes || []).length;
+  const repostCount = (post.reposts || []).length;
   const commentCount = (post.comments || []).length;
-  const iLiked       = uid && (post.likes   || []).includes(uid);
-  const iReposted    = uid && (post.reposts || []).includes(uid);
-  const bodyHTML     = (post.body || '').replace(/\n/g, '<br>');
-  const imgs         = post.imageURLs || [];
-  const hasImages    = imgs.length > 0;
+  const iLiked = uid && (post.likes || []).includes(uid);
+  const iReposted = uid && (post.reposts || []).includes(uid);
+  const bodyHTML = (post.body || '').replace(/\n/g, '<br>');
+  const imgs = post.imageURLs || [];
+  const hasImages = imgs.length > 0;
 
   // Shared Collage System
   // Collage Logic: Only show up to 5, then +N overlay
@@ -210,7 +210,7 @@ function renderPinnedCard(post, uid) {
   if (hasImages) {
     const count = imgs.length;
     const collageClass = `collage-${Math.min(count, 5)}`;
-    
+
     // We only show the "See More" overlay if the total count is GREATER than 5
     const extra = count > 5 ? count - 5 : 0;
 
@@ -218,15 +218,15 @@ function renderPinnedCard(post, uid) {
       <div class="pinned-media-col">
         <div class="pinned-photo-grid ${collageClass}">
           ${imgs.slice(0, 5).map((src, i) => {
-            // Check if this is the 5th photo (index 4) AND there are extra photos
-            const isLastVisible = i === 4 && extra > 0;
-            
-            return `
+      // Check if this is the 5th photo (index 4) AND there are extra photos
+      const isLastVisible = i === 4 && extra > 0;
+
+      return `
               <div class="collage-cell lightbox-trigger" data-src="${src}">
                 <img src="${src}" />
                 ${isLastVisible ? `<div class="photo-more-overlay">+${extra}</div>` : ''}
               </div>`;
-          }).join('')}
+    }).join('')}
         </div>
       </div>`;
   }
@@ -239,15 +239,15 @@ function renderPinnedCard(post, uid) {
         <div class="social-bar-outer">
           <div class="social-bar">
             <div class="social-item reaction-item ${iLiked ? 'reacted' : ''}" data-type="likes" data-id="${post.id}">
-               <span class="r-count">${fmt(likeCount)}</span>
+               <span class="likes-count">${fmt(likeCount)}</span>
                <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
             </div>
             <div class="social-item comment-trigger-pinned" data-id="${post.id}">
-               <span class="r-count">${fmt(commentCount)}</span>
+               <span class="comments-count">${fmt(commentCount)}</span>
                <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
             </div>
             <div class="social-item reaction-item ${iReposted ? 'reacted' : ''}" data-type="reposts" data-id="${post.id}">
-               <span class="r-count">${fmt(repostCount)}</span>
+               <span class="reposts-count">${fmt(repostCount)}</span>
                <svg viewBox="0 0 24 24"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
             </div>
           </div>
@@ -270,14 +270,14 @@ function renderPinnedCard(post, uid) {
 }
 
 function renderBulletinCard(post, uid) {
-  const likeCount    = (post.likes    || []).length;
-  const repostCount  = (post.reposts  || []).length;
+  const likeCount = (post.likes || []).length;
+  const repostCount = (post.reposts || []).length;
   const commentCount = (post.comments || []).length;
-  const iLiked       = uid && (post.likes   || []).includes(uid);
-  const iReposted    = uid && (post.reposts || []).includes(uid);
+  const iLiked = uid && (post.likes || []).includes(uid);
+  const iReposted = uid && (post.reposts || []).includes(uid);
 
   const bodyHTML = (post.body || '').replace(/\n/g, '<br>');
-  const imgs     = post.imageURLs || [];
+  const imgs = post.imageURLs || [];
   const hasImages = imgs.length > 0;
 
   let photoGrid = '';
@@ -299,19 +299,19 @@ function renderBulletinCard(post, uid) {
       <div class="bulletin-media-col">
         <div class="bulletin-photo-grid ${collageClass}" ${inlineStyle}>
           ${imgs.slice(0, 5).map((src, i) => {
-            // The +N overlay only goes on the LAST visible cell (index 4) when extras exist
-            const isLastVisible = i === 4 && extra > 0;
-            // Cell 0 must span both grid rows in a 5-cell collage layout
-            const cellStyle = (count >= 5 && i === 0)
-              ? `style="grid-column:1/2 !important; grid-row:1/3 !important;"`
-              : '';
+      // The +N overlay only goes on the LAST visible cell (index 4) when extras exist
+      const isLastVisible = i === 4 && extra > 0;
+      // Cell 0 must span both grid rows in a 5-cell collage layout
+      const cellStyle = (count >= 5 && i === 0)
+        ? `style="grid-column:1/2 !important; grid-row:1/3 !important;"`
+        : '';
 
-            return `
+      return `
               <div class="collage-cell lightbox-trigger" data-src="${src}" ${cellStyle}>
                 <img src="${src}" alt="" />
                 ${isLastVisible ? `<div class="photo-more-overlay">+${extra}</div>` : ''}
               </div>`;
-          }).join('')}
+    }).join('')}
         </div>
       </div>`;
   }
@@ -342,15 +342,15 @@ function renderBulletinCard(post, uid) {
       <div class="feed-reactions bulletin-card-reactions">
         <button class="feed-reaction-btn ${iLiked ? 'heart-active' : ''}" data-type="likes" data-id="${post.id}">
           <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-          <span class="r-count">${fmt(likeCount)}</span> Heart
+          <span class="likes-count">${fmt(likeCount)}</span> Heart
         </button>
         <button class="feed-reaction-btn cn-comment-trigger" data-id="${post.id}">
           <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-          <span class="r-count">${fmt(commentCount)}</span> Comments
+          <span class="comments-count">${fmt(commentCount)}</span> Comments
         </button>
         <button class="feed-reaction-btn ${iReposted ? 'repost-active' : ''}" data-type="reposts" data-id="${post.id}">
           <svg viewBox="0 0 24 24"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
-          <span class="r-count">${fmt(repostCount)}</span> Repost
+          <span class="reposts-count">${fmt(repostCount)}</span> Repost
         </button>
       </div>
     </div>`;
@@ -362,7 +362,7 @@ function renderBulletinCard(post, uid) {
 
 function wireViewMore(bodyId, btnId) {
   const body = document.getElementById(bodyId);
-  const btn  = document.getElementById(btnId);
+  const btn = document.getElementById(btnId);
   if (!body || !btn) return;
   requestAnimationFrame(() => {
     if (body.scrollHeight > body.clientHeight + 4) btn.classList.add('visible');
@@ -381,11 +381,11 @@ function wireViewMore(bodyId, btnId) {
 
 const REACTION_MESSAGES = {
   likes: {
-    on:  ['❤️ Loved it!', '💕 Hearted!', '❤️ You loved this!'],
+    on: ['❤️ Loved it!', '💕 Hearted!', '❤️ You loved this!'],
     off: ['💔 Removed heart', 'Unliked'],
   },
   reposts: {
-    on:  ['🔁 Reposted!', '🔁 Shared to your feed!', '✅ Reposted successfully!'],
+    on: ['🔁 Reposted!', '🔁 Shared to your feed!', '✅ Reposted successfully!'],
     off: ['↩️ Repost removed', '🔁 Un-reposted', 'Removed from your reposts'],
   },
 };
@@ -417,15 +417,15 @@ function wireReactionButtons() {
 
 async function handleReaction(el) {
   if (!currentUser) { showToast('Sign in to react.'); return; }
-  const postId  = el.dataset.id;
-  const type    = el.dataset.type;
+  const postId = el.dataset.id;
+  const type = el.dataset.type;
   if (type === 'comments') return; // handled by comment modal
 
   // Determine active state based on which class system is in use
   const isPinnedBar = el.classList.contains('reaction-item'); // social-bar style
   const already = isPinnedBar ? el.classList.contains('reacted')
-                              : (type === 'likes' ? el.classList.contains('heart-active')
-                                                  : el.classList.contains('repost-active'));
+    : (type === 'likes' ? el.classList.contains('heart-active')
+      : el.classList.contains('repost-active'));
 
   // Optimistic UI
   if (isPinnedBar) {
@@ -449,13 +449,8 @@ async function handleReaction(el) {
     }
   }
 
-  const countEl = el.querySelector('.r-count');
-  const post = allPosts.find(p => p.id === postId);
-  if (post && countEl) {
-    const arr  = post[type] || [];
-    const fakeCount = already ? Math.max(0, arr.length - 1) : arr.length + 1;
-    countEl.textContent = fmt(fakeCount);
-  }
+  // Optimistic UI Class update
+  el.classList.toggle(type + '-active', !already);
 
   // Only show pop on "on" (hearting/reposting), not on removing
   if (!already) {
@@ -524,12 +519,12 @@ function renderCommentList(postId) {
   list.innerHTML = comments.map((c, i) => {
     // Determine if user owns the comment
     const isOwn = c.isOwn || (currentUserName && c.author === currentUserName);
-    
-    const avatarHTML = window.getAvatar 
-      ? window.getAvatar(c.photoURL, c.author) 
-      : (c.photoURL 
-          ? `<img src="${c.photoURL}" alt="${c.author}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`
-          : `<svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`);
+
+    const avatarHTML = window.getAvatar
+      ? window.getAvatar(c.photoURL, c.author)
+      : (c.photoURL
+        ? `<img src="${c.photoURL}" alt="${c.author}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`
+        : `<svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`);
 
     // Actions only appear for the owner, matching your screenshot layout
     const actionsHTML = isOwn ? `
@@ -569,7 +564,7 @@ function renderCommentList(postId) {
       const c = comments[idx];
       const bubble = document.querySelector(`#cn-ci-${idx} .comment-item-bubble`);
       const footer = document.querySelector(`#cn-ci-${idx} .comment-footer`);
-      
+
       if (!bubble) return;
 
       // Transform bubble into edit mode
@@ -582,9 +577,9 @@ function renderCommentList(postId) {
             <button class="comment-edit-cancel" data-idx="${idx}">Cancel</button>
           </div>
         </div>`;
-      
+
       if (footer) footer.style.display = 'none'; // Hide time/actions while editing
-      
+
       const input = document.getElementById(`cn-edit-input-${idx}`);
       input?.focus();
 
@@ -592,9 +587,9 @@ function renderCommentList(postId) {
       bubble.querySelector('.comment-edit-save')?.addEventListener('click', async () => {
         const newText = input?.value.trim();
         if (!newText) return;
-        
+
         comments[idx].text = newText;
-        
+
         // Firebase update
         if (currentUser && c.id) {
           try {
@@ -605,7 +600,7 @@ function renderCommentList(postId) {
             console.error('Edit error:', err);
           }
         }
-        
+
         renderCommentList(postId);
         showToast('✏️ Comment updated!');
       });
@@ -649,7 +644,7 @@ function initCommentModal() {
     if (e.target === document.getElementById('cn-comment-modal-overlay')) closeCommentModal();
   });
 
-  const sendBtn   = document.getElementById('cn-comment-send-btn');
+  const sendBtn = document.getElementById('cn-comment-send-btn');
   const inputField = document.getElementById('cn-comment-input-field');
 
   sendBtn?.addEventListener('click', () => submitComment());
@@ -668,7 +663,7 @@ async function submitComment() {
   if (!post) return;
 
   // Grab your face from the cache created by comments.js
-  const userPhoto = window.cachedPhoto || null; 
+  const userPhoto = window.cachedPhoto || null;
 
   const newComment = {
     id: 'c-' + Date.now(),
@@ -690,9 +685,9 @@ async function submitComment() {
   if (!activePostId.startsWith('demo-')) {
     try {
       await addDoc(collection(db, `announcements/${activePostId}/comments`), {
-        author:    currentUserName,
-        authorId:  currentUser.uid,
-        photoURL:  userPhoto, // Save your profile pic URL to the database
+        author: currentUserName,
+        authorId: currentUser.uid,
+        photoURL: userPhoto, // Save your profile pic URL to the database
         text,
         createdAt: serverTimestamp(),
       });
@@ -708,7 +703,7 @@ async function submitComment() {
 
 // --- ADD TO YOUR STATE SECTION (Line 50ish) ---
 let currentGallery = [];
-let currentIndex    = 0;
+let currentIndex = 0;
 
 // --- REPLACE THESE FUNCTIONS IN YOUR JS ---
 
@@ -725,13 +720,13 @@ function wireLightboxTriggers() {
 
       const postId = card.dataset.id;
       const post = allPosts.find(p => p.id === postId);
-      
+
       if (post && post.imageURLs && post.imageURLs.length > 0) {
         currentGallery = post.imageURLs;
         const clickedSrc = fresh.dataset.src;
         currentIndex = currentGallery.indexOf(clickedSrc);
         if (currentIndex === -1) currentIndex = 0;
-        
+
         openLightbox();
       }
     });
@@ -766,7 +761,7 @@ function initLightbox() {
   }
 
   const lb = document.getElementById('cn-lightbox');
-  
+
   // Close triggers
   document.getElementById('cn-lightbox-close')?.addEventListener('click', () => lb.classList.remove('open'));
   lb?.addEventListener('click', e => { if (e.target === lb) lb.classList.remove('open'); });
@@ -789,30 +784,30 @@ function initLightbox() {
 // CUSTOM DATE PICKER
 // ─────────────────────────────────────────────
 
-const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-const DAYS_SHORT = ['Su','Mo','Tu','We','Th','Fr','Sa'];
+const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+const DAYS_SHORT = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
 
 let dpState = {
-  target:    'from',
-  viewYear:  new Date().getFullYear(),
+  target: 'from',
+  viewYear: new Date().getFullYear(),
   viewMonth: new Date().getMonth(),
-  fromDate:  null,
-  toDate:    null,
+  fromDate: null,
+  toDate: null,
 };
 
 function dpFmt(d) {
   if (!d) return '';
-  return MONTHS[d.getMonth()].slice(0,3) + ' ' + d.getDate() + ', ' + d.getFullYear();
+  return MONTHS[d.getMonth()].slice(0, 3) + ' ' + d.getDate() + ', ' + d.getFullYear();
 }
 
 function dpISOVal(d) {
   if (!d) return '';
-  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
 }
 
 function buildCalendarHTML() {
   const { viewYear, viewMonth, fromDate, toDate } = dpState;
-  const today = new Date(); today.setHours(0,0,0,0);
+  const today = new Date(); today.setHours(0, 0, 0, 0);
   const firstDay = new Date(viewYear, viewMonth, 1).getDay();
   const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
 
@@ -820,14 +815,14 @@ function buildCalendarHTML() {
   let cells = '';
   for (let i = 0; i < firstDay; i++) cells += '<div class="dp-cell dp-cell-empty"></div>';
   for (let day = 1; day <= daysInMonth; day++) {
-    const d = new Date(viewYear, viewMonth, day); d.setHours(0,0,0,0);
-    const isToday  = d.getTime() === today.getTime();
-    const isFrom   = fromDate && d.getTime() === fromDate.getTime();
-    const isTo     = toDate   && d.getTime() === toDate.getTime();
-    const inRange  = fromDate && toDate && d > fromDate && d < toDate;
+    const d = new Date(viewYear, viewMonth, day); d.setHours(0, 0, 0, 0);
+    const isToday = d.getTime() === today.getTime();
+    const isFrom = fromDate && d.getTime() === fromDate.getTime();
+    const isTo = toDate && d.getTime() === toDate.getTime();
+    const inRange = fromDate && toDate && d > fromDate && d < toDate;
     const cls = ['dp-cell',
       isFrom ? 'dp-cell-from' : '',
-      isTo   ? 'dp-cell-to'   : '',
+      isTo ? 'dp-cell-to' : '',
       inRange ? 'dp-cell-in-range' : '',
       isToday ? 'dp-cell-today' : '',
     ].filter(Boolean).join(' ');
@@ -848,9 +843,9 @@ function renderCalendar() {
   if (el) el.innerHTML = buildCalendarHTML();
 
   const fromDisp = document.getElementById('cn-dp-from-display');
-  const toDisp   = document.getElementById('cn-dp-to-display');
+  const toDisp = document.getElementById('cn-dp-to-display');
   if (fromDisp) fromDisp.textContent = dpFmt(dpState.fromDate) || 'Select date';
-  if (toDisp)   toDisp.textContent   = dpFmt(dpState.toDate)   || 'Select date';
+  if (toDisp) toDisp.textContent = dpFmt(dpState.toDate) || 'Select date';
 
   document.getElementById('cn-dp-from-box')?.classList.toggle('dp-box-active', dpState.target === 'from');
   document.getElementById('cn-dp-to-box')?.classList.toggle('dp-box-active', dpState.target === 'to');
@@ -873,7 +868,7 @@ function renderCalendar() {
       e.stopPropagation();
       const day = parseInt(cell.dataset.day);
       const chosen = new Date(dpState.viewYear, dpState.viewMonth, day);
-      chosen.setHours(0,0,0,0);
+      chosen.setHours(0, 0, 0, 0);
       if (dpState.target === 'from') {
         dpState.fromDate = chosen;
         if (dpState.toDate && chosen > dpState.toDate) dpState.toDate = null;
@@ -897,15 +892,15 @@ function injectDatePickerUI() {
   // Always re-render so date picker is fresh every time custom is opened
   customDiv.innerHTML =
     '<div class="dp-inputs-row">' +
-      '<div class="dp-box" id="cn-dp-from-box">' +
-        '<span class="dp-box-label">FROM</span>' +
-        '<span class="dp-box-date" id="cn-dp-from-display">Select date</span>' +
-      '</div>' +
-      '<div class="dp-arrow">→</div>' +
-      '<div class="dp-box" id="cn-dp-to-box">' +
-        '<span class="dp-box-label">TO</span>' +
-        '<span class="dp-box-date" id="cn-dp-to-display">Select date</span>' +
-      '</div>' +
+    '<div class="dp-box" id="cn-dp-from-box">' +
+    '<span class="dp-box-label">FROM</span>' +
+    '<span class="dp-box-date" id="cn-dp-from-display">Select date</span>' +
+    '</div>' +
+    '<div class="dp-arrow">→</div>' +
+    '<div class="dp-box" id="cn-dp-to-box">' +
+    '<span class="dp-box-label">TO</span>' +
+    '<span class="dp-box-date" id="cn-dp-to-display">Select date</span>' +
+    '</div>' +
     '</div>' +
     '<div class="dp-calendar-wrap" id="cn-dp-calendar"></div>' +
     '<button class="cn-filter-apply" id="cn-filter-apply">Apply Range</button>';
@@ -921,7 +916,7 @@ function injectDatePickerUI() {
   document.getElementById('cn-filter-apply')?.addEventListener('click', () => {
     if (!dpState.fromDate || !dpState.toDate) { showToast('Please select both a From and To date.'); return; }
     customFrom = dpISOVal(dpState.fromDate);
-    customTo   = dpISOVal(dpState.toDate);
+    customTo = dpISOVal(dpState.toDate);
 
     // Update the filter button label to show selected range
     const labelEl = document.getElementById('cn-filter-btn')?.querySelector('.cn-filter-label');
@@ -980,7 +975,7 @@ function positionPortal(btn) {
     if (top < 8) top = 8; // last resort: clamp to top
   }
 
-  portal.style.top  = top + 'px';
+  portal.style.top = top + 'px';
   portal.style.left = left + 'px';
 }
 
@@ -988,7 +983,7 @@ function initFilterUI() {
   buildFilterPortal();
 
   const filterBtn = document.getElementById('cn-filter-btn');
-  const portal    = document.getElementById('cn-filter-portal');
+  const portal = document.getElementById('cn-filter-portal');
 
   const LABELS = { all: 'Filter Posts', today: 'Today', week: 'This Week', month: 'This Month', custom: 'Custom Range' };
 
@@ -1040,10 +1035,10 @@ function initFilterUI() {
 
     if (activeFilter === 'custom') {
       document.getElementById('cn-filter-custom')?.classList.remove('hidden');
-      dpState.fromDate  = null;
-      dpState.toDate    = null;
-      dpState.target    = 'from';
-      dpState.viewYear  = new Date().getFullYear();
+      dpState.fromDate = null;
+      dpState.toDate = null;
+      dpState.target = 'from';
+      dpState.viewYear = new Date().getFullYear();
       dpState.viewMonth = new Date().getMonth();
       injectDatePickerUI();
       // Reposition after calendar expands the portal width/height
@@ -1075,7 +1070,7 @@ function initSearch() {
 function initSideTabs() {
   const tabs = document.querySelectorAll('.side-tab');
   const sections = {
-    org:      document.getElementById('section-org'),
+    org: document.getElementById('section-org'),
     bulletin: document.getElementById('section-bulletin'),
   };
 
@@ -1124,12 +1119,12 @@ function initRightPanel() {
       const snap = await getDoc(doc(db, 'users', user.uid));
       if (!snap.exists()) return;
       const data = snap.data();
-      const nameEl    = document.getElementById('cn-profile-name');
-      const emailEl   = document.getElementById('cn-profile-email');
-      const idEl      = document.getElementById('cn-profile-id');
+      const nameEl = document.getElementById('cn-profile-name');
+      const emailEl = document.getElementById('cn-profile-email');
+      const idEl = document.getElementById('cn-profile-id');
       const photoWrap = document.getElementById('cn-profile-photo-wrap');
-      if (nameEl)  nameEl.textContent  = data.fullName || user.displayName || '';
-      if (emailEl) emailEl.textContent = data.email    || user.email       || '';
+      if (nameEl) nameEl.textContent = data.fullName || user.displayName || '';
+      if (emailEl) emailEl.textContent = data.email || user.email || '';
       const tupId = data.studentID || data.studentId || data.tupId || data.idNumber || '';
       if (idEl) idEl.textContent = tupId || '—';
       if (photoWrap && data.photoURL) {
@@ -1153,11 +1148,11 @@ function initAuth() {
           const data = snap.data();
           currentUserRole = data.role || 'Student';
           currentUserName = data.fullName || user.displayName || 'TUPian';
-          
+
           // CRITICAL: Push the photo into the global cache and update the UI
           window.cachedPhoto = data.photoURL || data.photoSrc || null;
           if (window.updateModalInputAvatar) {
-              window.updateModalInputAvatar();
+            window.updateModalInputAvatar();
           }
         }
       } catch (err) {
@@ -1170,6 +1165,22 @@ function initAuth() {
 function listenToAnnouncements() {
   const q = query(collection(db, 'announcements'), orderBy('createdAt', 'desc'));
   onSnapshot(q, (snapshot) => {
+    const changes = snapshot.docChanges();
+    const feed = document.getElementById('feed');
+    const isFirstLoad = !feed || !feed.querySelector('.bulletin-card');
+
+    // Optimization: If NOT the first load and only modifications happened (likes/reposts/comments)
+    // we update the UI elements in-place to prevent the "flicker".
+    if (!isFirstLoad && changes.length > 0 && changes.every(c => c.type === 'modified')) {
+      changes.forEach(change => {
+        updateAnnouncementUI(change.doc.id, change.doc.data());
+      });
+      // Also update the global state
+      allPosts = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+      return;
+    }
+
+    // Otherwise, do a full render for added/removed/initial
     allPosts = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
     renderBulletinPage(getFilteredPosts());
   }, (err) => {
@@ -1177,6 +1188,44 @@ function listenToAnnouncements() {
     allPosts = [];
     renderBulletinPage(getFilteredPosts());
   });
+}
+
+/**
+ * Updates an announcement card's counts and active states in-place.
+ */
+function updateAnnouncementUI(id, data) {
+  const card = document.querySelector(`.bulletin-card[data-id="${id}"]`);
+  if (!card) return;
+
+  const currentUid = auth.currentUser?.uid;
+
+  // 1. Update Likes
+  const likedBy = data.likedBy || [];
+  const isLikedByMe = currentUid && likedBy.includes(currentUid);
+  const likeBtn = card.querySelector('.feed-reaction-btn[data-type="like"]');
+  if (likeBtn) {
+    likeBtn.classList.toggle('heart-active', isLikedByMe);
+    const countSpan = likeBtn.querySelector('.likes-count');
+    if (countSpan) countSpan.textContent = fmt(likedBy.length);
+  }
+
+  // 2. Update Comments
+  const commentsCount = data.commentsCount || 0;
+  const commentBtn = card.querySelector('.feed-reaction-btn[data-type="comment"]');
+  if (commentBtn) {
+    const countSpan = commentBtn.querySelector('.comments-count');
+    if (countSpan) countSpan.textContent = fmt(commentsCount);
+  }
+
+  // 3. Update Reposts
+  const repostedBy = data.repostedBy || [];
+  const isRepostedByMe = currentUid && repostedBy.includes(currentUid);
+  const repostBtn = card.querySelector('.feed-reaction-btn[data-type="repost"]');
+  if (repostBtn) {
+    repostBtn.classList.toggle('repost-active', isRepostedByMe);
+    const countSpan = repostBtn.querySelector('.reposts-count');
+    if (countSpan) countSpan.textContent = fmt(repostedBy.length);
+  }
 }
 
 // ─────────────────────────────────────────────
