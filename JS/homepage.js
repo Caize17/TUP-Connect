@@ -462,26 +462,18 @@ let FEED_POSTS = [];
     document.getElementById('poster-handle').textContent = POST.posterHandle + ' ✉';
     document.getElementById('poster-colleges').innerHTML =
       POST.posterColleges.map(c => `<div class="p-college">${c}</div>`).join('');
-  } else {
-    const annCard = document.getElementById('ann-card');
-    if (annCard) {
-      annCard.innerHTML = `
-        <div class="pinned-empty">
-          <svg viewBox="0 0 24 24"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0 1 18 14.158V11a6 6 0 0 0-5-5.917V4a1 1 0 1 0-2 0v1.083A6 6 0 0 0 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 1 1-6 0v-1m6 0H9"/></svg>
-          <div class="pinned-empty-text">No announcements yet</div>
-        </div>`;
-    }
-  }
+  } 
 
   /* ── View More / Less for pinned announcement ── */
   if (POST) {
     (function () {
       const body = document.getElementById('post-body');
-      const btn = document.getElementById('view-more-btn');
+      const btn  = document.getElementById('view-more-btn');
+      if (!body || !btn) return;
       let expanded = false;
       body.classList.add('is-clamped');
       requestAnimationFrame(() => {
-        if (body.scrollHeight > body.clientHeight) {
+        if (body.scrollHeight > body.clientHeight + 4) {
           btn.classList.add('visible');
         } else {
           body.classList.remove('is-clamped');
@@ -494,25 +486,53 @@ let FEED_POSTS = [];
       });
     })();
 
-    /* ── Media / image grid ── */
-    const mediaGridEl2 = document.getElementById('media-grid');
-    const imgs = POST.images || [];
-    if (imgs.length > 0) {
-      document.getElementById('poster-card-inner').style.display = 'none';
-      const shown = Math.min(imgs.length, 4);
-      const extra = imgs.length - shown;
-      const countCls = imgs.length === 1 ? 'count-1'
-        : imgs.length === 2 ? 'count-2'
-          : imgs.length === 3 ? 'count-3'
-            : 'count-4';
-      const cells = imgs.slice(0, shown).map((src, i) => {
-        const isLast = i === shown - 1 && extra > 0;
-        return `<div class="gi"><img src="${src}" alt="post image"/>${isLast ? `<div class="gi-more">+${extra + 1}</div>` : ''}</div>`;
+    /* ── Media / image collage (SYNCED BULLETPROOF FIX) ── */
+    const mediaCol = document.getElementById('media-grid');
+    const imgs = POST.imageURLs || POST.images || [];
+    
+    if (imgs.length > 0 && mediaCol) {
+      const posterInner = document.getElementById('poster-card-inner');
+      if (posterInner) posterInner.style.display = 'none';
+
+      const count = imgs.length;
+      const clampedCount = Math.min(count, 5);
+      const extra = count > 5 ? count - 5 : 0;
+
+      let gridHtml = `<div class="pinned-photo-grid collage-${clampedCount}" style="display: grid !important; height: 250px !important; gap: 4px !important; width: 100% !important;`;
+
+      if (clampedCount === 1) gridHtml += ` grid-template-columns: 1fr !important; grid-template-rows: 1fr !important;">`;
+      else if (clampedCount === 2) gridHtml += ` grid-template-columns: 1fr 1fr !important; grid-template-rows: 1fr !important;">`;
+      else if (clampedCount === 3 || clampedCount === 4) gridHtml += ` grid-template-columns: 1fr 1fr !important; grid-template-rows: 1fr 1fr !important;">`;
+      else gridHtml += ` grid-template-columns: 2fr 1fr 1fr !important; grid-template-rows: 1fr 1fr !important;">`;
+
+      const cellsHtml = imgs.slice(0, 5).map((src, i) => {
+        let cellStyle = "position: relative !important; overflow: hidden !important; min-width: 0 !important; min-height: 0 !important; width: 100% !important; height: 100% !important;";
+        
+        if (clampedCount >= 5 && i === 0) {
+            cellStyle += " grid-column: 1 / 2 !important; grid-row: 1 / 3 !important;";
+        } else if (clampedCount === 3 && i === 0) {
+            cellStyle += " grid-row: 1 / 3 !important;";
+        }
+
+        const isLastVisible = i === 4 && extra > 0;
+        const overlayHtml = isLastVisible 
+          ? `<div class="photo-more-overlay" style="position: absolute !important; inset: 0 !important; background: rgba(0,0,0,0.6) !important; display: flex !important; align-items: center !important; justify-content: center !important; color: #fff !important; font-size: 17px !important; font-weight: 600 !important; z-index: 2 !important; pointer-events: none !important;">+${extra}</div>` 
+          : '';
+
+        return `
+          <div class="collage-cell hp-lightbox-trigger" data-src="${src}" style="${cellStyle}">
+            <img src="${src}" alt="post image" style="position: absolute !important; top: 0 !important; left: 0 !important; width: 100% !important; height: 100% !important; object-fit: cover !important; display: block !important;" />
+            ${overlayHtml}
+          </div>`;
       }).join('');
-      const grid = document.createElement('div');
-      grid.className = `img-grid ${countCls}`;
-      grid.innerHTML = cells;
-      mediaGridEl2.insertBefore(grid, mediaGridEl2.querySelector('.poster-hint').nextSibling);
+
+      mediaCol.innerHTML = gridHtml + cellsHtml + `</div>`;
+
+      mediaCol.querySelectorAll('.hp-lightbox-trigger').forEach(cell => {
+        cell.addEventListener('click', () => {
+          if (window.openGallery) window.openGallery(imgs, cell.dataset.src);
+        });
+      });
     }
   }
 
@@ -655,23 +675,58 @@ let FEED_POSTS = [];
   window.renderFeedPosts = renderFeedPosts;
 
   /* ════════════════════════════════════════
-     LIGHTBOX
+     LIGHTBOX (WITH GALLERY)
   ════════════════════════════════════════ */
-
   const lightbox = document.getElementById('lightbox');
-  const lbImg = document.getElementById('lightbox-img');
-  const openLB = src => { lbImg.src = src; lightbox.classList.add('open'); };
-  const closeLB = () => { lightbox.classList.remove('open'); lbImg.src = ''; };
-  const mediaGridEl = document.getElementById('media-grid');
-
-  if (mediaGridEl) {
-    mediaGridEl.addEventListener('click', () => {
-      if (POST && POST.images && POST.images.length > 0) openLB(POST.images[0]);
-    });
+  
+  // 1. Inject navigation arrows dynamically if they don't exist
+  if (lightbox && !document.getElementById('lb-prev')) {
+      lightbox.insertAdjacentHTML('beforeend', `
+        <button id="lb-prev" class="lb-nav">❮</button>
+        <button id="lb-next" class="lb-nav">❯</button>
+        <div id="lb-counter"></div>
+      `);
   }
-  document.getElementById('lightbox-close').addEventListener('click', closeLB);
-  lightbox.addEventListener('click', e => { if (e.target === lightbox) closeLB(); });
 
+  window.currentGallery = [];
+  window.currentIndex = 0;
+
+  // 2. Global gallery function so any script can open it
+  window.openGallery = function(images, clickedSrc) {
+      if (!images || images.length === 0) return;
+      window.currentGallery = images;
+      window.currentIndex = images.indexOf(clickedSrc);
+      if (window.currentIndex === -1) window.currentIndex = 0;
+      
+      const lb = document.getElementById('lightbox');
+      const img = document.getElementById('lightbox-img');
+      const counter = document.getElementById('lb-counter');
+      
+      if (lb && img) {
+          img.src = window.currentGallery[window.currentIndex];
+          lb.classList.add('open');
+          if (counter) counter.textContent = `${window.currentIndex + 1} / ${window.currentGallery.length}`;
+      }
+  };
+
+  const closeLB = () => { 
+      if(lightbox) lightbox.classList.remove('open'); 
+  };
+
+  document.getElementById('lightbox-close')?.addEventListener('click', closeLB);
+  lightbox?.addEventListener('click', e => { if (e.target === lightbox) closeLB(); });
+
+  document.getElementById('lb-prev')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      window.currentIndex = (window.currentIndex > 0) ? window.currentIndex - 1 : window.currentGallery.length - 1;
+      window.openGallery(window.currentGallery, window.currentGallery[window.currentIndex]);
+  });
+
+  document.getElementById('lb-next')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      window.currentIndex = (window.currentIndex < window.currentGallery.length - 1) ? window.currentIndex + 1 : 0;
+      window.openGallery(window.currentGallery, window.currentGallery[window.currentIndex]);
+  });
   /* ════════════════════════════════════════
      COMMENT MODAL
   ════════════════════════════════════════ */
@@ -1045,5 +1100,3 @@ let FEED_POSTS = [];
   window.renderFeedPosts = renderFeedPosts;
   window.FEED_POSTS = FEED_POSTS;
 })();
-
-

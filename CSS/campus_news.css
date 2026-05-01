@@ -582,6 +582,222 @@ body {
 .social-item:hover { opacity: .72; }
 .social-item svg { width: 16px; height: 16px; stroke: #f5e8c8; stroke-width: 2.5; fill: none; }
 
+/* Reacted state for pinned bar items */
+.social-item.reaction-item.reacted svg { fill: #f5e8c8; }
+
+/* Divider between social bar items — mirrors homepage.css .social-divider */
+.social-divider {
+  width: 1.5px;
+  height: 16px;
+  background: rgba(245,232,200,.22);
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+/* ════════════════════════════════════════
+   REPOST QUOTE MODAL — campus_news
+   Exact mirror of the homepage repost modal style
+════════════════════════════════════════ */
+#cn-repost-modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.55);
+  z-index: 2000;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(2px);
+}
+#cn-repost-modal-overlay.open { display: flex; }
+
+#cn-repost-modal {
+  background: var(--cream);
+  border-radius: 24px;
+  width: 92vw;
+  max-width: 560px;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 24px 64px rgba(0,0,0,.3);
+  animation: modalIn .25s cubic-bezier(.34,1.56,.64,1) both;
+  overflow: hidden;
+}
+
+#cn-repost-modal .cn-rm-header {
+  background: var(--cream);
+  padding: 20px 26px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  border-bottom: 1.5px solid var(--cream-md);
+  flex-shrink: 0;
+}
+#cn-repost-modal .cn-rm-title {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--maroon-dk);
+}
+#cn-repost-modal .cn-rm-close {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(222,194,198,.6);
+  border: none;
+  border-radius: 50%;
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--maroon-dk);
+  font-size: 16px;
+  font-weight: 700;
+  transition: background .15s;
+}
+#cn-repost-modal .cn-rm-close:hover { background: rgba(222,194,198,1); }
+
+#cn-repost-modal .cn-rm-body {
+  padding: 18px 26px 22px;
+  overflow-y: auto;
+  flex: 1;
+  scrollbar-width: thin;
+  scrollbar-color: var(--cream-md) transparent;
+}
+
+/* User row */
+#cn-repost-modal .cn-rm-user-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+#cn-repost-modal .cn-rm-avatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--maroon);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
+  border: 2px solid var(--cream-md);
+}
+#cn-repost-modal .cn-rm-avatar svg {
+  width: 22px; height: 22px;
+  stroke: var(--cream); fill: none; stroke-width: 2;
+}
+#cn-repost-modal .cn-rm-avatar img {
+  width: 100%; height: 100%; object-fit: cover; border-radius: 50%;
+}
+#cn-repost-modal .cn-rm-user-name {
+  font-size: 17px; font-weight: 800; color: var(--text);
+}
+
+/* Optional quote textarea */
+#cn-repost-modal .cn-rm-textarea {
+  width: 100%;
+  min-height: 100px;
+  background: rgba(222,194,198,.25);
+  border: none;
+  border-radius: 14px;
+  padding: 14px 18px;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text);
+  resize: none;
+  outline: none;
+  margin-bottom: 14px;
+}
+#cn-repost-modal .cn-rm-textarea::placeholder { color: var(--muted); }
+
+/* Quoted post preview card */
+#cn-repost-modal .cn-rm-quote-card {
+  background: var(--white);
+  border: 1.5px solid var(--cream-md);
+  border-radius: 14px;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+}
+#cn-repost-modal .cn-rm-quote-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+#cn-repost-modal .cn-rm-quote-avatar {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: var(--maroon-lt);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; overflow: hidden;
+}
+#cn-repost-modal .cn-rm-quote-avatar svg {
+  width: 14px; height: 14px;
+  stroke: var(--cream); fill: none; stroke-width: 2;
+}
+#cn-repost-modal .cn-rm-quote-name {
+  font-size: 14px; font-weight: 800; color: var(--text);
+}
+#cn-repost-modal .cn-rm-quote-time {
+  font-size: 12px; font-weight: 600; color: var(--muted); margin-left: auto;
+}
+#cn-repost-modal .cn-rm-quote-title {
+  font-size: 14px; font-weight: 800; color: var(--text); margin-bottom: 4px;
+}
+#cn-repost-modal .cn-rm-quote-body {
+  font-size: 13px; font-weight: 500; color: var(--text);
+  line-height: 1.55; font-style: italic;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Submit row */
+#cn-repost-modal .cn-rm-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+#cn-repost-modal .cn-rm-skip-btn {
+  background: none;
+  border: 1.5px solid var(--cream-md);
+  border-radius: 99px;
+  padding: 10px 22px;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 14px; font-weight: 700;
+  color: var(--muted);
+  cursor: pointer;
+  transition: border-color .15s, color .15s;
+}
+#cn-repost-modal .cn-rm-skip-btn:hover { border-color: var(--maroon); color: var(--maroon); }
+
+#cn-repost-modal .cn-rm-submit-btn {
+  flex: 1;
+  background: var(--maroon-dk);
+  border: none;
+  border-radius: 99px;
+  padding: 12px 28px;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 14px; font-weight: 800;
+  color: var(--cream);
+  cursor: pointer;
+  transition: background .15s;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+#cn-repost-modal .cn-rm-submit-btn:hover { background: var(--maroon); }
+#cn-repost-modal .cn-rm-submit-btn svg {
+  width: 16px; height: 16px;
+  stroke: var(--cream); fill: none; stroke-width: 2.2;
+  stroke-linecap: round; stroke-linejoin: round;
+}
+
 /* ── PINNED CONTENT LAYOUT ── */
 .pinned-columns-wrap {
   display: flex;
@@ -1029,7 +1245,7 @@ body {
   display: flex; align-items: center; justify-content: center; gap: 6px;
   background: none; border: none; cursor: pointer;
   font-family: 'Montserrat', sans-serif; font-size: 13px; font-weight: 700;
-  color: var(--muted); padding: 13px 0;
+  color: var(--text); padding: 13px 0;
   transition: background .15s, color .15s;
 }
 .feed-reaction-btn:hover {
@@ -1408,11 +1624,118 @@ body {
 .anim-5 { animation: fadeUp .5s .32s ease both; }
 
 /* ── LIGHTBOX ── */
-#cn-lightbox { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 500; align-items: center; justify-content: center; }
+#cn-lightbox {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.92);
+  z-index: 9000;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(6px);
+  animation: lbFadeIn .2s ease both;
+}
 #cn-lightbox.open { display: flex; }
-#cn-lightbox img { max-width: 90vw; max-height: 90vh; border-radius: 12px; box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
-#cn-lightbox-close { position: absolute; top: 22px; right: 28px; color: #fff; font-size: 28px; cursor: pointer; line-height: 1; user-select: none; opacity: .8; transition: opacity .15s; }
-#cn-lightbox-close:hover { opacity: 1; }
+
+@keyframes lbFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* Image — slides in on each navigation */
+#cn-lightbox-img {
+  max-width: min(88vw, 1100px);
+  max-height: 88vh;
+  border-radius: 14px;
+  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.65);
+  object-fit: contain;
+  animation: lbImgIn .18s ease both;
+  display: block;
+  user-select: none;
+}
+
+@keyframes lbImgIn {
+  from { opacity: 0; transform: scale(0.96); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+/* Close button */
+#cn-lightbox-close {
+  position: absolute;
+  top: 20px;
+  right: 24px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1.5px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background .15s, transform .15s;
+  backdrop-filter: blur(4px);
+}
+#cn-lightbox-close:hover {
+  background: rgba(255, 255, 255, 0.24);
+  transform: scale(1.08);
+}
+
+/* Prev / Next nav buttons */
+.lb-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.13);
+  border: 1.5px solid rgba(255, 255, 255, 0.22);
+  color: #fff;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background .15s, transform .15s;
+  backdrop-filter: blur(4px);
+  user-select: none;
+  z-index: 10;
+}
+.lb-nav:hover {
+  background: rgba(255, 255, 255, 0.26);
+  transform: translateY(-50%) scale(1.08);
+}
+#lb-prev { left: 24px; }
+#lb-next { right: 24px; }
+
+/* Hide nav when only 1 image */
+#cn-lightbox[data-count="1"] .lb-nav { display: none; }
+
+/* Counter pill */
+#lb-counter {
+  position: absolute;
+  bottom: 22px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.9);
+  font-family: 'Montserrat', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  padding: 6px 18px;
+  border-radius: 99px;
+  backdrop-filter: blur(4px);
+  white-space: nowrap;
+  pointer-events: none;
+}
 
 /* ── NO RESULTS ── */
 .cn-no-results {
@@ -1447,26 +1770,26 @@ body {
   max-width: 50% !important;
 }
 
-/* ENSURE THE GRID USES THE FULL 250px HEIGHT */
-.bulletin-photo-grid {
-  display: grid !important;
+/* ── GLOBAL COLLAGE FIX: STOPS GRID BLOWOUT ON ALL POSTS ── */
+.bulletin-photo-grid, 
+.pinned-photo-grid {
   height: 250px !important;
-  gap: 4px !important;
+  min-height: 250px !important;
+  max-height: 250px !important;
 }
 
-/* SPECIFIC 5-PHOTO OVERRIDE */
-.collage-5 {
-  grid-template-columns: 2fr 1fr 1fr !important;
-  grid-template-rows: 1fr 1fr !important;
+.collage-cell {
+  position: relative !important;
+  min-height: 0 !important; 
+  min-width: 0 !important;
+  height: 100% !important;
+  width: 100% !important;
 }
 
-.collage-5 .collage-cell:nth-child(1) {
-  grid-column: 1 / 2 !important;
-  grid-row: 1 / 3 !important;
-}
-
-/* Ensure images don't squash */
 .collage-cell img {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
   width: 100% !important;
   height: 100% !important;
   object-fit: cover !important;

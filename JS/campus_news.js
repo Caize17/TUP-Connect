@@ -1,16 +1,3 @@
-/**
- * campus_news.js — TUP Konek
- * Student-only view of the Bulletin Board.
- *
- * Changes from previous version:
- *  - Removed all USG/Admin compose & admin control UI
- *  - Added Filter Posts by date (today / week / month / custom range)
- *  - Search works live across title, body, author
- *  - Reactions use homepage style: ❤ Heart, 💬 Comment, 🔁 Repost
- *  - Comment modal wired to each card
- *  - Pinned post synced to/from "announcements" collection (pinned: true)
- */
-
 import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
@@ -156,6 +143,9 @@ function renderBulletinPage(posts) {
     if (pinnedLabel) pinnedLabel.style.display = 'flex';
     pinnedSlot.innerHTML = renderPinnedCard(pinnedPost, uid);
     wireViewMore(`pb-body-${pinnedPost.id}`, `pb-viewmore-${pinnedPost.id}`);
+    wireReactionButtons();
+    wireCommentButtons();
+    wireLightboxTriggers();
   } else {
     if (pinnedLabel) pinnedLabel.style.display = 'none';
     if (pinnedSlot)  pinnedSlot.innerHTML = '';
@@ -209,24 +199,40 @@ function renderPinnedCard(post, uid) {
   let photoGrid = '';
   if (hasImages) {
     const count = imgs.length;
-    const collageClass = `collage-${Math.min(count, 5)}`;
-    
-    // We only show the "See More" overlay if the total count is GREATER than 5
+    const clampedCount = Math.min(count, 5);
     const extra = count > 5 ? count - 5 : 0;
 
+    let gridStyle = "display: grid !important; height: 250px !important; gap: 4px !important; width: 100% !important;";
+    if (clampedCount === 1) gridStyle += " grid-template-columns: 1fr !important; grid-template-rows: 1fr !important;";
+    else if (clampedCount === 2) gridStyle += " grid-template-columns: 1fr 1fr !important; grid-template-rows: 1fr !important;";
+    else if (clampedCount === 3 || clampedCount === 4) gridStyle += " grid-template-columns: 1fr 1fr !important; grid-template-rows: 1fr 1fr !important;";
+    else gridStyle += " grid-template-columns: 2fr 1fr 1fr !important; grid-template-rows: 1fr 1fr !important;";
+
+    const cells = imgs.slice(0, 5).map((src, i) => {
+      let cellStyle = "position: relative !important; overflow: hidden !important; min-width: 0 !important; min-height: 0 !important; width: 100% !important; height: 100% !important;";
+      
+      if (clampedCount >= 5 && i === 0) {
+          cellStyle += " grid-column: 1 / 2 !important; grid-row: 1 / 3 !important;";
+      } else if (clampedCount === 3 && i === 0) {
+          cellStyle += " grid-row: 1 / 3 !important;";
+      }
+
+      const isLastVisible = i === 4 && extra > 0;
+      const overlayHtml = isLastVisible 
+        ? `<div class="photo-more-overlay" style="position: absolute !important; inset: 0 !important; background: rgba(0,0,0,0.6) !important; display: flex !important; align-items: center !important; justify-content: center !important; color: #fff !important; font-size: 17px !important; font-weight: 600 !important; z-index: 2 !important; pointer-events: none !important;">+${extra}</div>` 
+        : '';
+
+      return `
+        <div class="collage-cell lightbox-trigger" data-src="${src}" style="${cellStyle}">
+          <img src="${src}" alt="post image" style="position: absolute !important; top: 0 !important; left: 0 !important; width: 100% !important; height: 100% !important; object-fit: cover !important; display: block !important;" />
+          ${overlayHtml}
+        </div>`;
+    }).join('');
+
     photoGrid = `
-      <div class="pinned-media-col">
-        <div class="pinned-photo-grid ${collageClass}">
-          ${imgs.slice(0, 5).map((src, i) => {
-            // Check if this is the 5th photo (index 4) AND there are extra photos
-            const isLastVisible = i === 4 && extra > 0;
-            
-            return `
-              <div class="collage-cell lightbox-trigger" data-src="${src}">
-                <img src="${src}" />
-                ${isLastVisible ? `<div class="photo-more-overlay">+${extra}</div>` : ''}
-              </div>`;
-          }).join('')}
+      <div class="bulletin-media-col">
+        <div class="bulletin-photo-grid collage-${clampedCount}" style="${gridStyle}">
+          ${cells}
         </div>
       </div>`;
   }
@@ -242,11 +248,13 @@ function renderPinnedCard(post, uid) {
                <span class="r-count">${fmt(likeCount)}</span>
                <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
             </div>
+            <div class="social-divider"></div>
             <div class="social-item comment-trigger-pinned" data-id="${post.id}">
                <span class="r-count">${fmt(commentCount)}</span>
                <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
             </div>
-            <div class="social-item reaction-item ${iReposted ? 'reacted' : ''}" data-type="reposts" data-id="${post.id}">
+            <div class="social-divider"></div>
+            <div class="social-item cn-repost-trigger ${iReposted ? 'reacted' : ''}" data-type="reposts" data-id="${post.id}">
                <span class="r-count">${fmt(repostCount)}</span>
                <svg viewBox="0 0 24 24"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
             </div>
@@ -744,10 +752,18 @@ function openLightbox() {
   const lbCounter = document.getElementById('lb-counter');
 
   if (lb && lbImg) {
+    // Re-trigger the slide-in animation on each navigation
+    lbImg.style.animation = 'none';
+    void lbImg.offsetWidth; // reflow
+    lbImg.style.animation = '';
+
     lbImg.src = currentGallery[currentIndex];
     lb.classList.add('open');
+    lb.dataset.count = currentGallery.length;
+
     if (lbCounter) {
       lbCounter.textContent = `${currentIndex + 1} / ${currentGallery.length}`;
+      lbCounter.style.display = currentGallery.length > 1 ? '' : 'none';
     }
   }
 }
@@ -782,6 +798,21 @@ function initLightbox() {
     e.stopPropagation();
     currentIndex = (currentIndex < currentGallery.length - 1) ? currentIndex + 1 : 0;
     openLightbox();
+  });
+
+  // Keyboard navigation
+  document.addEventListener('keydown', (e) => {
+    const lb = document.getElementById('cn-lightbox');
+    if (!lb?.classList.contains('open')) return;
+    if (e.key === 'Escape') {
+      lb.classList.remove('open');
+    } else if (e.key === 'ArrowLeft') {
+      currentIndex = (currentIndex > 0) ? currentIndex - 1 : currentGallery.length - 1;
+      openLightbox();
+    } else if (e.key === 'ArrowRight') {
+      currentIndex = (currentIndex < currentGallery.length - 1) ? currentIndex + 1 : 0;
+      openLightbox();
+    }
   });
 }
 
@@ -1193,4 +1224,5 @@ document.addEventListener('DOMContentLoaded', () => {
   initSearch();
   initFilterUI();
   listenToAnnouncements();
+   window.renderBulletinPage = renderBulletinPage;
 });

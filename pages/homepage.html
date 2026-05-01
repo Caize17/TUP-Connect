@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="../CSS/homepage.css"/>
   <link rel="stylesheet" href="../CSS/navbar.css"/>
   <link rel="stylesheet" href="../CSS/guest.css"/>
+  <link rel="stylesheet" href="../CSS/homepage_pinned_sync.css"/>
 
   <script type="importmap">
   {
@@ -65,81 +66,90 @@
 
   <div class="section-label">📌 Pinned Announcement</div>
 
-  <div class="pinned-wrap">
-    <div class="card" id="ann-card">
+  <!-- Outer wrap gives vertical room for the floating pushpin -->
+  <div class="hp-pinned-wrap">
+    <div id="ann-card">
+
+      <!-- Pushpin decorative element -->
       <div class="pushpin">
         <div class="pin-head"></div>
         <div class="pin-shaft"></div>
       </div>
 
+      <!-- ── Floating trapezoid reactions bar ── -->
       <div class="social-bar-wrap">
         <div class="social-bar-outer">
           <div class="social-bar">
-            <span class="social-item" id="btn-likes" title="Like">
-              <span id="count-likes"></span>
+            <button class="social-item" id="btn-likes" title="Heart">
               <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-            </span>
+              <span id="count-likes">0</span> Heart
+            </button>
             <div class="social-divider"></div>
-            <span class="social-item" id="btn-thumbsup" title="Thumbs Up">
-              <span id="count-thumbsup"></span>
+            <button class="social-item" id="btn-thumbsup" title="Like">
               <svg viewBox="0 0 24 24"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/><path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
-            </span>
+              <span id="count-thumbsup">0</span> Like
+            </button>
             <div class="social-divider"></div>
-            <span class="social-item" id="btn-reposts" title="Repost">
-              <span id="count-reposts"></span>
+            <button class="social-item" id="btn-reposts" title="Repost">
               <svg viewBox="0 0 24 24"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
-            </span>
+              <span id="count-reposts">0</span> Repost
+            </button>
           </div>
         </div>
       </div>
 
-      <hr class="divider-line"/>
-      <div class="timestamp" id="post-timestamp"></div>
+      <!-- ── Timestamp + two-column content ── -->
+      <div class="pinned-content">
+        <div class="pinned-timestamp-top" id="post-timestamp"></div>
 
-      <div class="card-inner">
-        <div class="text-bubble">
-          <div class="ann-title" id="post-title"></div>
-          <div class="ann-body"  id="post-body"></div>
-          <button class="view-more-btn" id="view-more-btn">View more ▾</button>
-        </div>
+        <div class="pinned-columns-wrap">
 
-        <div class="media-grid" id="media-grid">
-          <div class="poster-hint">
-            <svg viewBox="0 0 24 24"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+          <!-- Left: title, body, view-more -->
+          <div class="pinned-caption-col">
+            <div class="pinned-title" id="post-title"></div>
+            <div class="pinned-body" id="post-body"></div>
+            <button class="view-more-btn" id="view-more-btn">View more ▾</button>
           </div>
-          <div id="poster-card-inner">
-            <div class="p-header">
-              <div class="p-logo">
-                <svg viewBox="0 0 24 24" fill="none" stroke="#8b1a1a" stroke-width="2">
-                  <circle cx="12" cy="12" r="4"/>
-                  <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>
-                </svg>
+
+          <!-- Right: photo collage / poster card -->
+          <div class="pinned-media-col" id="media-grid">
+            <!-- populated by homepage_pinned_sync.js -->
+            <div id="poster-card-inner">
+              <div class="p-header">
+                <div class="p-logo">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="#8b1a1a" stroke-width="2">
+                    <circle cx="12" cy="12" r="4"/>
+                    <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>
+                  </svg>
+                </div>
+                <div class="p-org" id="poster-org"></div>
               </div>
-              <div class="p-org" id="poster-org"></div>
-            </div>
-            <div class="p-deco"></div>
-            <div class="p-body">
-              <div class="p-headline" id="poster-headline"></div>
-              <div class="p-sub-box"><div class="p-sub-text" id="poster-subtext"></div></div>
-              <div class="p-date"    id="poster-date"></div>
-              <div class="p-desc"    id="poster-desc"></div>
-              <div id="poster-colleges"></div>
-            </div>
-            <div class="p-deco-btm"></div>
-            <div class="p-footer">
-              <div class="p-footer-icons">
-                <svg viewBox="0 0 24 24"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
-                <svg viewBox="0 0 24 24"><path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"/></svg>
-                <svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+              <div class="p-deco"></div>
+              <div class="p-body">
+                <div class="p-headline" id="poster-headline"></div>
+                <div class="p-sub-box"><div class="p-sub-text" id="poster-subtext"></div></div>
+                <div class="p-date"    id="poster-date"></div>
+                <div class="p-desc"    id="poster-desc"></div>
+                <div id="poster-colleges"></div>
               </div>
-              <div class="p-footer-mid">TUP USG MANILA</div>
-              <div class="p-footer-right" id="poster-handle"></div>
+              <div class="p-deco-btm"></div>
+              <div class="p-footer">
+                <div class="p-footer-icons">
+                  <svg viewBox="0 0 24 24"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+                  <svg viewBox="0 0 24 24"><path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"/></svg>
+                  <svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+                </div>
+                <div class="p-footer-mid">TUP USG MANILA</div>
+                <div class="p-footer-right" id="poster-handle"></div>
+              </div>
             </div>
           </div>
-        </div>
-      </div>
-    </div>
-  </div>
+
+        </div><!-- /pinned-columns-wrap -->
+      </div><!-- /pinned-content -->
+
+    </div><!-- /#ann-card -->
+  </div><!-- /.hp-pinned-wrap -->
 
   <!-- Create post bar -->
   <div class="comment-bar" id="open-create-post" role="button" aria-label="Create a post">
@@ -285,6 +295,7 @@
   </div>
 </div>
 
+<script src="../JS/demo_local_override.js"></script>
 <!-- Shared navbar -->
 <script src="../JS/navbar.js"></script>
 <!-- External JS (must come after DATA script above) -->

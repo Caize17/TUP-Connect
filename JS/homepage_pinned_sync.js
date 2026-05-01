@@ -1,19 +1,3 @@
-/**
- * homepage_pinned_sync.js — TUP Konek
- *
- * Reads the pinned announcement from Firestore
- * and populates the existing homepage pinned card.
- *
- * HOW TO USE:
- *   Add ONE line at the bottom of homepage.html,
- *   after all other <script> tags:
- *
- *     <script type="module" src="../JS/homepage_pinned_sync.js"></script>
- *
- * That's it. No changes needed to homepage.html,
- * homepage.js, or any other existing file.
- */
-
 import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
@@ -102,20 +86,65 @@ function populatePinnedCard(post) {
   if (posterSubtext)  posterSubtext.textContent   = 'OFFICIAL ANNOUNCEMENT';
   if (posterHandle)   posterHandle.textContent    = '@TUPKonek ✉';
 
-  // If post has images, replace the poster card with the first image
+  // ── IMAGE COLLAGE — mirrors campus_news.js collage system exactly ──
+  // ── IMAGE COLLAGE (ABSOLUTE POSITIONING FIX) ──
   const mediaGrid   = document.getElementById('media-grid');
   const posterInner = document.getElementById('poster-card-inner');
-  if (post.imageURLs?.length > 0 && mediaGrid && posterInner) {
-    posterInner.style.display = 'none';
-    // Remove any previously injected image
-    mediaGrid.querySelectorAll('.hp-pinned-img').forEach(i => i.remove());
-    const img = document.createElement('img');
-    img.src       = post.imageURLs[0];
-    img.className = 'hp-pinned-img';
-    img.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:10px;';
-    mediaGrid.appendChild(img);
-  } else if (posterInner) {
-    posterInner.style.display = '';
+  const imgs        = post.imageURLs || [];
+
+  if (mediaGrid) mediaGrid.innerHTML = '';
+
+  if (imgs.length > 0 && mediaGrid) {
+    if (posterInner) posterInner.style.display = 'none';
+
+    const count = imgs.length;
+    const clampedCount = Math.min(count, 5);
+    const extra = count > 5 ? count - 5 : 0;
+
+    // 1. Build the grid container with inline styles
+    let gridHtml = `<div class="pinned-photo-grid collage-${clampedCount}" style="display: grid !important; height: 250px !important; gap: 4px !important; width: 100% !important;`;
+
+    if (clampedCount === 1) gridHtml += ` grid-template-columns: 1fr !important; grid-template-rows: 1fr !important;">`;
+    else if (clampedCount === 2) gridHtml += ` grid-template-columns: 1fr 1fr !important; grid-template-rows: 1fr !important;">`;
+    else if (clampedCount === 3 || clampedCount === 4) gridHtml += ` grid-template-columns: 1fr 1fr !important; grid-template-rows: 1fr 1fr !important;">`;
+    else gridHtml += ` grid-template-columns: 2fr 1fr 1fr !important; grid-template-rows: 1fr 1fr !important;">`;
+
+    // 2. Build the cells
+    const cellsHtml = imgs.slice(0, 5).map((src, i) => {
+      // min-height: 0 stops the grid from expanding past its bounds
+      let cellStyle = "position: relative !important; overflow: hidden !important; min-width: 0 !important; min-height: 0 !important; width: 100% !important; height: 100% !important;";
+      
+      // Span the first column for 5-layout
+      if (clampedCount >= 5 && i === 0) {
+          cellStyle += " grid-column: 1 / 2 !important; grid-row: 1 / 3 !important;";
+      } else if (clampedCount === 3 && i === 0) {
+          cellStyle += " grid-row: 1 / 3 !important;";
+      }
+
+      const isLastVisible = i === 4 && extra > 0;
+      const overlayHtml = isLastVisible 
+        ? `<div class="photo-more-overlay" style="position: absolute !important; inset: 0 !important; background: rgba(0,0,0,0.6) !important; display: flex !important; align-items: center !important; justify-content: center !important; color: #fff !important; font-size: 17px !important; font-weight: 600 !important; z-index: 2 !important; pointer-events: none !important;">+${extra}</div>` 
+        : '';
+
+      // CRITICAL: The img uses absolute positioning so it perfectly covers the cell without dictating its height
+      return `
+        <div class="collage-cell demo-lb-trigger" data-src="${src}" style="${cellStyle}">
+          <img src="${src}" alt="post image" style="position: absolute !important; top: 0 !important; left: 0 !important; width: 100% !important; height: 100% !important; object-fit: cover !important; display: block !important;" />
+          ${overlayHtml}
+        </div>`;
+    }).join('');
+
+    mediaGrid.innerHTML = gridHtml + cellsHtml + `</div>`;
+
+    // 3. Lightbox wiring
+    grid.querySelectorAll('.demo-lb-trigger').forEach(cell => {
+      cell.addEventListener('click', () => {
+        if (window.openGallery) window.openGallery(imgs, cell.dataset.src);
+      });
+    });
+
+  } else {
+    if (posterInner) posterInner.style.display = '';
   }
 
   // "View more" toggle
@@ -140,6 +169,7 @@ function populatePinnedCard(post) {
 }
 
 function showEmptyPinnedCard() {
+  if (window.__DEMO_PINNED__) return; 
   const annCard = document.getElementById('ann-card');
   if (annCard) {
     annCard.innerHTML = `
@@ -194,19 +224,31 @@ function initHomepageReactions() {
 // ─────────────────────────────────────────────
 
 function listenForPinnedAnnouncement() {
+  console.log('🔍 listenForPinnedAnnouncement called, __DEMO_PINNED__:', window.__DEMO_PINNED__);
+  
+  // ── DEMO MODE ──────────────────────────────────────
+  if (window.__DEMO_PINNED__) {
+  currentPinnedPost = window.__DEMO_PINNED__;
+  try {
+    populatePinnedCard(currentPinnedPost);
+    console.log('✅ populatePinnedCard finished');
+  } catch(err) {
+    console.error('❌ populatePinnedCard crashed:', err);
+  }
+  return;
+}
+  // ── LIVE MODE (unchanged below) ────────────────────
   const q = query(
     collection(db, 'announcements'),
     where('pinned', '==', true)
   );
-
   onSnapshot(q, (snapshot) => {
     if (snapshot.empty) {
       currentPinnedPost = null;
       showEmptyPinnedCard();
       return;
     }
-    // Take the first (should only ever be one pinned)
-    const d    = snapshot.docs[0];
+    const d = snapshot.docs[0];
     currentPinnedPost = { id: d.id, ...d.data() };
     populatePinnedCard(currentPinnedPost);
   }, (err) => {

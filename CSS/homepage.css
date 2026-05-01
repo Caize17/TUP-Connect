@@ -2642,3 +2642,33 @@ flex-shrink: 0;
   color: var(--text);
   margin-bottom: 10px;
 }
+
+/* ── LIGHTBOX GALLERY NAVIGATION ── */
+.lb-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255,255,255,0.15);
+  color: white;
+  border: none;
+  font-size: 30px;
+  padding: 20px 15px;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: background 0.3s;
+  z-index: 10000;
+}
+.lb-nav:hover { background: rgba(255,255,255,0.4); }
+#lb-prev { left: 20px; }
+#lb-next { right: 20px; }
+
+#lb-counter {
+  position: absolute;
+  bottom: 20px;
+  color: white;
+  font-weight: 700;
+  background: rgba(0,0,0,0.5);
+  padding: 5px 15px;
+  border-radius: 20px;
+  z-index: 10000;
+}
