@@ -566,13 +566,10 @@ function renderPinnedCard(post, uid) {
   let photoGrid = '';
   if (hasImages) {
     const count = imgs.length;
-<<<<<<< HEAD
     const clampedCount = Math.min(count, 5);
-=======
     const collageClass = `collage-${Math.min(count, 5)}`;
 
     // We only show the "See More" overlay if the total count is GREATER than 5
->>>>>>> 0a608c7cd8b9a9ccacdecebe9625b5fc75b4f737
     const extra = count > 5 ? count - 5 : 0;
 
     let gridStyle = "display: grid !important; height: 250px !important; gap: 4px !important; width: 100% !important;";
@@ -603,24 +600,9 @@ function renderPinnedCard(post, uid) {
     }).join('');
 
     photoGrid = `
-<<<<<<< HEAD
-      <div class="bulletin-media-col">
-        <div class="bulletin-photo-grid collage-${clampedCount}" style="${gridStyle}">
-          ${cells}
-=======
       <div class="pinned-media-col">
-        <div class="pinned-photo-grid ${collageClass}">
-          ${imgs.slice(0, 5).map((src, i) => {
-      // Check if this is the 5th photo (index 4) AND there are extra photos
-      const isLastVisible = i === 4 && extra > 0;
-
-      return `
-              <div class="collage-cell lightbox-trigger" data-src="${src}">
-                <img src="${src}" />
-                ${isLastVisible ? `<div class="photo-more-overlay">+${extra}</div>` : ''}
-              </div>`;
-    }).join('')}
->>>>>>> 0a608c7cd8b9a9ccacdecebe9625b5fc75b4f737
+        <div class="pinned-photo-grid ${collageClass}" style="${gridStyle}">
+          ${cells}
         </div>
       </div>`;
   }
@@ -641,14 +623,9 @@ function renderPinnedCard(post, uid) {
                <span class="comments-count">${fmt(commentCount)}</span>
                <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
             </div>
-<<<<<<< HEAD
             <div class="social-divider"></div>
-            <div class="social-item cn-repost-trigger ${iReposted ? 'reacted' : ''}" data-type="reposts" data-id="${post.id}">
-               <span class="r-count">${fmt(repostCount)}</span>
-=======
-            <div class="social-item reaction-item ${iReposted ? 'reacted' : ''}" data-type="reposts" data-id="${post.id}">
+            <div class="social-item reaction-item cn-repost-trigger ${iReposted ? 'reacted' : ''}" data-type="reposts" data-id="${post.id}">
                <span class="reposts-count">${fmt(repostCount)}</span>
->>>>>>> 0a608c7cd8b9a9ccacdecebe9625b5fc75b4f737
                <svg viewBox="0 0 24 24"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
             </div>
           </div>
@@ -1666,10 +1643,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initSearch();
   initFilterUI();
   listenToAnnouncements();
-<<<<<<< HEAD
    window.renderBulletinPage = renderBulletinPage;
-});
-=======
 });
 
 // ========================
@@ -1736,4 +1710,3 @@ document.addEventListener('DOMContentLoaded', () => {
       console.error("Gemini Error:", error);
     }
   }
->>>>>>> 0a608c7cd8b9a9ccacdecebe9625b5fc75b4f737
