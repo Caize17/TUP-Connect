@@ -365,14 +365,6 @@ const model = genAI.getGenerativeModel({
   ])}`
 });
 
-let USER = {
-  name: "Loading...",
-  email: "",
-  studentId: "",
-  photoSrc: null,
-  logoSrc: "../assets/images/logo.png",
-};
-
 let POST = null;
 let FEED_POSTS = [];
 
@@ -412,129 +404,22 @@ let FEED_POSTS = [];
      LOGO
   ════════════════════════════════════════ */
 
-  if (USER.logoSrc) {
+  const logoSrc = "../assets/images/logo.png";
+  if (logoSrc) {
     document.getElementById('sidebar-logo-inner').outerHTML =
-      `<img class="TUP-Konek-logo" src="${USER.logoSrc}" alt="TUP Konek logo"/>`;
+      `<img class="TUP-Konek-logo" src="${logoSrc}" alt="TUP Konek logo"/>`;
   }
 
   /* ════════════════════════════════════════
      USER DATA
   ════════════════════════════════════════ */
 
-  document.getElementById('profile-name').textContent = USER.name || '—';
-  document.getElementById('profile-email').textContent = USER.email || '—';
-  document.getElementById('profile-id').textContent = USER.studentId || '—';
-  document.getElementById('modal-user-name').textContent = USER.name || 'Guest';
-
-  if (USER.photoSrc) {
-    document.getElementById('profile-photo-wrap').innerHTML =
-      `<img class="profile-photo" src="${USER.photoSrc}" alt="Profile photo"/>`;
-
-    const navProfileAvatar = document.getElementById('nav-profile-avatar');
-    if (navProfileAvatar) {
-      navProfileAvatar.innerHTML =
-        `<img src="${USER.photoSrc}" alt="Me" style="width:100%;height:100%;object-fit:cover;border-radius:50%;image-rendering:high-quality;">`;
-    }
-
-    const el = document.getElementById('comment-avatar-wrap');
-    el.innerHTML = `<img src="${USER.photoSrc}" alt="Me" style="width:100%;height:100%;object-fit:cover;border-radius:50%;image-rendering:high-quality;"/>`;
-
-    document.getElementById('modal-avatar').innerHTML =
-      `<img src="${USER.photoSrc}" alt="Me" style="width:100%;height:100%;object-fit:cover;border-radius:50%;image-rendering:high-quality;">`;
-  }
-
   /* ════════════════════════════════════════
      PINNED ANNOUNCEMENT
   ════════════════════════════════════════ */
 
-  if (POST) {
-    document.getElementById('count-likes').textContent = fmt(POST.likes);
-    document.getElementById('count-thumbsup').textContent = fmt(POST.thumbsUp);
-    document.getElementById('count-reposts').textContent = fmt(POST.reposts);
-    document.getElementById('post-timestamp').textContent = POST.timestamp;
-    document.getElementById('post-title').textContent = POST.title;
-    document.getElementById('post-body').innerHTML = POST.body.map(p => `<p>${p}</p>`).join('');
-    document.getElementById('poster-org').textContent = POST.posterOrg;
-    document.getElementById('poster-headline').textContent = POST.posterHeadline;
-    document.getElementById('poster-subtext').textContent = POST.posterSubtext;
-    document.getElementById('poster-date').textContent = POST.posterDate;
-    document.getElementById('poster-desc').textContent = POST.posterDesc;
-    document.getElementById('poster-handle').textContent = POST.posterHandle + ' ✉';
-    document.getElementById('poster-colleges').innerHTML =
-      POST.posterColleges.map(c => `<div class="p-college">${c}</div>`).join('');
-  } 
+  /* PINNED ANNOUNCEMENT logic removed - now handled by homepage_pinned_sync.js */
 
-  /* ── View More / Less for pinned announcement ── */
-  if (POST) {
-    (function () {
-      const body = document.getElementById('post-body');
-      const btn  = document.getElementById('view-more-btn');
-      if (!body || !btn) return;
-      let expanded = false;
-      body.classList.add('is-clamped');
-      requestAnimationFrame(() => {
-        if (body.scrollHeight > body.clientHeight + 4) {
-          btn.classList.add('visible');
-        } else {
-          body.classList.remove('is-clamped');
-        }
-      });
-      btn.addEventListener('click', function () {
-        expanded = !expanded;
-        body.classList.toggle('is-clamped', !expanded);
-        btn.textContent = expanded ? 'View less ▴' : 'View more ▾';
-      });
-    })();
-
-    /* ── Media / image collage (SYNCED BULLETPROOF FIX) ── */
-    const mediaCol = document.getElementById('media-grid');
-    const imgs = POST.imageURLs || POST.images || [];
-    
-    if (imgs.length > 0 && mediaCol) {
-      const posterInner = document.getElementById('poster-card-inner');
-      if (posterInner) posterInner.style.display = 'none';
-
-      const count = imgs.length;
-      const clampedCount = Math.min(count, 5);
-      const extra = count > 5 ? count - 5 : 0;
-
-      let gridHtml = `<div class="pinned-photo-grid collage-${clampedCount}" style="display: grid !important; height: 250px !important; gap: 4px !important; width: 100% !important;`;
-
-      if (clampedCount === 1) gridHtml += ` grid-template-columns: 1fr !important; grid-template-rows: 1fr !important;">`;
-      else if (clampedCount === 2) gridHtml += ` grid-template-columns: 1fr 1fr !important; grid-template-rows: 1fr !important;">`;
-      else if (clampedCount === 3 || clampedCount === 4) gridHtml += ` grid-template-columns: 1fr 1fr !important; grid-template-rows: 1fr 1fr !important;">`;
-      else gridHtml += ` grid-template-columns: 2fr 1fr 1fr !important; grid-template-rows: 1fr 1fr !important;">`;
-
-      const cellsHtml = imgs.slice(0, 5).map((src, i) => {
-        let cellStyle = "position: relative !important; overflow: hidden !important; min-width: 0 !important; min-height: 0 !important; width: 100% !important; height: 100% !important;";
-        
-        if (clampedCount >= 5 && i === 0) {
-            cellStyle += " grid-column: 1 / 2 !important; grid-row: 1 / 3 !important;";
-        } else if (clampedCount === 3 && i === 0) {
-            cellStyle += " grid-row: 1 / 3 !important;";
-        }
-
-        const isLastVisible = i === 4 && extra > 0;
-        const overlayHtml = isLastVisible 
-          ? `<div class="photo-more-overlay" style="position: absolute !important; inset: 0 !important; background: rgba(0,0,0,0.6) !important; display: flex !important; align-items: center !important; justify-content: center !important; color: #fff !important; font-size: 17px !important; font-weight: 600 !important; z-index: 2 !important; pointer-events: none !important;">+${extra}</div>` 
-          : '';
-
-        return `
-          <div class="collage-cell hp-lightbox-trigger" data-src="${src}" style="${cellStyle}">
-            <img src="${src}" alt="post image" style="position: absolute !important; top: 0 !important; left: 0 !important; width: 100% !important; height: 100% !important; object-fit: cover !important; display: block !important;" />
-            ${overlayHtml}
-          </div>`;
-      }).join('');
-
-      mediaCol.innerHTML = gridHtml + cellsHtml + `</div>`;
-
-      mediaCol.querySelectorAll('.hp-lightbox-trigger').forEach(cell => {
-        cell.addEventListener('click', () => {
-          if (window.openGallery) window.openGallery(imgs, cell.dataset.src);
-        });
-      });
-    }
-  }
 
   /* ════════════════════════════════════════
      FEED POSTS
@@ -577,7 +462,7 @@ let FEED_POSTS = [];
            </div>`;
 
       // Safety Check for Quote
-      const quoteHtml = (fp.quote && (fp.quote.body || fp.quote.repostImage)) ? `
+      const quoteHtml = (fp.quote && (fp.quote.body || fp.quote.repostImage || fp.quote.repostTitle)) ? `
         <div class="repost-quote-card">
           <div class="repost-quote-header">
             <div class="repost-quote-avatar">
@@ -585,35 +470,27 @@ let FEED_POSTS = [];
             </div>
             <div class="repost-quote-meta">
               <div class="repost-quote-author">${fp.quote.name}</div>
+              <div class="repost-quote-time" style="font-size:11px; color:var(--muted);">${fp.quote.time || ''}</div>
             </div>
           </div>
-          ${fp.quote.body ? `<div class="repost-quote-body">${fp.quote.body.replace(/\n/g, '<br>')}</div>` : ''}
-          ${fp.quote.repostImage ? `<img src="${fp.quote.repostImage}" class="feed-post-img" style="width:100%; border-radius:8px; margin-top:10px; display:block; image-rendering: high-quality;">` : ''}
+          <div class="repost-quote-content">
+            ${fp.quote.repostTitle ? `<div class="repost-quote-title" style="font-weight: 800; font-size: 14px; margin-bottom: 4px; color: var(--text);">${fp.quote.repostTitle}</div>` : ''}
+            ${fp.quote.body ? `<div class="repost-quote-body">${fp.quote.body.replace(/\n/g, '<br>')}</div>` : ''}
+          </div>
+          ${fp.quote.repostImage ? `<div class="lightbox-trigger" data-src="${fp.quote.repostImage}" style="cursor:pointer;"><img src="${fp.quote.repostImage}" class="feed-post-img" style="width:100%; border-radius:8px; margin-top:10px; display:block; image-rendering: high-quality;"></div>` : ''}
         </div>` : '';
 
-      const imageTag = fp.postImage
-        ? `<img src="${fp.postImage}" class="feed-post-img" style="width:100%; border-radius:8px; margin-top:10px; display:block;">`
-        : '';
+      const imageGrid = (fp.imageURLs && fp.imageURLs.length > 0)
+        ? renderPhotoGrid(fp.imageURLs)
+        : (fp.postImage ? `<div class="lightbox-trigger" data-src="${fp.postImage}" style="cursor:pointer;"><img src="${fp.postImage}" class="feed-post-img" style="width:100%; border-radius:8px; margin-top:10px; display:block;"></div>` : '');
 
       const bodyHtml = fp.body ? `
     <div class="feed-body" id="feed-body-${idx}">${fp.body}</div>
-    ${imageTag} <button class="feed-view-more" id="feed-vm-${idx}">View more ▾</button>` : (imageTag ? imageTag : '');
+    ${imageGrid} <button class="feed-view-more" id="feed-vm-${idx}">View more ▾</button>` : (imageGrid ? imageGrid : '');
 
       // Safety Check for Comments
       const firstComment = (fp.commentList && fp.commentList.length > 0) ? fp.commentList[0] : null;
-      const commentPreviewHtml = (fp.comments > 0 && firstComment) ? `
-        <div class="feed-comments-section">
-          <button class="feed-view-comments" data-post="${idx}">View all ${fp.comments} comments</button>
-          <div class="feed-comment-preview">
-            <div class="feed-comment-avatar">
-              ${firstComment.photoSrc ? `<img src="${firstComment.photoSrc}"/>` : `<svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`}
-            </div>
-            <div class="feed-comment-bubble">
-              <div class="feed-comment-name">${firstComment.name}</div>
-              <div class="feed-comment-text">${firstComment.text}</div>
-            </div>
-          </div>
-        </div>` : '';
+      const commentPreviewHtml = '';
 
       return `
       <div class="feed-post">
@@ -670,6 +547,70 @@ let FEED_POSTS = [];
         vmBtn.textContent = isExpanded ? 'View more ▾' : 'View less ▴';
       };
     });
+    wireLightboxTriggers();
+  }
+
+  function wireLightboxTriggers() {
+    document.querySelectorAll('.lightbox-trigger').forEach(el => {
+      const fresh = el.cloneNode(true); el.replaceWith(fresh);
+      fresh.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const src = fresh.dataset.src;
+        if (!src) return;
+
+        const card = fresh.closest('.feed-post');
+        const pIdx = card?.querySelector('.post-menu-btn')?.dataset.post;
+        const post = window.FEED_POSTS[pIdx];
+        
+        if (post && post.imageURLs && post.imageURLs.length > 0) {
+          window.openGallery(post.imageURLs, src);
+        } else if (post && post.postImage) {
+          window.openGallery([post.postImage], src);
+        } else {
+          window.openGallery([src], src);
+        }
+      });
+    });
+  }
+
+  function renderPhotoGrid(imgs) {
+    const count = imgs.length;
+    const clampedCount = Math.min(count, 5);
+    const extra = count > 5 ? count - 5 : 0;
+    const borderRadius = '18px';
+    const gap = '8px';
+
+    if (clampedCount === 1) {
+      return `<div class="lightbox-trigger" data-src="${imgs[0]}" style="cursor:pointer; margin-top:12px; border-radius:${borderRadius}; overflow:hidden; display:block;">
+                <img src="${imgs[0]}" style="width:100%; display:block; object-fit:cover; max-height:500px;" />
+              </div>`;
+    }
+
+    let style = `display: grid !important; height: 340px !important; gap: ${gap} !important; width: 100% !important; margin-top:12px; border-radius:${borderRadius}; overflow:hidden;`;
+    if (clampedCount === 2) style += ` grid-template-columns: 1fr 1fr !important; grid-template-rows: 1fr !important;`;
+    else if (clampedCount === 3) style += ` grid-template-columns: 1fr 1fr !important; grid-template-rows: 1fr 1fr !important;`;
+    else if (clampedCount === 4) style += ` grid-template-columns: 1fr 1fr !important; grid-template-rows: 1fr 1fr !important;`;
+    else style += ` grid-template-columns: 2fr 1fr 1fr !important; grid-template-rows: 1fr 1fr !important;`;
+
+    let gridHtml = `<div class="photo-grid collage-${clampedCount}" style="${style}">`;
+
+    const cellsHtml = imgs.slice(0, 5).map((src, i) => {
+      let cellStyle = "position: relative !important; overflow: hidden !important; min-width: 0 !important; min-height: 0 !important; width: 100% !important; height: 100% !important; cursor:pointer;";
+      if (clampedCount === 3 && i === 0) cellStyle += " grid-row: 1 / 3 !important;";
+      else if (clampedCount === 5 && i === 0) cellStyle += " grid-column: 1 / 2 !important; grid-row: 1 / 3 !important;";
+
+      const overlayHtml = (i === 4 && extra > 0) 
+        ? `<div class="photo-more-overlay" style="position: absolute !important; inset: 0 !important; background: rgba(0,0,0,0.5) !important; display: flex !important; align-items: center !important; justify-content: center !important; color: #fff !important; font-size: 24px !important; font-weight: 700 !important; z-index: 2 !important; pointer-events: none !important; font-family: 'Montserrat', sans-serif;">+${extra}</div>` 
+        : '';
+
+      return `
+        <div class="collage-cell lightbox-trigger" data-src="${src}" style="${cellStyle}">
+          <img src="${src}" style="position: absolute !important; top: 0 !important; left: 0 !important; width: 100% !important; height: 100% !important; object-fit: cover !important; display: block !important;" />
+          ${overlayHtml}
+        </div>`;
+    }).join('');
+
+    return gridHtml + cellsHtml + `</div>`;
   }
 
   window.renderFeedPosts = renderFeedPosts;
@@ -740,25 +681,20 @@ let FEED_POSTS = [];
     if (!fp || !listElement) return;
 
     listElement.innerHTML = (fp.commentList || []).map((c, cIdx) => {
-      if (cIdx === 0) console.log("First comment data:", c);
-
       let rawPhoto = c.photoURL;
-
       if (c.isOwn && (rawPhoto === 'anon' || !rawPhoto)) {
         rawPhoto = window.cachedPhoto;
       }
-
       const validPhoto = (rawPhoto && rawPhoto !== 'anon') ? rawPhoto : null;
       const avatarHtml = window.getAvatar(validPhoto, c.author);
 
-
       return `
-        <div class="comment-item" id="comment-item-${postIdx}-${cIdx}">
-            <div class="comment-item-avatar">${avatarHtml}</div>
-            <div class="comment-item-content">
-                <div class="comment-item-bubble" id="comment-bubble-${postIdx}-${cIdx}">
-                    <div class="comment-item-name">${c.author || "Anonymous User"}</div>
-                    <div class="comment-item-text" id="comment-text-${postIdx}-${cIdx}">${c.text}</div>
+        <div class="comment-modal-item" id="comment-item-${postIdx}-${cIdx}">
+            <div class="comment-modal-item-avatar">${avatarHtml}</div>
+            <div class="comment-modal-item-content">
+                <div class="comment-modal-item-bubble" id="comment-bubble-${postIdx}-${cIdx}">
+                    <div class="comment-modal-item-author">${c.author || "Anonymous User"}</div>
+                    <div class="comment-modal-item-text" id="comment-text-${postIdx}-${cIdx}">${c.text}</div>
                 </div>
                 <div class="comment-edit-wrap" id="comment-edit-${postIdx}-${cIdx}">
                     <input class="comment-edit-input" id="comment-edit-input-${postIdx}-${cIdx}" value="${c.text}"/>
@@ -767,17 +703,15 @@ let FEED_POSTS = [];
                     </button>
                     <button class="comment-edit-cancel" data-post="${postIdx}" data-comment="${cIdx}">✕</button>
                 </div>
-                <div class="comment-footer">
-                    <div class="comment-item-time">${c.time || ''}</div>
+                <div class="comment-footer" style="display:flex; align-items:center; gap:12px; margin-top:4px;">
+                    <div class="comment-modal-item-time" style="margin:0;">${c.time || ''}</div>
                     ${c.isOwn ? `
-                    <div class="comment-item-actions">
+                    <div class="comment-item-actions" style="display:flex; align-items:center; gap:8px;">
                         <button class="comment-action-btn edit-btn" data-post="${postIdx}" data-comment="${cIdx}">
-                            <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-                            Edit
+                            <svg viewBox="0 0 24 24" width="13" height="13" style="stroke:currentColor;fill:none;stroke-width:2.5;"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Edit
                         </button>
                         <button class="comment-action-btn delete-btn" data-post="${postIdx}" data-comment="${cIdx}">
-                            <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
-                            Delete
+                            <svg viewBox="0 0 24 24" width="13" height="13" style="stroke:currentColor;fill:none;stroke-width:2.5;"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg> Delete
                         </button>
                     </div>` : ''}
                 </div>
@@ -787,6 +721,84 @@ let FEED_POSTS = [];
 
     attachCommentListeners(listElement);
   };
+
+  window.renderCommentsPinned = function (comments, postId) {
+    const listElement = document.getElementById('comment-list');
+    if (!listElement) return;
+
+    listElement.innerHTML = comments.map((c, cIdx) => {
+      const avatarHtml = window.getAvatar(c.photoURL, c.author);
+
+      return `
+        <div class="comment-modal-item" id="comment-item-pinned-${cIdx}">
+            <div class="comment-modal-item-avatar">${avatarHtml}</div>
+            <div class="comment-modal-item-content">
+                <div class="comment-modal-item-bubble" id="comment-bubble-pinned-${cIdx}">
+                    <div class="comment-modal-item-author">${c.author || "Anonymous"}</div>
+                    <div class="comment-modal-item-text" id="comment-text-pinned-${cIdx}">${c.text}</div>
+                </div>
+                <div class="comment-edit-wrap" id="comment-edit-pinned-${cIdx}">
+                    <input class="comment-edit-input" id="comment-edit-input-pinned-${cIdx}" value="${c.text}"/>
+                    <button class="comment-edit-save" data-post="pinned" data-postId="${postId}" data-comment="${cIdx}" data-commentId="${c.id}">
+                        <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                    </button>
+                    <button class="comment-edit-cancel" data-post="pinned" data-comment="${cIdx}">✕</button>
+                </div>
+                <div class="comment-footer" style="display:flex; align-items:center; gap:12px; margin-top:4px;">
+                    <div class="comment-modal-item-time" style="margin:0;">${c.time || ''}</div>
+                    ${c.isOwn ? `
+                    <div class="comment-item-actions" style="display:flex; align-items:center; gap:8px;">
+                        <button class="comment-action-btn edit-btn" data-post="pinned" data-comment="${cIdx}">
+                            <svg viewBox="0 0 24 24" width="13" height="13" style="stroke:currentColor;fill:none;stroke-width:2.5;"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Edit
+                        </button>
+                        <button class="comment-action-btn delete-btn" data-post="pinned" data-postId="${postId}" data-comment="${cIdx}" data-commentId="${c.id}">
+                            <svg viewBox="0 0 24 24" width="13" height="13" style="stroke:currentColor;fill:none;stroke-width:2.5;"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg> Delete
+                        </button>
+                    </div>` : ''}
+                </div>
+            </div>
+        </div>`;
+    }).join('');
+
+    attachCommentListenersPinned(listElement);
+  };
+
+  function showConfirmDeleteToast(postId, commentId) {
+    let overlay = document.getElementById('hp-confirm-overlay');
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.id = 'hp-confirm-overlay';
+      overlay.className = 'confirm-toast-overlay';
+      document.body.appendChild(overlay);
+    }
+
+    overlay.innerHTML = `
+      <div class="confirm-toast-pill">
+        <span class="confirm-toast-text">🗑️ Delete this comment?</span>
+        <div class="confirm-toast-actions">
+          <button class="confirm-toast-btn delete" id="hp-confirm-delete-go">Delete</button>
+          <button class="confirm-toast-btn cancel" id="hp-confirm-delete-cancel">Cancel</button>
+        </div>
+      </div>
+    `;
+
+    overlay.classList.add('show');
+
+    document.getElementById('hp-confirm-delete-go').onclick = async () => {
+      overlay.classList.remove('show');
+      try {
+        await window.deleteComment(postId, commentId);
+        showToast("Deleted!");
+      } catch (err) {
+        console.error(err);
+        showToast("Error deleting comment.");
+      }
+    };
+
+    document.getElementById('hp-confirm-delete-cancel').onclick = () => {
+      overlay.classList.remove('show');
+    };
+  }
 
   function attachCommentListeners(listElement) {
     if (!listElement || listElement._commentListenersAttached) return;
@@ -799,15 +811,7 @@ let FEED_POSTS = [];
         const cIdx = deleteBtn.dataset.comment;
         const post = window.FEED_POSTS[pIdx];
         const comment = post.commentList[cIdx];
-
-        if (confirm("Delete this comment?")) {
-          try {
-            await window.deleteComment(post.id, comment.id);
-            showToast("Deleted!");
-          } catch (err) {
-            console.error(err);
-          }
-        }
+        showConfirmDeleteToast(post.id, comment.id);
         return;
       }
 
@@ -829,7 +833,7 @@ let FEED_POSTS = [];
         const bubble = document.getElementById(`comment-bubble-${p}-${c}`);
         const editWrap = document.getElementById(`comment-edit-${p}-${c}`);
         if (bubble) bubble.style.display = '';
-        if (editWrap) editWrap.classList.remove('open');
+        if (editWrap) editWrap.style.display = 'none';
         return;
       }
 
@@ -850,13 +854,74 @@ let FEED_POSTS = [];
         const editWrap = document.getElementById(`comment-edit-${pIdx}-${cIdx}`);
         if (textEl) textEl.textContent = newText;
         if (bubble) bubble.style.display = '';
-        if (editWrap) editWrap.classList.remove('open');
+        if (editWrap) editWrap.style.display = 'none';
 
         try {
-          await saveCommentEdit(post.id, commentId, newText);
+          await window.saveCommentEdit(post.id, commentId, newText);
           showToast('Comment updated.');
         } catch (err) {
           console.error('Failed to save edit:', err);
+          showToast('Error updating comment.');
+        }
+      }
+    });
+  }
+
+  function attachCommentListenersPinned(listElement) {
+    if (!listElement || listElement._pinnedListenersAttached) return;
+    listElement._pinnedListenersAttached = true;
+
+    listElement.addEventListener('click', async function (e) {
+      const deleteBtn = e.target.closest('.delete-btn');
+      if (deleteBtn && deleteBtn.dataset.post === 'pinned') {
+        const postId = deleteBtn.dataset.postid;
+        const commentId = deleteBtn.dataset.commentid;
+        showConfirmDeleteToast(postId, commentId);
+        return;
+      }
+
+      const editBtn = e.target.closest('.edit-btn');
+      if (editBtn && editBtn.dataset.post === 'pinned') {
+        const cIdx = editBtn.dataset.comment;
+        const bubble = document.getElementById(`comment-bubble-pinned-${cIdx}`);
+        const editWrap = document.getElementById(`comment-edit-pinned-${cIdx}`);
+        if (bubble) bubble.style.display = 'none';
+        if (editWrap) editWrap.style.display = 'flex';
+        return;
+      }
+
+      const cancelBtn = e.target.closest('.comment-edit-cancel');
+      if (cancelBtn && cancelBtn.dataset.post === 'pinned') {
+        const c = cancelBtn.dataset.comment;
+        const bubble = document.getElementById(`comment-bubble-pinned-${c}`);
+        const editWrap = document.getElementById(`comment-edit-pinned-${c}`);
+        if (bubble) bubble.style.display = '';
+        if (editWrap) editWrap.style.display = 'none';
+        return;
+      }
+
+      const saveBtn = e.target.closest('.comment-edit-save');
+      if (saveBtn && saveBtn.dataset.post === 'pinned') {
+        const cIdx = saveBtn.dataset.comment;
+        const postId = saveBtn.dataset.postid;
+        const commentId = saveBtn.dataset.commentid;
+        const input = document.getElementById(`comment-edit-input-pinned-${cIdx}`);
+        if (!input) return;
+        const newText = input.value.trim();
+        if (!newText) return;
+
+        const textEl = document.getElementById(`comment-text-pinned-${cIdx}`);
+        const bubble = document.getElementById(`comment-bubble-pinned-${cIdx}`);
+        const editWrap = document.getElementById(`comment-edit-pinned-${cIdx}`);
+        
+        try {
+          await window.saveCommentEdit(postId, commentId, newText);
+          if (textEl) textEl.textContent = newText;
+          if (bubble) bubble.style.display = '';
+          if (editWrap) editWrap.style.display = 'none';
+          showToast('Comment updated.');
+        } catch (err) {
+          console.error(err);
           showToast('Error updating comment.');
         }
       }

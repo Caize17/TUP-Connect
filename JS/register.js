@@ -1,28 +1,28 @@
 // 1. Imports
-import { auth, db } from '../firebaseConfig.js'; 
-import { 
-  createUserWithEmailAndPassword, 
-  sendEmailVerification, 
+import { auth, db } from '../firebaseConfig.js';
+import {
+  createUserWithEmailAndPassword,
+  sendEmailVerification,
   updateProfile
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-import { 
-  doc, 
+import {
+  doc,
   setDoc,
-  serverTimestamp 
+  serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 // 2. Global State
 let selectedRole = null;
 
 const ROLE_META = {
-  student: { label: 'Student',            redirect: 'setup_student.html' },
-  org:     { label: 'Student Organization', redirect: 'setup_org.html'     },
-  admin:   { label: 'Admin / USG',          redirect: 'setup_usg.html'     },
+  student: { label: 'Student', redirect: 'setup_student.html' },
+  org: { label: 'Student Organization', redirect: 'setup_org.html' },
+  admin: { label: 'Admin / USG', redirect: 'setup_usg.html' },
 };
 
 // 3. UI Functions
-window.selectRole = function(role) {
+window.selectRole = function (role) {
   ['student', 'org', 'admin'].forEach(r => {
     const el = document.getElementById(`role-${r}`);
     if (el) el.classList.remove('selected');
@@ -69,7 +69,7 @@ window.selectRole = function(role) {
   }
 };
 
-window.togglePassword = function(btn) {
+window.togglePassword = function (btn) {
   const input = document.getElementById('input-password');
   if (!input) return;
   const isHidden = input.type === 'password';
@@ -80,7 +80,7 @@ window.togglePassword = function(btn) {
 };
 
 // 4. MAIN REGISTER FUNCTION
-window.handleRegister = async function() {
+window.handleRegister = async function () {
   if (!selectedRole) {
     alert("Please select a role first.");
     return;
@@ -138,13 +138,13 @@ window.handleRegister = async function() {
         isSetupComplete: false,
         createdAt: serverTimestamp()
       });
-      
+
       // 5. Send Verification Email
       await sendEmailVerification(user);
 
       alert("Verification email sent! Please check your TUP inbox and verify your account before logging in.");
-      
-      window.location.href = "../index.html"; 
+
+      window.location.href = "../index.html";
 
     } catch (error) {
       console.error("Firebase Error:", error.code, error.message);
@@ -155,8 +155,8 @@ window.handleRegister = async function() {
         const usedEmailErr = document.getElementById('err-email-used');
         emailInput.classList.add('error');
         if (usedEmailErr) {
-            usedEmailErr.style.display = 'block';
-            usedEmailErr.classList.add('visible');
+          usedEmailErr.style.display = 'block';
+          usedEmailErr.classList.add('visible');
         }
       } else {
         alert("Registration failed: " + error.message);

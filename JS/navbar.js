@@ -16,6 +16,14 @@
     'profile':     '../pages/profile.html',
   };
 
+  // Override profile for Admin
+  try {
+    var cache = JSON.parse(localStorage.getItem('tup_user_meta') || '{}');
+    if (cache.role === 'Admin' || cache.role === 'USG') {
+      ROUTES['profile'] = '../pages/admin_profile.html';
+    }
+  } catch(e) {}
+
   var TD_H       = 66;
   var prefetched = {};
   var inShell    = (window.top !== window && typeof window.top.shellNavigate === 'function');

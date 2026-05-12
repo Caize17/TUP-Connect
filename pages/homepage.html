@@ -9,6 +9,22 @@
   <link rel="stylesheet" href="../CSS/navbar.css"/>
   <link rel="stylesheet" href="../CSS/guest.css"/>
   <link rel="stylesheet" href="../CSS/homepage_pinned_sync.css"/>
+  <style>
+    #ann-card .social-item {
+      display: flex !important;
+      flex-direction: row !important;
+      align-items: center;
+      gap: 8px;
+      font-weight: 600;
+      font-size: 15px;
+      color: #f5e8c8;
+      cursor: pointer;
+      transition: opacity .15s;
+      background: transparent;
+      border: none;
+      padding: 0;
+    }
+  </style>
 
   <script type="importmap">
   {
@@ -64,10 +80,11 @@
 ════════════════════════════════════════ -->
 <main class="main">
 
-  <div class="section-label">📌 Pinned Announcement</div>
-
   <!-- Outer wrap gives vertical room for the floating pushpin -->
   <div class="hp-pinned-wrap">
+    <div class="hp-pinned-label">
+      <span style="margin-right: 6px;">📌</span> PINNED ANNOUNCEMENT
+    </div>
     <div id="ann-card">
 
       <!-- Pushpin decorative element -->
@@ -81,18 +98,18 @@
         <div class="social-bar-outer">
           <div class="social-bar">
             <button class="social-item" id="btn-likes" title="Heart">
+              <span id="count-likes">0</span>
               <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-              <span id="count-likes">0</span> Heart
             </button>
             <div class="social-divider"></div>
-            <button class="social-item" id="btn-thumbsup" title="Like">
-              <svg viewBox="0 0 24 24"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/><path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
-              <span id="count-thumbsup">0</span> Like
+            <button class="social-item" id="btn-comments" title="Comment">
+              <span id="count-comments">0</span>
+              <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
             </button>
             <div class="social-divider"></div>
             <button class="social-item" id="btn-reposts" title="Repost">
+              <span id="count-reposts">0</span>
               <svg viewBox="0 0 24 24"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
-              <span id="count-reposts">0</span> Repost
             </button>
           </div>
         </div>
@@ -248,20 +265,20 @@
 <!-- ════════════════════════════════════════
      COMMENT MODAL
 ════════════════════════════════════════ -->
-<div class="comment-modal-overlay" id="comment-modal-overlay">
+<div class="comment-modal-overlay" id="comment-modal-overlay" onclick="if(event.target.id === 'comment-modal-overlay') closeCommentModal()">
   <div class="comment-modal" id="comment-modal">
     <div class="comment-modal-header">
-      <span class="comment-modal-title">Comments</span>
+      <div class="comment-modal-title">Comments</div>
       <button class="comment-modal-close" id="comment-modal-close">✕</button>
     </div>
-    <div class="comment-list" id="comment-list"></div>
-    <div class="comment-input-row">
-      <div class="comment-input-avatar" id="comment-input-avatar">
+    <div class="comment-modal-list" id="comment-list"></div>
+    <div class="comment-modal-input-row">
+      <div class="comment-modal-avatar" id="comment-input-avatar">
         <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
       </div>
-      <div class="comment-input-wrap">
-        <input class="comment-input-field" id="comment-input-field" placeholder="Share your thoughts..." maxlength="500"/>
-        <button class="comment-send-btn" id="comment-send-btn">
+      <div class="comment-modal-bubble-input">
+        <input class="comment-modal-input" id="comment-input-field" placeholder="Share your thoughts..." maxlength="500"/>
+        <button class="comment-modal-submit" id="comment-send-btn">
           <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
         </button>
       </div>
@@ -277,25 +294,44 @@
   <img id="lightbox-img" src="" alt="Full view"/>
 </div>
 
-<!-- REPOST MODAL -->
-<div class="modal-overlay" id="repostModal" onclick="closeRepostModalOnOverlay(event)">
-  <div class="create-post-modal" style="height: auto; min-height: 0;">
-    <div class="modal-header">
-      <span class="modal-header-title">Repost</span>
-      <button class="modal-close" onclick="closeRepostModal()">✕</button>
+<!-- REPOST QUOTE MODAL -->
+<div id="hp-repost-modal-overlay" onclick="closeRepostModalOnOverlay(event)">
+  <div id="hp-repost-modal">
+    <div class="hp-rm-header">
+      <span class="hp-rm-title">Repost</span>
+      <button class="hp-rm-close" onclick="closeRepostModal()">✕</button>
     </div>
-    <div class="modal-body">
-      <textarea class="modal-textarea" id="repostContent" placeholder="Add a quote (optional)..."></textarea>
-      <div class="modal-actions" style="justify-content: flex-end;">
-        <button class="modal-submit" id="repost-submit-btn" onclick="submitRepost()">
+    <div class="hp-rm-body">
+      <div class="hp-rm-user-row">
+        <div class="hp-rm-avatar" id="repost-user-avatar">
+          <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        </div>
+        <div class="hp-rm-user-name" id="repost-user-name">User Name</div>
+      </div>
+      <textarea class="hp-rm-textarea" id="repostContent" placeholder="Add a quote (optional)..."></textarea>
+      
+      <!-- Original Post Preview -->
+      <div class="hp-rm-quote-card" id="repost-quote-preview">
+        <div class="hp-rm-quote-header">
+          <div class="hp-rm-quote-avatar" id="quote-preview-avatar"></div>
+          <div class="hp-rm-quote-name" id="quote-preview-author">Author</div>
+          <div class="hp-rm-quote-time" id="quote-preview-time">Time</div>
+        </div>
+        <div class="hp-rm-quote-title" id="quote-preview-title"></div>
+        <div class="hp-rm-quote-body" id="quote-preview-body"></div>
+      </div>
+
+      <div class="hp-rm-actions">
+        <button class="hp-rm-skip-btn" onclick="submitRepost(true)">Repost only</button>
+        <button class="hp-rm-submit-btn" id="repost-submit-btn" onclick="submitRepost(false)">
           <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          Post
         </button>
       </div>
     </div>
   </div>
 </div>
 
-<script src="../JS/demo_local_override.js"></script>
 <!-- Shared navbar -->
 <script src="../JS/navbar.js"></script>
 <!-- External JS (must come after DATA script above) -->

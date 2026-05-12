@@ -1,6 +1,6 @@
-/* ════════════════════════════════════════
+/* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
    CSS VARIABLES
-════════════════════════════════════════ */
+Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */
 :root {
   --maroon: #6b1111;
   --maroon-dk: #4a0c0c;
@@ -37,13 +37,13 @@ body {
   min-width: 1280px;
 }
 
-/* ════════════════════════════════════════
-   LEFT SIDEBAR — handled by navbar.css
-════════════════════════════════════════ */
+/* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
+   LEFT SIDEBAR Ã¢â‚¬â€ handled by navbar.css
+Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */
 
-/* ════════════════════════════════════════
+/* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
    MAIN FEED
-════════════════════════════════════════ */
+Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */
 .main {
   flex: 1;
   min-width: 0;
@@ -75,9 +75,9 @@ body {
   margin-bottom: -10px;
 }
 
-/* ════════════════════════════════════════
+/* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
    PINNED ANNOUNCEMENT CARD
-════════════════════════════════════════ */
+Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */
 .pinned-wrap {
   display: flex;
   justify-content: center;
@@ -279,6 +279,7 @@ body {
   -webkit-line-clamp: 4;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  line-clamp: 4;
 }
 
 .view-more-btn {
@@ -551,9 +552,9 @@ body {
   color: #fff;
 }
 
-/* ════════════════════════════════════════
+/* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
    CREATE POST BAR
-════════════════════════════════════════ */
+Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */
 .comment-bar {
   background: rgb(222, 194, 198, 0.50);
   border-radius: 14px;
@@ -650,9 +651,9 @@ body {
   pointer-events: none;
 }
 
-/* ════════════════════════════════════════
+/* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
    CREATE POST MODAL
-════════════════════════════════════════ */
+Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */
 .modal-overlay {
   display: none;
   position: fixed;
@@ -964,9 +965,9 @@ body {
   stroke-linejoin: round;
 }
 
-/* ════════════════════════════════════════
+/* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
    FEED POST CARD
-════════════════════════════════════════ */
+Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */
 .feed-post {
   background: var(--white);
   border: 1.5px solid var(--cream-md);
@@ -1061,6 +1062,7 @@ body {
   -webkit-line-clamp: 4;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  line-clamp: 4;
 }
 
 .feed-view-more {
@@ -1213,18 +1215,32 @@ body {
 }
 
 @keyframes heartPop {
-  0% { transform: scale(1); }
-  30% { transform: scale(1.5); }
-  55% { transform: scale(0.88); }
-  75% { transform: scale(1.2); }
-  100% { transform: scale(1); }
+  0% {
+    transform: scale(1);
+  }
+
+  30% {
+    transform: scale(1.5);
+  }
+
+  55% {
+    transform: scale(0.88);
+  }
+
+  75% {
+    transform: scale(1.2);
+  }
+
+  100% {
+    transform: scale(1);
+  }
 }
 
 .feed-reaction-btn.heart-active svg {
   animation: heartPop .45s cubic-bezier(.36, .07, .19, .97) both;
 }
 
-/* ── REPOST ACTIVE ── */
+/* Ã¢â€â‚¬Ã¢â€â‚¬ REPOST ACTIVE Ã¢â€â‚¬Ã¢â€â‚¬ */
 .feed-reaction-btn.repost-active {
   color: #1a9e5c;
 }
@@ -1235,8 +1251,13 @@ body {
 }
 
 @keyframes repostSpin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .heart-burst {
@@ -1288,11 +1309,10 @@ body {
   animation: repostSpin .4s cubic-bezier(.34, 1.56, .64, 1) both;
 }
 
-.feed-comments-section {
-  padding: 10px 0 12px;
-}
-
-.feed-view-comments {
+/* ========================
+   FEED COMMENT PREVIEW
+======================== */
+.view-comments {
   background: none;
   border: none;
   cursor: pointer;
@@ -1301,74 +1321,74 @@ body {
   font-weight: 700;
   color: var(--muted);
   padding: 0 0 8px;
-  transition: color .15s;
+  transition: color 0.15s;
+  display: block;
+  text-align: left;
 }
 
-.feed-view-comments:hover {
+.view-comments:hover {
   color: var(--maroon);
 }
 
 .feed-comment-preview {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.feed-comment-avatar {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  object-fit: cover;
-  flex-shrink: 0;
-  background: var(--maroon-lt);
+  padding: 4px 0 4px;
   overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
-.feed-comment-avatar img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+.feed-comment-preview .comment-modal-item {
+  gap: 10px;
+  overflow: hidden;
 }
 
-.feed-comment-avatar svg {
-  width: 16px;
-  height: 16px;
-  stroke: var(--cream);
-  fill: none;
-  stroke-width: 2;
+.feed-comment-preview .comment-modal-item-avatar {
+  width: 45px;
+  height: 45px;
+  min-width: 34px;
 }
 
-.feed-comment-bubble {
-  background: var(--cream-md);
-  border-radius: 12px;
-  padding: 7px 14px;
+.feed-comment-preview .comment-modal-item-content {
+  min-width: 0;
   flex: 1;
 }
 
-.feed-comment-name {
-  font-size: 13px;
-  font-weight: 800;
-  color: var(--text);
-  margin-bottom: 2px;
+.feed-comment-preview .comment-modal-item-bubble {
+  padding: 10px 20px;
+  border-radius: 50px;
+  margin-top: 0px;
+  overflow: hidden;
+  cursor: pointer;
 }
 
-.feed-comment-text {
-  font-size: 13px;
+.feed-comment-preview .comment-modal-item-author {
+  font-size: 12.5px;
+  font-weight: 800;
+  color: var(--text);
+  margin-bottom: 3px;
+}
+
+.feed-comment-preview .comment-modal-item-text {
+  font-size: 12.5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   font-weight: 500;
   color: var(--text);
 }
 
-/* ════════════════════════════════════════
+.feed-comment-preview .comment-modal-item-time {
+  font-size: 11px;
+  margin-bottom: 20px;
+}
+
+
+/* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
    COMMENT MODAL
-════════════════════════════════════════ */
+Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */
 .comment-modal-overlay {
   display: none;
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, .55);
+  background: rgba(0,0,0,.55);
   z-index: 1000;
   align-items: center;
   justify-content: center;
@@ -1387,199 +1407,139 @@ body {
   max-height: 85vh;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 24px 64px rgba(0, 0, 0, .3);
-  animation: modalIn .25s cubic-bezier(.34, 1.56, .64, 1) both;
+  box-shadow: 0 24px 64px rgba(0,0,0,.3);
+  animation: modalIn .25s cubic-bezier(.34,1.56,.64,1) both;
   overflow: hidden;
 }
 
 .comment-modal-header {
-  background: var(--cream);
-  padding: 20px 26px 14px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  border-bottom: 1.5px solid var(--cream-md);
-  flex-shrink: 0;
+  background: var(--cream); padding: 20px 26px 14px;
+  display: flex; align-items: center; justify-content: center;
+  position: relative; border-bottom: 1.5px solid var(--cream-md); flex-shrink: 0;
 }
 
 .comment-modal-title {
+  font-family: 'Montserrat', sans-serif;
   font-size: 22px;
-  font-weight: 800;
   color: var(--maroon-dk);
+  font-weight: 800;
+  text-align: center;
+  flex: 1;
 }
 
 .comment-modal-close {
-  position: absolute;
-  right: 16px;
-  top: 50%;
-  transform: translateY(-50%);
-  background: rgb(222, 194, 198, 0.6);
-  border: none;
-  border-radius: 50%;
-  width: 34px;
-  height: 34px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  color: var(--maroon-dk);
-  font-size: 16px;
-  font-weight: 700;
+  position: absolute; right: 16px; top: 50%; transform: translateY(-50%);
+  background: rgb(222,194,198,0.6); border: none; border-radius: 50%;
+  width: 34px; height: 34px; display: flex; align-items: center; justify-content: center;
+  cursor: pointer; color: var(--maroon-dk); font-size: 16px; font-weight: 700;
   transition: background .15s;
 }
 
-.comment-modal-close:hover {
-  background: rgb(222, 194, 198, 1);
+.comment-modal-close:hover { background: rgb(222,194,198,1); }
+
+.comment-modal-list {
+  flex: 1; overflow-y: auto; padding: 16px 22px 10px;
+  display: flex; flex-direction: column; gap: 18px;
+  scrollbar-width: thin; scrollbar-color: var(--cream-md);
 }
 
-.comment-list {
-  flex: 1;
-  overflow-y: auto;
-  padding: 16px 22px 10px;
+.comment-modal-list::-webkit-scrollbar { width: 4px; }
+.comment-modal-list::-webkit-scrollbar-track { background: transparent; }
+.comment-modal-list::-webkit-scrollbar-thumb { background: var(--cream-md); border-radius: 4px; }
+
+.comment-modal-item {
   display: flex;
-  flex-direction: column;
-  gap: 18px;
-  scrollbar-width: thin;
-  scrollbar-color: var(--cream-md) transparent;
-}
-
-.comment-list::-webkit-scrollbar {
-  width: 4px;
-}
-
-.comment-list::-webkit-scrollbar-thumb {
-  background: var(--cream-md);
-  border-radius: 4px;
-}
-
-.comment-item {
-  display: flex;
-  align-items: flex-start;
   gap: 12px;
+  align-items: flex-start;
+  animation: fadeUp 0.25s ease both;
 }
 
-.comment-item-avatar {
+.comment-modal-item-avatar {
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  flex-shrink: 0;
   overflow: hidden;
+  flex-shrink: 0;
   background: var(--maroon-lt);
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.comment-item-avatar img {
+.comment-modal-item-avatar img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-.comment-item-avatar svg {
-  width: 20px;
-  height: 20px;
-  stroke: var(--cream);
-  fill: none;
-  stroke-width: 2;
-}
+.comment-modal-item-content { flex: 1; }
 
-.comment-item-content {
-  flex: 1;
-}
-
-.comment-item-bubble {
-  background: rgb(222, 194, 198, 0.3);
+.comment-modal-item-bubble {
+  background: rgb(222, 194, 198, 0.30);
   border-radius: 14px;
   padding: 10px 16px;
   margin-bottom: 4px;
 }
 
-.comment-item-name {
+.comment-modal-item-author {
   font-size: 15px;
   font-weight: 800;
   color: var(--text);
   margin-bottom: 3px;
 }
 
-.comment-item-text {
+.comment-modal-item-text {
   font-size: 15px;
   font-weight: 500;
   color: var(--text);
   line-height: 1.5;
 }
 
-.comment-item-time {
+.reposted-without-quote {
   font-size: 13px;
-  font-weight: 600;
+  font-weight: lighter;
+  color: var(--muted);
+  line-height: 1.5;
+  font-style: italic;
+}
+
+.comment-modal-item-time {
+  font-size: 13px;
   color: var(--muted);
   padding-left: 4px;
 }
 
-.comment-input-row {
+/* Input row at bottom */
+.comment-modal-input-row {
   display: flex;
-  align-items: center;
   gap: 12px;
-  padding: 14px 22px 20px;
+  align-items: center;
   border-top: 1.5px solid var(--cream-md);
   flex-shrink: 0;
+  padding: 14px 22px 20px;
 }
 
-.comment-input-avatar {
+.comment-modal-avatar {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  flex-shrink: 0;
   overflow: hidden;
+  flex-shrink: 0;
   background: var(--maroon-lt);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: flex; align-items: center; justify-content: center;
 }
 
-.comment-input-avatar img {
+.comment-modal-avatar img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  image-rendering: high-quality;
-  display: block !important;
 }
 
-.comment-input-avatar svg {
-  width: 18px;
-  height: 18px;
-  stroke: var(--cream);
-  fill: none;
-  stroke-width: 2;
-}
+.comment-modal-bubble-input { display: flex !important; flex: 1 !important; align-items: center !important; background: rgba(222, 194, 198, 0.25) !important; border-radius: 999px !important; padding: 10px 16px !important; gap: 10px !important; }
 
-.comment-input-wrap {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  background: rgb(222, 194, 198, 0.25);
-  border-radius: 999px;
-  padding: 10px 16px;
-  gap: 10px;
-}
+.comment-modal-input { flex: 1 !important; background: transparent !important; border: none !important; outline: none !important; font-family: 'Montserrat', sans-serif !important; font-size: 15px !important; font-weight: 500 !important; color: var(--text) !important; }
 
-.comment-input-field {
-  flex: 1;
-  background: none;
-  border: none;
-  outline: none;
-  font-family: 'Montserrat', sans-serif;
-  font-size: 15px;
-  font-weight: 500;
-  color: var(--text);
-}
-
-.comment-input-field::placeholder {
-  color: var(--muted);
-}
-
-.comment-send-btn {
+.comment-modal-submit {
   width: 34px;
   height: 34px;
   border-radius: 50%;
@@ -1590,22 +1550,22 @@ body {
   justify-content: center;
   cursor: pointer;
   flex-shrink: 0;
-  transition: background .15s;
+  transition: background 0.15s, transform 0.12s;
 }
 
-.comment-send-btn:hover {
+.comment-modal-submit:hover {
   background: var(--maroon);
 }
 
-.comment-send-btn svg {
-  width: 14px;
-  height: 14px;
-  stroke: #fff;
-  fill: none;
-  stroke-width: 2.2;
-  stroke-linecap: round;
+.comment-modal-submit svg {
+  width: 14px; 
+  height: 14px; 
+  stroke: #fff; 
+  fill: none; 
+  stroke-width: 2.2; 
+  stroke-linecap: round; 
   stroke-linejoin: round;
-}
+}   
 
 #feed-posts {
   display: flex;
@@ -1613,22 +1573,17 @@ body {
   gap: 18px;
 }
 
-/* ════════════════════════════════════════
-   COMMENT EDIT / DELETE
-════════════════════════════════════════ */
-.comment-footer {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.comment-item-actions {
+/* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
+   COMMENT MODAL Ã¢â‚¬â€ EDIT / DELETE
+   Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */
+.comment-modal-item-content .comment-item-actions {
   display: flex;
   gap: 6px;
-  padding-left: 0;
+  margin-top: 5px;
+  padding-left: 4px;
 }
 
-.comment-action-btn {
+.comment-modal-item-content .comment-action-btn {
   background: none;
   border: none;
   cursor: pointer;
@@ -1643,7 +1598,7 @@ body {
   gap: 4px;
 }
 
-.comment-action-btn svg {
+.comment-modal-item-content .comment-action-btn svg {
   width: 11px;
   height: 11px;
   stroke: currentColor;
@@ -1654,37 +1609,34 @@ body {
   flex-shrink: 0;
 }
 
-.comment-action-btn.edit-btn {
+.comment-modal-item-content .comment-action-btn.edit-btn {
   color: var(--muted);
 }
-
-.comment-action-btn.edit-btn:hover {
+.comment-modal-item-content .comment-action-btn.edit-btn:hover {
   background: var(--cream-md);
   color: var(--text);
 }
 
-.comment-action-btn.delete-btn {
+.comment-modal-item-content .comment-action-btn.delete-btn {
   color: var(--muted);
 }
-
-.comment-action-btn.delete-btn:hover {
+.comment-modal-item-content .comment-action-btn.delete-btn:hover {
   background: rgba(192, 57, 43, 0.08);
   color: #c0392b;
 }
 
-/* edit mode */
-.comment-edit-wrap {
+/* Edit input wrap inside modal */
+.comment-modal-item-content .comment-edit-wrap {
   display: none;
   margin-top: 6px;
 }
-
-.comment-edit-wrap.open {
+.comment-modal-item-content .comment-edit-wrap.open {
   display: flex;
   gap: 8px;
   align-items: center;
 }
 
-.comment-edit-input {
+.comment-modal-item-content .comment-edit-input {
   flex: 1;
   background: rgb(222, 194, 198, 0.25);
   border: 1.5px solid var(--cream-md);
@@ -1697,12 +1649,11 @@ body {
   outline: none;
   transition: border-color 0.15s;
 }
-
-.comment-edit-input:focus {
+.comment-modal-item-content .comment-edit-input:focus {
   border-color: var(--maroon);
 }
 
-.comment-edit-save {
+.comment-modal-item-content .comment-edit-save {
   width: 30px;
   height: 30px;
   border-radius: 50%;
@@ -1715,12 +1666,8 @@ body {
   flex-shrink: 0;
   transition: background 0.15s;
 }
-
-.comment-edit-save:hover {
-  background: var(--maroon);
-}
-
-.comment-edit-save svg {
+.comment-modal-item-content .comment-edit-save:hover { background: #dec2c6;}
+.comment-modal-item-content .comment-edit-save svg {
   width: 13px;
   height: 13px;
   stroke: #fff;
@@ -1730,7 +1677,7 @@ body {
   stroke-linejoin: round;
 }
 
-.comment-edit-cancel {
+.comment-modal-item-content .comment-edit-cancel {
   width: 30px;
   height: 30px;
   border-radius: 50%;
@@ -1746,14 +1693,12 @@ body {
   color: var(--text);
   transition: background 0.15s;
 }
+.comment-modal-item-content .comment-edit-cancel:hover { background: var(--cream-dk); }
 
-.comment-edit-cancel:hover {
-  background: var(--cream-dk);
-}
 
-/* ════════════════════════════════════════
+/* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
    THREE-DOT POST MENU
-════════════════════════════════════════ */
+Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */
 .feed-post-header {
   position: relative;
 }
@@ -1863,15 +1808,9 @@ body {
   transform: scale(1.1);
 }
 
-stroke-width: 2;
-stroke-linecap: round;
-stroke-linejoin: round;
-flex-shrink: 0;
-}
-
-/* ════════════════════════════════════════
+/* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
    SAVE / BOOKMARK BUTTON
-════════════════════════════════════════ */
+Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */
 .feed-reaction-btn.save-active {
   color: var(--maroon);
 }
@@ -1907,9 +1846,9 @@ flex-shrink: 0;
   animation: bookmarkPop 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
 }
 
-/* ════════════════════════════════════════
+/* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
    RIGHT PANEL
-════════════════════════════════════════ */
+Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */
 .right-panel {
   width: 280px;
   height: 100vh;
@@ -2078,15 +2017,15 @@ flex-shrink: 0;
   font-size: 16px;
 }
 
-/* ════════════════════════════════════════
+/* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
    EMPTY STATES
-════════════════════════════════════════ */
+Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */
 .empty-state {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 12px;
+  gap: 8px;
   padding: 48px 24px;
   text-align: center;
 }
@@ -2155,9 +2094,9 @@ flex-shrink: 0;
   color: var(--muted);
 }
 
-/* ════════════════════════════════════════
+/* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
    TOAST
-════════════════════════════════════════ */
+Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */
 #toast {
   position: fixed;
   bottom: 32px;
@@ -2184,9 +2123,9 @@ flex-shrink: 0;
   transform: translateX(-50%) translateY(0);
 }
 
-/* ════════════════════════════════════════
+/* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
    LIGHTBOX
-════════════════════════════════════════ */
+Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */
 #lightbox {
   display: none;
   position: fixed;
@@ -2226,9 +2165,9 @@ flex-shrink: 0;
   opacity: 1;
 }
 
-/* ════════════════════════════════════════
+/* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
    ANIMATIONS
-════════════════════════════════════════ */
+Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */
 @keyframes fadeUp {
   from {
     opacity: 0;
@@ -2459,7 +2398,7 @@ flex-shrink: 0;
   flex-shrink: 0;
   /* add this so the icon never squishes */
   margin-top: 1px;
-  stroke-color: var(--maroon);
+  stroke: var(--maroon);
 }
 
 /* Input */
@@ -2526,9 +2465,9 @@ flex-shrink: 0;
   stroke-linejoin: round;
 }
 
-/* ════════════════════════════════════════
+/* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
    POST EDIT
-════════════════════════════════════════ */
+Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */
 .post-edit-wrap {
   margin-bottom: 10px;
 }
@@ -2644,12 +2583,12 @@ flex-shrink: 0;
   margin-bottom: 10px;
 }
 
-/* ── LIGHTBOX GALLERY NAVIGATION ── */
+/* Ã¢â€â‚¬Ã¢â€â‚¬ LIGHTBOX GALLERY NAVIGATION Ã¢â€â‚¬Ã¢â€â‚¬ */
 .lb-nav {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  background: rgba(255,255,255,0.15);
+  background: rgba(255, 255, 255, 0.15);
   color: white;
   border: none;
   font-size: 30px;
@@ -2659,17 +2598,538 @@ flex-shrink: 0;
   transition: background 0.3s;
   z-index: 10000;
 }
-.lb-nav:hover { background: rgba(255,255,255,0.4); }
-#lb-prev { left: 20px; }
-#lb-next { right: 20px; }
+
+.lb-nav:hover {
+  background: rgba(255, 255, 255, 0.4);
+}
+
+#lb-prev {
+  left: 20px;
+}
+
+#lb-next {
+  right: 20px;
+}
 
 #lb-counter {
   position: absolute;
   bottom: 20px;
   color: white;
   font-weight: 700;
-  background: rgba(0,0,0,0.5);
+  background: rgba(0, 0, 0, 0.5);
   padding: 5px 15px;
   border-radius: 20px;
   z-index: 10000;
+}
+
+/* Confirm Toast Styled Popup */
+.confirm-toast-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  background: rgba(0, 0, 0, 0.2);
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 40px;
+  animation: fadeIn .2s ease-out;
+}
+
+.confirm-toast-overlay.show {
+  display: flex;
+}
+
+.confirm-toast-pill {
+  background: var(--maroon);
+  color: var(--cream);
+  padding: 12px 24px;
+  border-radius: 99px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  font-family: 'Montserrat', sans-serif;
+  transform: translateY(20px);
+  animation: slideUp .3s cubic-bezier(.34, 1.56, .64, 1) forwards;
+}
+
+@keyframes slideUp {
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+.confirm-toast-text {
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.confirm-toast-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.confirm-toast-btn {
+  border: none;
+  border-radius: 99px;
+  padding: 6px 14px;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.confirm-toast-btn.delete {
+  background: var(--cream);
+  color: var(--maroon);
+}
+
+.confirm-toast-btn.delete:hover {
+  background: #f0e2e2;
+  transform: scale(1.05);
+}
+
+.confirm-toast-btn.cancel {
+  background: rgba(255, 255, 255, 0.15);
+  color: var(--cream);
+}
+
+.confirm-toast-btn.cancel:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
+   REPOST QUOTE MODAL Ã¢â‚¬â€ Homepage Enhanced
+Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */
+#hp-repost-modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, .55);
+  z-index: 2000;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(2px);
+}
+
+#hp-repost-modal-overlay.open {
+  display: flex;
+}
+
+#hp-repost-modal {
+  background: var(--cream);
+  border-radius: 24px;
+  width: 92vw;
+  max-width: 560px;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, .3);
+  animation: modalIn .25s cubic-bezier(.34, 1.56, .64, 1) both;
+  overflow: hidden;
+}
+
+.hp-rm-header {
+  background: var(--cream);
+  padding: 20px 26px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  border-bottom: 1.5px solid var(--cream-md);
+  flex-shrink: 0;
+}
+
+.hp-rm-title {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--maroon-dk);
+}
+
+.hp-rm-close {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(222, 194, 198, .6);
+  border: none;
+  border-radius: 50%;
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--maroon-dk);
+  font-size: 16px;
+  font-weight: 700;
+  transition: background .15s;
+}
+
+.hp-rm-close:hover {
+  background: rgba(222, 194, 198, 1);
+}
+
+.hp-rm-body {
+  padding: 18px 26px 22px;
+  overflow-y: auto;
+  flex: 1;
+  scrollbar-width: thin;
+  scrollbar-color: var(--cream-md) transparent;
+}
+
+.hp-rm-user-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.hp-rm-avatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--maroon);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
+  border: 2px solid var(--cream-md);
+}
+
+.hp-rm-avatar svg {
+  width: 22px;
+  height: 22px;
+  stroke: var(--cream);
+  fill: none;
+  stroke-width: 2;
+}
+
+.hp-rm-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.hp-rm-user-name {
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.hp-rm-textarea {
+  width: 100%;
+  min-height: 100px;
+  background: rgba(222, 194, 198, .25);
+  border: none;
+  border-radius: 14px;
+  padding: 14px 18px;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text);
+  resize: none;
+  outline: none;
+  margin-bottom: 14px;
+}
+
+.hp-rm-textarea::placeholder {
+  color: var(--muted);
+}
+
+.hp-rm-quote-card {
+  background: var(--white);
+  border: 1.5px solid var(--cream-md);
+  border-radius: 14px;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+}
+
+.hp-rm-quote-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.hp-rm-quote-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--maroon-lt);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.hp-rm-quote-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.hp-rm-quote-avatar svg {
+  width: 14px;
+  height: 14px;
+  stroke: var(--cream);
+  fill: none;
+  stroke-width: 2;
+}
+
+.hp-rm-quote-name {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.hp-rm-quote-time {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  margin-left: auto;
+}
+
+.hp-rm-quote-title {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+
+.hp-rm-quote-body {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  line-height: 1.55;
+  font-style: italic;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.hp-rm-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.hp-rm-skip-btn {
+  background: none;
+  border: 1.5px solid var(--cream-md);
+  border-radius: 99px;
+  padding: 10px 22px;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--muted);
+  cursor: pointer;
+  transition: border-color .15s, color .15s;
+}
+
+.hp-rm-skip-btn:hover {
+  border-color: var(--maroon);
+  color: var(--maroon);
+}
+
+.hp-rm-submit-btn {
+  flex: 1;
+  background: var(--maroon-dk);
+  border: none;
+  border-radius: 99px;
+  padding: 12px 28px;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--cream);
+  cursor: pointer;
+  transition: background .15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.hp-rm-submit-btn:hover {
+  background: var(--maroon);
+}
+
+.hp-rm-submit-btn svg {
+  width: 16px;
+  height: 16px;
+  stroke: var(--cream);
+  fill: none;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* STANDARDIZED COMMENT MODAL OVERRIDES - FORCED */
+.comment-modal-input-row {
+  display: flex !important;
+  gap: 12px !important;
+  align-items: center !important;
+  border-top: 1.5px solid var(--cream-md) !important;
+  flex-shrink: 0 !important;
+  padding: 14px 22px 20px !important;
+}
+
+.comment-modal-avatar {
+  width: 40px !important;
+  height: 40px !important;
+  border-radius: 50% !important;
+  overflow: hidden !important;
+  flex-shrink: 0 !important;
+  background: var(--maroon-lt) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.comment-modal-avatar img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+}
+
+.comment-modal-bubble-input {
+  display: flex !important;
+  flex: 1 !important;
+  align-items: center !important;
+  background: rgba(222, 194, 198, 0.25) !important;
+  border-radius: 999px !important;
+  padding: 10px 16px !important;
+  gap: 10px !important;
+}
+
+.comment-modal-input {
+  flex: 1 !important;
+  background: transparent !important;
+  border: none !important;
+  outline: none !important;
+  font-family: 'Montserrat', sans-serif !important;
+  font-size: 15px !important;
+  font-weight: 500 !important;
+  color: var(--text) !important;
+}
+
+.comment-modal-submit {
+  width: 34px !important;
+  height: 34px !important;
+  border-radius: 50% !important;
+  background: var(--maroon-dk) !important;
+  border: none !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  flex-shrink: 0 !important;
+  transition: background 0.15s, transform 0.12s !important;
+}
+
+.comment-modal-submit:hover {
+  background: var(--maroon) !important;
+}
+
+.comment-modal-submit svg {
+  width: 14px !important;
+  height: 14px !important;
+  stroke: #fff !important;
+  fill: none !important;
+  stroke-width: 2.2 !important;
+  stroke-linecap: round !important;
+  stroke-linejoin: round !important;
+}
+
+/* COMMENT EDIT MODE UI - MATCHING DESIGN */
+.comment-edit-wrap {
+  display: none;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.comment-edit-wrap.open {
+  display: flex !important;
+}
+
+.comment-edit-input {
+  flex: 1;
+  background: var(--white) !important;
+  border: 1.2px solid var(--maroon) !important;
+  border-radius: 12px !important;
+  padding: 8px 14px !important;
+  font-family: 'Montserrat', sans-serif !important;
+  font-size: 14px !important;
+  color: var(--text) !important;
+  outline: none !important;
+}
+
+.comment-edit-save {
+  width: 34px !important;
+  height: 34px !important;
+  border-radius: 50% !important;
+  background: var(--maroon-dk) !important;
+  border: none !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  flex-shrink: 0 !important;
+}
+
+.comment-edit-save svg {
+  width: 14px !important;
+  height: 14px !important;
+  stroke: #fff !important;
+  fill: none !important;
+  stroke-width: 2.2 !important;
+}
+
+.comment-edit-cancel {
+  width: 34px !important;
+  height: 34px !important;
+  border-radius: 50% !important;
+  background: var(--cream-dk) !important;
+  border: none !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  flex-shrink: 0 !important;
+  font-size: 14px !important;
+  color: var(--text) !important;
+}
+
+.comment-action-btn {
+  font-size: 12px !important;
+  color: var(--muted) !important;
+  font-weight: 700 !important;
+  cursor: pointer !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+  border: none !important;
+  background: none !important;
+}
+
+.comment-action-btn:hover {
+  color: var(--maroon) !important;
 }

@@ -101,7 +101,7 @@
         </div>
 
         <div class="bulletin-section-label anim-3" id="pinned-label" style="display:none;">
-          <svg viewBox="0 0 24 24" width="14" height="14" fill="#6B1A1A"><path d="M16 2H8a1 1 0 0 0-.7 1.71L9 5.41V11l-2.7 2.7A1 1 0 0 0 7 15h4v6l1 1 1-1v-6h4a1 1 0 0 0 .71-1.71L15 11V5.41l1.71-1.7A1 1 0 0 0 16 2z"/></svg>
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
           Pinned Announcement
         </div>
         <div id="pinned-post-slot" class="anim-3"></div>
@@ -171,20 +171,20 @@
 
   </aside>
 
-  <div class="comment-modal-overlay hidden" id="cn-comment-modal-overlay">
+  <div class="comment-modal-overlay hidden" id="cn-comment-modal-overlay" onclick="if(event.target.id === 'cn-comment-modal-overlay') closeCommentModal()">
     <div class="comment-modal" id="cn-comment-modal">
       <div class="comment-modal-header">
-        <span class="comment-modal-title">Comments</span>
+        <div class="comment-modal-title">Comments</div>
         <button class="comment-modal-close" id="cn-comment-modal-close">✕</button>
       </div>
-      <div class="comment-list" id="cn-comment-list"></div>
-      <div class="comment-input-row">
-        <div class="comment-input-avatar" id="comment-input-avatar">
+      <div class="comment-modal-list" id="cn-comment-list"></div>
+      <div class="comment-modal-input-row">
+        <div class="comment-modal-avatar" id="comment-input-avatar">
           <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
         </div>
-        <div class="comment-input-wrap">
-          <input class="comment-input-field" id="cn-comment-input-field" placeholder="Share your thoughts..." maxlength="500"/>
-          <button class="comment-send-btn" id="cn-comment-send-btn">
+        <div class="comment-modal-bubble-input">
+          <input class="comment-modal-input" id="cn-comment-input-field" placeholder="Share your thoughts..." maxlength="500"/>
+          <button class="comment-modal-submit" id="cn-comment-send-btn">
             <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
           </button>
         </div>
@@ -260,13 +260,50 @@
         <button onclick="sendMessage()">
           <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
         </button>
+    </div>
+  </div>
+
+  <!-- REPOST QUOTE MODAL -->
+  <div id="cn-repost-modal-overlay" onclick="closeRepostModalOnOverlay(event)">
+    <div id="cn-repost-modal">
+      <div class="cn-rm-header">
+        <span class="cn-rm-title">Repost</span>
+        <button class="cn-rm-close" onclick="closeRepostModal()">✕</button>
+      </div>
+      <div class="cn-rm-body">
+        <div class="cn-rm-user-row">
+          <div class="cn-rm-avatar" id="repost-user-avatar">
+            <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          </div>
+          <div class="cn-rm-user-name" id="repost-user-name">User Name</div>
+        </div>
+        <textarea class="cn-rm-textarea" id="repostContent" placeholder="Add a quote (optional)..."></textarea>
+        
+        <!-- Original Post Preview -->
+        <div class="cn-rm-quote-card" id="repost-quote-preview">
+          <div class="cn-rm-quote-header">
+            <div class="cn-rm-quote-avatar" id="quote-preview-avatar"></div>
+            <div class="cn-rm-quote-name" id="quote-preview-author">Author</div>
+            <div class="cn-rm-quote-time" id="quote-preview-time">Time</div>
+          </div>
+          <div class="cn-rm-quote-title" id="quote-preview-title"></div>
+          <div class="cn-rm-quote-body" id="quote-preview-body"></div>
+        </div>
+
+        <div class="cn-rm-actions">
+          <button class="cn-rm-skip-btn" onclick="submitRepost(true)">Repost only</button>
+          <button class="cn-rm-submit-btn" id="repost-submit-btn" onclick="submitRepost(false)">
+            <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            Post
+          </button>
+        </div>
       </div>
     </div>
+  </div>
     
   <script src="../JS/navbar.js"></script>
   <script type="module" src="../JS/navbar_profile.js"></script>
   <script src="../JS/guest.js"></script>
   <script type="module" src="../JS/campus_news.js"></script>
-  <script src="../JS/demo_local_override.js"></script>
 </body>
 </html>

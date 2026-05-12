@@ -265,57 +265,66 @@
 
     <!-- COMMENT MODAL -->
     <div class="comment-modal-overlay" id="commentModal" onclick="closeCommentModalOnOverlay(event)">
-
         <div class="comment-modal">
-
             <div class="comment-modal-header">
-                <div class="comment-modal-title">Add a comment</div>
+                <div class="comment-modal-title">Comments</div>
                 <button class="comment-modal-close" onclick="closeCommentModal()">✕</button>
             </div>
 
             <div class="comment-modal-list" id="commentModalList"></div>
 
             <div class="comment-modal-input-row">
-
                 <div class="comment-modal-avatar">
                     <img src="../assets/images/anon_avatar.jpg" alt="You"
                         onerror="this.style.display='none'; this.parentElement.innerHTML='👩';">
                 </div>
-
                 <div class="comment-modal-bubble-input">
-
                     <input
                         class="comment-modal-input"
                         id="commentModalInput"
                         placeholder="Share your thoughts..." maxlength="500"
                         onkeydown="handleModalCommentKey(event)">
+                    <button class="comment-modal-submit" onclick="submitModalComment()">
+                        <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                    </button>
                 </div>
-
-                <button class="comment-modal-submit" onclick="submitModalComment()">
-                    <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-                </button>
-
             </div>
-
         </div>
-
     </div>
 
   <!-- REPOST MODAL -->
-  <div class="modal-overlay" id="repostModal" onclick="closeRepostModalOnOverlay(event)">
-    <div class="modal">
-      <div class="modal-header">
-        <div class="modal-title">Repost</div>
-        <button class="modal-close-btn" onclick="closeRepostModal()">✕</button>
+  <div id="hp-repost-modal-overlay" onclick="closeRepostModalOnOverlay(event)">
+    <div id="hp-repost-modal">
+      <div class="hp-rm-header">
+        <span class="hp-rm-title">Repost</span>
+        <button class="hp-rm-close" onclick="closeRepostModal()">✕</button>
       </div>
-      <div class="modal-body">
-        <textarea class="modal-textarea" id="repostContent" placeholder="Add a quote (optional)..."></textarea>
-        <div class="modal-footer">
-          <div class="repost-send-button-container">
-            <button class="modal-submit-btn" id="repost-submit-btn" onclick="submitRepost()">
-              <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-            </button>
+      <div class="hp-rm-body">
+        <div class="hp-rm-user-row">
+          <div class="hp-rm-avatar" id="repost-user-avatar">
+            <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
           </div>
+          <div class="hp-rm-user-name" id="repost-user-name">User Name</div>
+        </div>
+        <textarea class="hp-rm-textarea" id="repostContent" placeholder="Add a quote (optional)..."></textarea>
+        
+        <!-- Original Post Preview -->
+        <div class="hp-rm-quote-card" id="repost-quote-preview">
+          <div class="hp-rm-quote-header">
+            <div class="hp-rm-quote-avatar" id="quote-preview-avatar"></div>
+            <div class="hp-rm-quote-name" id="quote-preview-author">Author</div>
+            <div class="hp-rm-quote-time" id="quote-preview-time">Time</div>
+          </div>
+          <div class="hp-rm-quote-title" id="quote-preview-title"></div>
+          <div class="hp-rm-quote-body" id="quote-preview-body"></div>
+        </div>
+
+        <div class="hp-rm-actions">
+          <button class="hp-rm-skip-btn" onclick="submitRepost(true)">Repost only</button>
+          <button class="hp-rm-submit-btn" id="repost-submit-btn" onclick="submitRepost(false)">
+            <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            Post
+          </button>
         </div>
       </div>
     </div>

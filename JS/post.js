@@ -4,7 +4,7 @@ import {
   getFirestore,
   collection, onSnapshot,
   serverTimestamp,
-  query, orderBy, increment,
+  query, orderBy, increment, where,
   doc, getDoc, addDoc, deleteDoc, updateDoc,
   arrayUnion, arrayRemove
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -143,7 +143,7 @@ window.resetPostModal = function () {
   }
 };
 
-async function uploadPostToFirestore(text, imageData, isAnonymous) {
+async function uploadPostToFirestore(text, imageURLs, isAnonymous) {
   const user = auth.currentUser;
   let name = currentProfile.name;
   let photo = currentProfile.photo;
@@ -153,15 +153,37 @@ async function uploadPostToFirestore(text, imageData, isAnonymous) {
     photo = "../assets/images/anon_avatar.jpg";
   }
 
+  const cache = JSON.parse(localStorage.getItem('tup_user_meta') || '{}');
+  const isAdmin = cache.role === 'Admin' || cache.role === 'USG';
+  const isOrg = cache.role === 'Organization';
+  const college = cache.college || null;
+
+  if (isAdmin) {
+    return await addDoc(collection(db, "announcements"), {
+      body: text,
+      imageURLs: imageURLs || [],
+      userId: user?.uid || "unknown",
+      author: name,
+      photoURL: photo,
+      createdAt: serverTimestamp(),
+      likes: [],
+      comments: [],
+      reposts: [],
+      college: college
+    });
+  }
+
   return await addDoc(collection(db, "posts"), {
     text: text,
-    imageURL: imageData,
+    imageURLs: imageURLs || [],
     userId: user?.uid || "unknown",
     author: name,
     photoURL: photo,
     isAnonymous: isAnonymous,
     createdAt: serverTimestamp(),
-    likes: 0
+    likes: 0,
+    isOrg: isOrg,
+    college: college
   });
 }
 
@@ -187,27 +209,23 @@ if (submitBtn) {
     e.stopImmediatePropagation();
 
     const liveTextarea = document.getElementById('post-textarea');
-    const liveImageInput = document.getElementById('modal-file-input');
-    const liveAnonToggle = document.getElementById('modal-anon-toggle');
+    const isAnon = document.getElementById('modal-anon-toggle')?.checked || false;
+    const attachWrap = document.getElementById('modal-attachments');
+    const thumbs = Array.from(attachWrap?.querySelectorAll('.modal-attach-thumb') || []);
 
     const text = liveTextarea ? liveTextarea.value.trim() : "";
-    const imageFile = liveImageInput ? liveImageInput.files[0] : null;
-
-    const isAnon = liveAnonToggle ? liveAnonToggle.checked : false;
-
-    if (!text && !imageFile) return;
+    if (!text && thumbs.length === 0) return;
 
     try {
       submitBtn.disabled = true;
+      submitBtn.innerHTML = `<span class="loading-spinner"></span> Posting...`;
 
-      let finalImageData = null;
-      if (imageFile) {
-        finalImageData = await getCompressedImageData(imageFile);
-      }
-
-      await uploadPostToFirestore(text, finalImageData, isAnon);
+      const imageURLs = thumbs.map(t => t.src);
+      await uploadPostToFirestore(text, imageURLs, isAnon);
 
       setModalSelection(false);
+      if (typeof window.showToast === 'function') window.showToast('Post shared!');
+      else alert('Post shared!');
 
     } catch (err) {
       console.error("❌ Post Error:", err);
@@ -377,6 +395,10 @@ window.formatSmartDate = function (dateObj) {
 function formatFirebaseData(snapshot) {
   return snapshot.docs.map(doc => {
     const data = doc.data();
+    
+    // Filter out Org posts from Homepage unless they are reposts
+    if (data.isOrg === true && !data.repostOf) return null;
+
     const dateObj = data.createdAt ? data.createdAt.toDate() : new Date();
     const repostedBy = data.repostedBy || [];
 
@@ -393,6 +415,7 @@ function formatFirebaseData(snapshot) {
       reposts: repostedBy.length,
       isRepostedByMe: auth.currentUser ? repostedBy.includes(auth.currentUser.uid) : false,
       postImage: data.imageURL || null,
+      imageURLs: data.imageURLs || [],
       repost: !!data.repostOf,
       repostIdRef: data.repostOf || null,
       isOwnPost: auth.currentUser ? data.userId === auth.currentUser.uid : false,
@@ -400,10 +423,13 @@ function formatFirebaseData(snapshot) {
         body: data.repostText,
         name: data.repostAuthor,
         photoSrc: data.repostAuthorPhoto,
-        repostImage: data.repostImage
-      } : null
+        repostImage: data.repostImage,
+        repostTitle: data.repostTitle || "",
+        time: data.repostTime || ""
+      } : null,
+      isOrg: !!data.isOrg
     };
-  });
+  }).filter(Boolean);
 }
 
 const q = query(collection(db, "posts"), orderBy("createdAt", "desc"));
@@ -442,6 +468,20 @@ if (feedContainer) {
       return;
     }
 
+    const cache = JSON.parse(localStorage.getItem('tup_user_meta') || '{}');
+    const myRole = cache.role;
+    const postData = (window.FEED_POSTS || []).find(p => p.id === postId);
+
+    if (myRole === 'Organization' && postData && !postData.isOrg) {
+      const toast = document.getElementById('toast');
+      if (toast) {
+        toast.textContent = "Organizations cannot interact with student posts.";
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 2800);
+      }
+      return;
+    }
+
     const isLiked = btn.classList.contains('heart-active');
     const postRef = doc(db, "posts", postId);
 
@@ -473,7 +513,20 @@ feedContainer.addEventListener('click', async (e) => {
   const user = auth.currentUser;
   if (!user) return alert("Login to repost!");
 
-  const postData = window.FEED_POSTS?.find(p => p.id === postId);
+  const cache = JSON.parse(localStorage.getItem('tup_user_meta') || '{}');
+  const myRole = cache.role;
+  const postData = (window.FEED_POSTS || []).find(p => p.id === postId);
+
+  if (myRole === 'Organization' && postData && !postData.isOrg) {
+    const toast = document.getElementById('toast');
+    if (toast) {
+      toast.textContent = "Organizations cannot interact with student posts.";
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2800);
+    }
+    return;
+  }
+
   if (!postData) return;
 
   const isReposted = btn.classList.contains('repost-active');
@@ -494,8 +547,7 @@ feedContainer.addEventListener('click', async (e) => {
       }
     } else {
       _currentRepostInfo = { btn, postId, postData };
-      document.getElementById('repostModal').classList.add('open');
-      document.getElementById('repostContent').focus();
+      openRepostModalHP(postData);
     }
   } catch (err) {
     console.error("Repost failed:", err);
@@ -610,59 +662,139 @@ feedContainer.addEventListener('click', async (e) => {
   }
 });
 
+function openRepostModalHP(postData, collectionName = 'posts') {
+  const overlay = document.getElementById('hp-repost-modal-overlay');
+  const modal = document.getElementById('hp-repost-modal');
+  if (!overlay || !modal) return;
+
+  _currentRepostInfo = {
+      postId: postData.id,
+      postData: postData,
+      collection: collectionName
+  };
+
+  overlay.classList.add('open');
+  overlay.style.display = 'flex';
+
+  // Current User Info
+  const cache = JSON.parse(localStorage.getItem('tup_user_meta') || '{}');
+  document.getElementById('repost-user-name').textContent = currentProfile?.name || auth.currentUser?.displayName || "TUPian";
+  const userAvatar = document.getElementById('repost-user-avatar');
+  if (userAvatar && (currentProfile?.photo || auth.currentUser?.photoURL)) {
+    userAvatar.innerHTML = `<img src="${currentProfile?.photo || auth.currentUser?.photoURL}" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">`;
+  }
+
+  // Original Post Preview
+  const previewBody = document.getElementById('quote-preview-body');
+  const previewAuthor = document.getElementById('quote-preview-author');
+  const previewAvatar = document.getElementById('quote-preview-avatar');
+  const previewTitle = document.getElementById('quote-preview-title');
+  const previewTime = document.getElementById('quote-preview-time');
+
+  previewAuthor.textContent = postData.author || postData.name || 'Anonymous';
+  previewBody.textContent = postData.body || '';
+  previewTitle.textContent = postData.title || '';
+  previewTime.textContent = postData.time || 'JUST NOW';
+
+  if (postData.photoSrc) {
+    previewAvatar.innerHTML = `<img src="${postData.photoSrc}" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">`;
+  } else {
+    previewAvatar.innerHTML = `<svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`;
+  }
+
+  // Add image preview if exists
+  const existingImg = modal.querySelector('.hp-rm-quote-image');
+  if (existingImg) existingImg.remove();
+  
+  const imgToPreview = postData.postImage || (postData.imageURLs && postData.imageURLs[0]);
+  if (imgToPreview) {
+    const imgEl = document.createElement('img');
+    imgEl.className = 'hp-rm-quote-image';
+    imgEl.src = imgToPreview;
+    imgEl.style.cssText = 'width:100%; max-height:200px; object-fit:cover; border-radius:8px; margin-top:8px;';
+    document.getElementById('repost-quote-preview').appendChild(imgEl);
+  }
+
+  document.getElementById('repostContent').value = '';
+  setTimeout(() => document.getElementById('repostContent').focus(), 150);
+}
+
 window.closeRepostModal = function () {
-  document.getElementById('repostModal').classList.remove('open');
+  const overlay = document.getElementById('hp-repost-modal-overlay');
+  if (overlay) {
+    overlay.classList.remove('open');
+    overlay.style.display = 'none';
+  }
   _currentRepostInfo = null;
   const rc = document.getElementById('repostContent');
   if (rc) rc.value = '';
 };
 
 window.closeRepostModalOnOverlay = function (e) {
-  if (e.target === document.getElementById('repostModal')) {
+  if (e.target.id === 'hp-repost-modal-overlay') {
     window.closeRepostModal();
   }
 };
 
-window.submitRepost = async function () {
+window.submitRepost = async function (skipQuote = false) {
   if (!_currentRepostInfo) return;
-  const quote = document.getElementById('repostContent').value.trim();
-  const { btn, postId, postData } = _currentRepostInfo;
+  const quote = skipQuote ? "" : document.getElementById('repostContent').value.trim();
+  const { postId, postData, collection: collectionNameArg } = _currentRepostInfo;
 
   const user = auth.currentUser;
   if (!user) return;
 
+  const submitBtn = document.getElementById('repost-submit-btn');
+  if (submitBtn) submitBtn.disabled = true;
+
   try {
+    const cache = JSON.parse(localStorage.getItem('tup_user_meta') || '{}');
+    const isOrg = cache.role === 'Organization';
+    const college = cache.college || null;
+
+    const collectionName = collectionNameArg || 'posts';
+    const isAnnouncement = collectionName === 'announcements';
+
     await addDoc(collection(db, "posts"), {
       userId: user.uid,
-      author: currentProfile.name || user.displayName || "TUPian",
-      photoURL: currentProfile.photo || user.photoURL || null,
+      author: (typeof currentProfile !== 'undefined' ? currentProfile.name : null) || user.displayName || "TUPian",
+      photoURL: (typeof currentProfile !== 'undefined' ? currentProfile.photo : null) || user.photoURL || null,
       text: quote,
       imageURL: null,
       createdAt: serverTimestamp(),
       likedBy: [],
       comments: 0,
       repostOf: postId,
-      repostAuthor: postData.name,
-      repostText: postData.body,
-      repostImage: postData.postImage,
-      repostAuthorPhoto: postData.photoSrc || '../assets/images/anon_avatar.jpg'
+      repostAuthor: postData.author || postData.name || "Anonymous",
+      repostText: postData.body || "",
+      repostImage: postData.postImage || (postData.imageURLs && postData.imageURLs[0]) || null,
+      repostAuthorPhoto: postData.photoSrc || postData.photoURL || '../assets/images/anon_avatar.jpg',
+      repostTitle: postData.title || "",
+      repostTime: postData.time || "JUST NOW",
+      isOrg: isOrg,
+      college: college,
+      repostCollection: collectionName
     });
 
-    const postRef = doc(db, "posts", postId);
+    const postRef = doc(db, collectionName, postId);
+    const repostField = isAnnouncement ? 'reposts' : 'repostedBy';
+    
     await updateDoc(postRef, {
-      repostedBy: arrayUnion(user.uid)
+      [repostField]: arrayUnion(user.uid)
     });
 
     window.closeRepostModal();
 
     const toast = document.getElementById('toast');
     if (toast) {
-      toast.textContent = 'Reposted successfully!';
+      toast.textContent = '🔁 Reposted successfully!';
       toast.classList.add('show');
       setTimeout(() => toast.classList.remove('show'), 2800);
     }
   } catch (err) {
     console.error("Repost submit failed:", err);
+  } finally {
+    if (submitBtn) submitBtn.disabled = false;
   }
 };
 

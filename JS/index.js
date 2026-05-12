@@ -1,19 +1,6 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyBpGOdMpx_Mws2EcCq6rbOWfZ-FFuhhfo0",
-  authDomain: "tup-connect-b162d.firebaseapp.com",
-  projectId: "tup-connect-b162d",
-  storageBucket: "tup-connect-b162d.firebasestorage.app",
-  messagingSenderId: "193141013544",
-  appId: "1:193141013544:web:72b403e84aa4d3313f091d"
-};
-
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
+import { auth, db } from '../firebaseConfig.js';
+import { signInWithEmailAndPassword, signOut, sendEmailVerification } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 async function handleHomepage() {
   const emailField = document.getElementById('login-email');
@@ -27,6 +14,7 @@ async function handleHomepage() {
   if (errorEl) {
     errorEl.style.display = 'none';
     errorEl.textContent = '';
+    errorEl.innerHTML = ''; // Clear any HTML (like resend link)
   }
 
   if (!email || !password) {
@@ -45,7 +33,39 @@ async function handleHomepage() {
 
     // 1. CHECK IF EMAIL IS VERIFIED
     if (!user.emailVerified) {
-      showError("Your email is not verified yet. Please check your TUP inbox.");
+      const msg = document.createElement('span');
+      msg.textContent = "Your email is not verified yet. ";
+      
+      const resendLink = document.createElement('a');
+      resendLink.href = "#";
+      resendLink.textContent = "Resend verification email?";
+      resendLink.style.color = "#C9A84C";
+      resendLink.style.textDecoration = "underline";
+      resendLink.style.fontWeight = "600";
+      resendLink.style.marginLeft = "5px";
+      
+      resendLink.onclick = async (e) => {
+        e.preventDefault();
+        try {
+          resendLink.textContent = "Sending...";
+          resendLink.style.pointerEvents = "none";
+          await sendEmailVerification(user);
+          alert("Verification email resent! Please check your TUP inbox (including spam).");
+          resendLink.textContent = "Sent!";
+        } catch (err) {
+          console.error("Resend error:", err);
+          alert("Failed to resend email: " + err.message);
+          resendLink.textContent = "Resend verification email?";
+          resendLink.style.pointerEvents = "auto";
+        }
+      };
+
+      if (errorEl) {
+        errorEl.appendChild(msg);
+        errorEl.appendChild(resendLink);
+        errorEl.style.display = 'block';
+      }
+
       await signOut(auth); 
       if (btn) {
         btn.disabled = false;
@@ -65,16 +85,12 @@ async function handleHomepage() {
 
       // --- REDIRECT LOGIC ---
       if (isSetupComplete === true) {
-        // BAGONG LOGIC: Redirect based on role
         if (role === 'Organization' || role === 'USG') {
-          console.log("Redirecting Org/USG to Profile Page");
           window.location.href = 'pages/org_profile.html';
         } else {
-          console.log("Redirecting Student to Homepage");
           window.location.href = 'pages/homepage.html';
         }
       } else {
-        // Redirect kung hindi pa tapos ang setup
         if (role === 'Student') {
           window.location.href = 'pages/setup_student.html';
         } else if (role === 'Organization') {

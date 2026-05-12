@@ -1,5 +1,19 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { CONFIG } from "./config.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore, collection, query, where, getDocs, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBpGOdMpx_Mws2EcCq6rbOWfZ-FFuhhfo0",
+  authDomain: "tup-connect-b162d.firebaseapp.com",
+  projectId: "tup-connect-b162d",
+  storageBucket: "tup-connect-b162d.firebasestorage.app",
+  messagingSenderId: "193141013544",
+  appId: "1:193141013544:web:72b403e84aa4d3313f091d"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
 const genAI = new GoogleGenerativeAI(CONFIG.GEMINI_API_KEY);
 
@@ -567,14 +581,25 @@ const directoryData = {
 // ========================
 // SHOW DETAIL CARD
 // ========================
-function showDetail(name) {
-  const data = directoryData[name];
+async function showDetail(name, isOrg = false, orgUid = null) {
+  let data = directoryData[name];
+  
+  // If it's an org and not in static data, we can create a dummy object or fetch it
+  if (isOrg && !data) {
+    data = {
+      img: '../assets/images/anon_avatar.jpg', // Default, will be updated if we have org data
+      desc: 'Loading organization details...',
+      courses: {}
+    };
+  }
+
   if (!data) return;
 
   const bannerImg  = document.getElementById('banner-img');
   const searchWrap = document.getElementById('banner-search-wrap');
   const carousel   = document.getElementById('carousel-track');
   const card       = document.getElementById('detail-card');
+  const feedWrap   = document.getElementById('detail-card-feed');
 
   // 1. Swap banner image first
   if (bannerImg) {
@@ -582,14 +607,14 @@ function showDetail(name) {
     setTimeout(() => {
       bannerImg.src = data.img;
       bannerImg.classList.remove('fading');
-    }, 200); // match with CSS fade duration
+    }, 200);
   }
 
   // Hide search bar
   if (searchWrap) searchWrap.style.display = 'none';
 
   // 2. Wait for banner to finish, THEN show detail card
-  setTimeout(() => {
+  setTimeout(async () => {
     if (carousel) carousel.style.display = 'none';
 
     // Populate card
@@ -622,12 +647,28 @@ function showDetail(name) {
       }
     }
 
+    // Handle Organization Feed
+    if (isOrg && orgUid) {
+      feedWrap.innerHTML = `
+        <div class="detail-feed-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          Latest Posts from ${name}
+        </div>
+        <div id="org-posts-container">Loading posts...</div>
+      `;
+      feedWrap.classList.add('active');
+      loadOrgPosts(orgUid);
+    } else {
+      feedWrap.classList.remove('active');
+      feedWrap.innerHTML = '';
+    }
+
     // Show card after banner has settled
     if (card) {
       card.style.display = 'block';
       card.classList.add('active');
     }
-  }, ); // waits for banner fade to complete before showing detail
+  }, 200);
 }
 
 // ========================
@@ -637,14 +678,19 @@ function hideDetail() {
   const carousel = document.getElementById('carousel-track');
   const card     = document.getElementById('detail-card');
   const bannerImg = document.getElementById('banner-img');
-  const searchWrap = document.getElementById('banner-search-wrap'); // ← add
+  const searchWrap = document.getElementById('banner-search-wrap');
+  const feedWrap   = document.getElementById('detail-card-feed');
 
   if (card) {
     card.classList.remove('active');
-    card.style.display = 'none'; // ADD THIS
+    card.style.display = 'none';
   }
   if (carousel) carousel.style.display = '';
-  if (searchWrap)  searchWrap.style.display = ''; // ← add
+  if (searchWrap)  searchWrap.style.display = '';
+  if (feedWrap) {
+    feedWrap.classList.remove('active');
+    feedWrap.innerHTML = '';
+  }
 
   // Restore default banner image
   if (bannerImg) {
@@ -654,13 +700,15 @@ function hideDetail() {
       bannerImg.classList.remove('fading');
     },200);
   }
-  
 }
 
 // ========================
 // DOM READY
 // ========================
 document.addEventListener('DOMContentLoaded', () => {
+
+  // Load Organizations
+  loadOrganizations();
 
   // ========================
   // SEARCH BAR
@@ -908,6 +956,96 @@ document.addEventListener('DOMContentLoaded', () => {
 
     } catch (error) {
       console.error("Gemini Error:", error);
+    }
+  }
+
+  // ========================
+  // ORGANIZATION LOGIC
+  // ========================
+  async function loadOrganizations() {
+    const orgList = document.getElementById('org-list');
+    if (!orgList) return;
+
+    try {
+      const q = query(collection(db, "users"), where("role", "==", "organization"));
+      const querySnapshot = await getDocs(q);
+      
+      orgList.innerHTML = '';
+      
+      if (querySnapshot.empty) {
+        orgList.innerHTML = '<li class="directory-item">No organizations found</li>';
+        return;
+      }
+
+      querySnapshot.forEach((docSnap) => {
+        const orgData = docSnap.data();
+        const li = document.createElement('li');
+        li.className = 'directory-item';
+        li.innerHTML = `
+          <svg class="directory-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+          </svg>
+          ${orgData.fullName || "Unnamed Org"}
+        `;
+        li.addEventListener('click', () => {
+          // Temporarily add to directoryData if not exists to allow showDetail to work
+          if (!directoryData[orgData.fullName]) {
+            directoryData[orgData.fullName] = {
+              img: orgData.coverURL || '../assets/images/TUP_bg.png',
+              desc: orgData.description || `${orgData.fullName} is a student organization at TUP.`,
+              courses: {} // Or maybe list their college affiliation here
+            };
+          }
+          showDetail(orgData.fullName, true, docSnap.id);
+        });
+        orgList.appendChild(li);
+      });
+    } catch (error) {
+      console.error("Error loading organizations:", error);
+      orgList.innerHTML = '<li class="directory-item danger">Failed to load organizations</li>';
+    }
+  }
+
+  async function loadOrgPosts(orgUid) {
+    const container = document.getElementById('org-posts-container');
+    if (!container) return;
+
+    try {
+      const q = query(collection(db, "posts"), where("userId", "==", orgUid), orderBy("createdAt", "desc"), limit(5));
+      const querySnapshot = await getDocs(q);
+      
+      container.innerHTML = '';
+      
+      if (querySnapshot.empty) {
+        container.innerHTML = '<div class="no-posts">No recent posts from this organization.</div>';
+        return;
+      }
+
+      querySnapshot.forEach((docSnap) => {
+        const post = docSnap.data();
+        const postCard = document.createElement('div');
+        postCard.className = 'post-card';
+        
+        const dateStr = post.createdAt ? post.createdAt.toDate().toLocaleDateString() : 'Just now';
+
+        postCard.innerHTML = `
+          <div class="post-header">
+            <div class="post-avatar">
+              <img src="${post.photoURL || '../assets/images/anon_avatar.jpg'}" alt="Avatar">
+            </div>
+            <div class="post-meta">
+              <div class="post-author">${post.author}</div>
+              <div class="post-time">${dateStr}</div>
+            </div>
+          </div>
+          <div class="post-body">${post.text || ''}</div>
+          ${post.imageURL ? `<img src="${post.imageURL}" class="post-image">` : ''}
+        `;
+        container.appendChild(postCard);
+      });
+    } catch (error) {
+      console.error("Error loading org posts:", error);
+      container.innerHTML = '<div class="error-msg">Failed to load posts.</div>';
     }
   }
 

@@ -1,6 +1,6 @@
 import { 
   getFirestore, doc, getDoc, collection, addDoc, query, orderBy, deleteDoc,
-  onSnapshot, serverTimestamp, updateDoc, increment 
+  onSnapshot, serverTimestamp, updateDoc, increment, arrayUnion, arrayRemove 
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 import { 
@@ -22,6 +22,7 @@ const firebaseConfig = {
 
 let unsubscribeComments = null;
 let cachedPhoto = null;
+let activeCollection = 'posts'; // Default to 'posts'
 
 const sendBtn = document.getElementById('comment-send-btn');
 const inputField = document.getElementById('comment-input-field');
@@ -102,6 +103,7 @@ if (feedContainer) {
     const postIdx = window.FEED_POSTS.findIndex(p => p.id === postId);
 
     if (postIdx !== -1 && window.FEED_POSTS[postIdx]) {
+      activeCollection = 'posts';
       listenForComments(postId); 
       
       if (typeof window.openCommentModal === 'function') {
@@ -111,11 +113,32 @@ if (feedContainer) {
   });
 }
 
-function listenForComments(postId) {
+
+window.openCommentModalPinned = function(postId) {
+    activeCollection = 'announcements';
+    // We need to create a dummy post in window.FEED_POSTS or handle it separately
+    // Actually, let's just make sure listenForComments can handle a post that isn't in FEED_POSTS
+    listenForComments(postId, 'announcements');
+    
+    // Open the modal
+    const overlay = document.getElementById('comment-modal-overlay');
+    updateModalInputAvatar();
+    if (overlay) {
+        overlay.dataset.post = 'pinned'; // Mark as pinned
+        overlay.dataset.postId = postId;
+        overlay.classList.add('open');
+        const inputField = document.getElementById('comment-input-field');
+        if (inputField) inputField.value = '';
+        setTimeout(() => inputField.focus(), 150);
+    }
+};
+
+function listenForComments(postId, collectionName = 'posts') {
+  activeCollection = collectionName;
   if (unsubscribeComments) unsubscribeComments();
     
   const q = query(
-    collection(db, "posts", postId, "comments"),
+    collection(db, collectionName, postId, "comments"),
     orderBy("createdAt", "asc")
   );
 
@@ -146,15 +169,14 @@ function listenForComments(postId) {
     const postIdx = window.FEED_POSTS.findIndex(p => p.id === postId);
     if (postIdx !== -1) {
       window.FEED_POSTS[postIdx].commentList = comments;
-      
       window.FEED_POSTS[postIdx].comments = comments.length;
-
-      if (window.renderComments) {
-          window.renderComments(postIdx);
-      }
-      
-      if (window.renderFeed) {
-          window.renderFeed(); 
+      if (window.renderComments) window.renderComments(postIdx);
+      if (window.renderFeed) window.renderFeed(); 
+    } else {
+      // Handle pinned or other posts not in feed
+      const overlay = document.getElementById('comment-modal-overlay');
+      if (overlay && overlay.dataset.post === 'pinned' && overlay.dataset.postId === postId) {
+          window.renderCommentsPinned(comments, postId);
       }
     }
   });
@@ -164,19 +186,25 @@ if (sendBtn) {
   sendBtn.addEventListener('click', async () => {
     const overlay = document.getElementById('comment-modal-overlay');
     const postIdx = overlay.dataset.post;
-    const post = window.FEED_POSTS ? window.FEED_POSTS[postIdx] : null;
+    const isPinned = postIdx === 'pinned';
+    const postId = isPinned ? overlay.dataset.postId : (window.FEED_POSTS[postIdx] ? window.FEED_POSTS[postIdx].id : null);
+    
     const text = inputField.value.trim();
-
-    if (!text || !post || !auth.currentUser) {
-        console.error("Missing data:", { text, post, user: auth.currentUser });
+    if (!text || !postId || !auth.currentUser) {
+        console.error("Missing data:", { text, postId, user: auth.currentUser });
         return;
     }
 
+    const cache = JSON.parse(localStorage.getItem('tup_user_meta') || '{}');
+    const myRole = cache.role;
+    // For pinned announcements (not in FEED_POSTS), we might need to check if it's an org post
+    // But usually pinned announcements are admin posts.
+    
     try {
     const currentUser = auth.currentUser;
     const photoToUpload = window.cachedPhoto || currentUser.photoURL || null;
 
-    await addDoc(collection(db, "posts", post.id, "comments"), {
+    await addDoc(collection(db, activeCollection, postId, "comments"), {
         text: text,
         author: currentUser.displayName || "Anonymous User",
         userId: currentUser.uid,
@@ -184,9 +212,18 @@ if (sendBtn) {
         createdAt: serverTimestamp()
     });
 
-    await updateDoc(doc(db, "posts", post.id), {
-        comments: increment(1)
+    await updateDoc(doc(db, activeCollection, postId), {
+        comments: arrayUnion ? arrayUnion(currentUser.uid) : increment(1)
     });
+    
+    // Special handling for announcements: they use arrayUnion for comments usually
+    // But if activeCollection is 'announcements', we should use arrayUnion if that's the pattern
+    // In campus_news.js it uses arrayUnion for announcements.
+    if (activeCollection === 'announcements') {
+        await updateDoc(doc(db, "announcements", postId), {
+            comments: arrayUnion(currentUser.uid)
+        });
+    }
 
     inputField.value = '';
     console.log("Input cleared. Waiting for Snapshot to render...");
@@ -198,8 +235,7 @@ if (sendBtn) {
 }
 
 async function saveCommentEdit(postId, commentId, newText) {
-  const commentRef = doc(db, "posts", postId, "comments", commentId);
-  
+  const commentRef = doc(db, activeCollection, postId, "comments", commentId);
   return await updateDoc(commentRef, {
     text: newText,
     isEdited: true,
@@ -208,15 +244,21 @@ async function saveCommentEdit(postId, commentId, newText) {
 }
 window.saveCommentEdit = saveCommentEdit;
 
-window.deleteComment = async function(postId, commentId) {
-    const commentRef = doc(db, "posts", postId, "comments", commentId);
+async function deleteComment(postId, commentId) {
+    const commentRef = doc(db, activeCollection, postId, "comments", commentId);
     await deleteDoc(commentRef);
 
-    const postRef = doc(db, "posts", postId);
-    await updateDoc(postRef, {
-        comments: increment(-1)
-    });
-};
+    const postRef = doc(db, activeCollection, postId);
+    if (activeCollection === 'announcements') {
+        await updateDoc(postRef, {
+            comments: arrayRemove(auth.currentUser.uid)
+        });
+    } else {
+        await updateDoc(postRef, {
+            comments: increment(-1)
+        });
+    }
+}
 window.deleteComment = deleteComment;
 
 document.addEventListener('click', async (e) => {
@@ -260,7 +302,7 @@ document.addEventListener('click', async (e) => {
     });
 });
 
-window.handleReportPost = async function(postId, userId) {
+async function handleReportPost(postId, userId) {
     if (!auth.currentUser) return alert("Login to report.");
     console.log("Reporting Post:", postId, "User:", userId);
 
@@ -275,7 +317,8 @@ window.handleReportPost = async function(postId, userId) {
         timestamp: serverTimestamp(),
         status: "pending"
     });
-};
+}
+window.handleReportPost = handleReportPost;
 
 onAuthStateChanged(auth, async (user) => {
     if (user) {

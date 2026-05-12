@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Cleanup Admin Posts</title>
+</head>
+<body>
+    <h1>Cleaning up Admin posts...</h1>
+    <div id="status">Starting...</div>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, query, where, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBpGOdMpx_Mws2EcCq6rbOWfZ-FFuhhfo0",
+            authDomain: "tup-connect-b162d.firebaseapp.com",
+            projectId: "tup-connect-b162d",
+            storageBucket: "tup-connect-b162d.firebasestorage.app",
+            messagingSenderId: "193141013544",
+            appId: "1:193141013544:web:72b403e84aa4d3313f091d"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        async function cleanup() {
+            const status = document.getElementById('status');
+            try {
+                // 1. Find all posts in 'posts' collection where author is 'Admin'
+                const q1 = query(collection(db, "posts"), where("author", "==", "Admin"));
+                const snap1 = await getDocs(q1);
+                
+                status.innerHTML += `<br>Found ${snap1.size} posts with author "Admin"`;
+                
+                for (const d of snap1.docs) {
+                    await deleteDoc(doc(db, "posts", d.id));
+                    status.innerHTML += `<br>Deleted post ${d.id}`;
+                }
+
+                // 2. Find all posts in 'posts' collection where author is 'USG' (just in case)
+                const q2 = query(collection(db, "posts"), where("author", "==", "USG"));
+                const snap2 = await getDocs(q2);
+                
+                status.innerHTML += `<br>Found ${snap2.size} posts with author "USG"`;
+                
+                for (const d of snap2.docs) {
+                    await deleteDoc(doc(db, "posts", d.id));
+                    status.innerHTML += `<br>Deleted post ${d.id}`;
+                }
+
+                status.innerHTML += "<br><b>Cleanup complete!</b>";
+            } catch (err) {
+                status.innerHTML += `<br><span style="color:red">Error: ${err.message}</span>`;
+            }
+        }
+
+        cleanup();
+    </script>
+</body>
+</html>

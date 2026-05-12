@@ -3,10 +3,10 @@ import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/
 import {
   getFirestore,
   collection, doc, getDoc,
-  addDoc, updateDoc,
-  onSnapshot, query, orderBy,
+  addDoc, updateDoc, deleteDoc,
+  onSnapshot, query, orderBy, where,
   serverTimestamp, arrayUnion, arrayRemove,
-  getDocs
+  getDocs, increment
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 import { GoogleGenerativeAI } from "@google/generative-ai";
@@ -14,7 +14,6 @@ import { CONFIG } from "./config.js";
 
 const genAI = new GoogleGenerativeAI(CONFIG.GEMINI_API_KEY);
 
-// Include your knowledge base in the System Instructions
 const model = genAI.getGenerativeModel({
   model: "gemini-3-flash-preview",
   systemInstruction: `You are Tupee, the AI assistant for TUP Connect. 
@@ -29,356 +28,25 @@ const model = genAI.getGenerativeModel({
   
   UNIVERSITY KNOWLEDGE BASE:
   ${JSON.stringify([
-    {
-      "topic": "about tup",
-      "content": "The Technological University of the Philippines (TUP) is a state university specializing in engineering, technology, and technical education."
-    },
-    {
-      "topic": "tup manila campus",
-      "content": "TUP Manila is the main campus of the Technological University of the Philippines located in Ermita, Manila."
-    },
-    {
-      "topic": "location of tup",
-      "content": "The Technological University of the Philippines – Manila is located at Ayala Blvd., corner San Marcelino St., Ermita, Manila, 1000 Metro Manila, Philippines"
-    },
-    {
-      "topic": "tup history",
-      "content": "The Technological University of the Philippines started in 1901 as the Manila Trade School. It later became the Philippine School of Arts and Trades and then the Philippine College of Arts and Trades before becoming TUP in 1978.\n\nManila Trade School or MTS (1901-1910) - The Technological University of the Philippines was first established as the Manila Trade School in 1901 upon the enactment of Act No. 74 by the United States Philippine Commision for the instruction of the Filipinos on useful trades.\nPhilippine School of Arts and Trades or PSAT (1910-1959) - evolved from a trade school into pioneering higher education institurion. By 1951, following a temporary closure during WWII, PSAT became the first school authorized to grant a four-year BS in Industrial Education, solidifying its foundation as the modern-day TUP Main campus.\nPhilippine College of Arts and Trades or PCAT (1959-1978) - On June 17, 1959, PSAT was converted into PCAT under Republic Act No.2237. This charter authorized the school to offer baccalaureate and graduate degrees, leading to the 1959 launch of a pioneering graduate program in industrial education. During this era, PCAT became nationally renowed ofr its excellence in providing high-quality industrial and technology training to Filipinos.\nTUP (1978-Present) - On June 11, 1978, PCAT was elevated to the Technological University of the Philippines by virtue of Presidential Decree No. 1518. This modern charter expanded the institution's mandate to include advanced vocational and professional education, as well as leadership in applied research and technology transfer.  "
-    },
-    {
-      "topic": "tup type",
-      "content": "The Technological University of the Philippines is a public state university funded by the Philippine government."
-    },
-    {
-      "topic": "tup campuses",
-      "content": "The Technological University of the Philippines system has campuses in Manila, Taguig, Cavite, and Visayas."
-    },
-    {
-      "topic": "tup mission",
-      "content": "TUP MISSION:\nThe University shall provide higher and advanced vocational, technical, industrial, technological and professional education and traning in industries and technology, and in practical arts leading to certificates, diplomas, and degrees. It shall provide progressive leadership in applied research, developmental studies in technical, industrial, and technological fields and production using indigenous materials; effect technology transfer in the countryside; and assist in the development of small-and-medium scale industries in indentified growth centers. "
-    },
-    {
-      "topic": "tup vision",
-      "content": "TUP VISION:\nA premier state university with recognized excellence in engineering and technology education at par with leading universities in the ASEAN region."
-    },
-    {
-      "topic": "tup core values",
-      "content": "CORE VALUES:\n\nT - Transparent and participatory governance\nU - Unity in the pursuit of TUP mission, goals and objectives\nP - Professionalism in the discharge of wuality service\nI - Integrity and commitment to maintain the good name of the University\nA - Accountability for individual and organizational quality performance\nN - Nationalism through tangible contribution to the rapid economic growth of the country\nS - Shared responsibility, hardwork, and resourcefulness in compliance to the mandates of the university"
-    },
-    {
-      "topic": "college of engineering",
-      "content": "The College of Engineering produces total quality engineers, graduate professionals, and valuable technology researchers for industry and society to maximally contribute to national development.\nPrograms Offered: \n\nUndergraduate Programs:\n- Bachelor of Science in Civil Engineering\n- Bachelor of Science in Electrical Engineering\n- Bachelor of Science in Mechanical Engineering\n- Bachelor of Science in Electronics Engineering\n\nGraduate Programs: \n- Master of Engineering Program\n- Master of Science in Civil Engineering major in General Civil Engineering\n- Master of Science in Civil Engineering major in Geotechnical Engineering\n- Master of Science in Civil Engineering major in Structural Engineering\n- Master of Science in Electrical Engineering major in Power System Engineering\n- Master of Science in Electrical Engineering major in Instrumentation and Control Engineering\n- Master of Science in Electrical Engineering major in Electronics Engineering\n- Master of Science in Electrical Engineering major in Communications Engineering\n- Master of Science in Electrical Engineering\n- Master of Science in Electrical Engineering major in Computer Engineering\n- Master of Science in Mechanical Engineering major in Energy Engineering\n- Master of Science in Mechanical Engineering major in Production Technology\n- Masters of Engineering Program in Civil Engineering major in Structural Engineering Option\n- Masters of Engineering Program in Civil Engineering major in Geotechnical Engineering Option\n- Masters of Engineering Program in Civil Engineering major in General Civil Engineering Option\n- Masters of Engineering Program in Electrical Engineering major in Power Engineering Option\n- Masters of Engineering Program in Electrical Engineering major in Instrumentation and Computer Engineering Option\n- Masters of Engineering Program in Electrical Engineering major in Electronics and Communications Engineering Option\n- Masters of Engineering Program in Mechanical Engineering major in Refrigeration and Airconditioning Option\n- Masters of Engineering Program in Mechanical Engineering major in Heat Power Option\n- Masters of Engineering Program in Mechanical Engineering major in Manufacturing and Production Option"
-    },
-    {
-      "topic": "college of science",
-      "content": "The College of Science prepares students to become fully integrated individuals, scientifically literate, and technically competent to assume dynamic and responsible leadership for the country's scientific and technological development in the improvement of man's well being and the quality of the environment. Programs Offered: \n\nUndergraduate Programs:\n- Bachelor of Applied Science in Laboratory Technology\n- Bachelor of Science in Computer Science\n- Bachelor of Science in Environmental Science\n- Bachelor of Science in Information System\n- Bachelor of Science in Information Technology\n\nGraduate Programs:\n-Master of Arts in Teaching major in Physics\n- Master of Arts in Teaching major in Mathematics\n- Master of Arts in Teaching major in General Science\n- Master of Arts in Teaching major in Chemistry\n- Master of Information Technology"
-    },
-    {
-      "topic": "college of industrial technology",
-      "content": "The College of Industrial Technology develop highly skilled technicians, technologist, and applied researchers who are needed to sustain industrial growth and develop for the enhancement of the quality of life.\nPrograms Offered: \n\nUndergraduate Programs:\n-Bachelor of Science in Food Technology\n- Bachelor of Engineering Technology major in Computer Engineering Technology\n- Bachelor of Engineering Technology major in Civil Technology\n- Bachelor of Engineering Technology major in Electrical Technology\n- Bachelor of Engineering Technology major in Electronics Communication Technology\n- Bachelor of Engineering Technology major in Electronics Technology\n- Bachelor of Engineering Technology major in Instrumentation and Control Technology\n- Bachelor of Engineering Technology major in Mechanical Technology\n- Bachelor of Engineering Technology major in Mechatronics Technology\n- Bachelor of Engineering Technology major in Railway Technology\n- Bachelor of Engineering Technology major in Mechanical Engineering Technology option in Automotive Technology\n- Bachelor of Engineering Technology major in Mechanical Engineering Technology option in Foundry Technology\n- Bachelor of Engineering Technology major in Mechanical Engineering Technology option in Heating Ventilating & Air-Conditioning / Refrigeration Technology\n- Bachelor of Engineering Technology major in Mechanical Engineering Technology option in Power Plant Technology\n- Bachelor of Engineering Technology major in Mechanical Engineering Technology option in Welding Technology\n- Bachelor of Engineering Technology major in Mechanical Engineering Technology option in Dies and Moulds Technology\n- Bachelor of Technology in Apparel and Fashion\n- Bachelor of Technology in Nutrition and Food Technology\n- Bachelor of Technology in Print Media Technology\n\nGraduate Program:\n- Master of technology"
-    },
-    {
-      "topic": "college of architecture and fine arts",
-      "content": "The College of Architecture and Fine Arts develops competitive architects, artist, designers, and draftsmen for industry and related sectors toward an improved quality of life.\nPrograms Offered: \n\nUndergraduate Programs:\n- Bachelor of Science in Architecture\n- Bachelor of Fine Arts\n- Bachelor in Graphics Technology major in Architecture Technology\n- Bachelor in Graphics Technology major in Industrial Design\n- Bachelor in Graphics Technology major in Mechanical Drafting Technology\n\nGraduate Programs:\n- Master in Architecture major in Construction Technology Management\n- Master in Graphics Technology"
-    },
-    {
-      "topic": "college of industrial education",
-      "content": "The College of Industrial Education commits itself to develop highly competent teachers/trainors, leaders, managers, and innovators in industrial and technology education adn training, as well as industry through responsive and relevant programs and proactive human resources in an environment of change.\nPrograms Offered:\n\nUndergraduate Programs:\n- Bachelor of Technology and Livelihood Education major in Information and Communication Technology\n- Bachelor of Technology and Livelihood Education major in Home Economics\n- Bachelor of Technology and Livelihood Education major in Industrial Arts\n- Bachelor of Technical Vocational Teachers Education major in Animation\n- Bachelor of Technical Vocational Teachers Education major in Beauty Care and Wellness\n- Bachelor of Technical Vocational Teachers Education major in Computer Programming\n- Bachelor of Technical Vocational Teachers Education major in Electrical\n- Bachelor of Technical Vocational Teachers Education major in Electronics\n- Bachelor of Technical Vocational Teachers Education major in Food Service Management\n- Bachelor of Technical Vocational Teachers Education major in Fashion and Garment\n- Bachelor of Technical Teacher Education\n\nGraduate Programs:\n- Doctor of Education major in Industrial Education Management\n- Doctor of Education major in Career Guidance\n- Doctor of Technology\n- Doctor of Philosophy major in Technology Management\n- Master of Arts in Industrial Education major in Curriculum and Instruction\n- Master of Arts in Industrial Education major in Educational Technology\n- Master of Arts in Industrial Education major in Administration and Supervision\n- Master of Arts in Industrial Education major in Guidance and Counseling\n- Master of Arts in Teaching major in Technology and Home Economics\n- Master of Technology Education\n "
-    },
-    {
-      "topic": "college of liberal arts",
-      "content": "The College of Liberal Arts shall provide basic quality education and turn out highly competent managers and enterpreneurs who will provide leadership and job oportunities in a rapidly changing environment and ensure its continued relevance and rsponsiveness to the challenges of globalization,\nPrograms Offered:\n\nUndergraduate Programs:\n- Bachelor of Arts in Management major in Industrial Management\n- Bachelor of Science in Entrepreneurship Management\n- Bachelor of Science in Hospitality Management\n\nGraduate Programs:\n-Doctor of Management Science\n- Master in Management"
-    },
-    {
-      "topic": "student organizations",
-      "content": "TUP students can join various student organizations related to academics, culture, leadership, and sports.\nList of Accredited Organization inside TUP:\n\nCollege of Architecture and Fine Arts:\n- ASIA - Architectural Students’ Association of the Philippines\n- THREADS - Technology Hoist Related Excellent Alliance of Drafting Students\n- UAPSA - United Architects of the Philippines - Students’ Auxiliary - TUP Chapter\n\nCollege of Indistrial Education:\n-ASIA - Association of Students in Industrial Arts\n- FHEBSA - Food Services Management, Home Economics and Beauty Care and Wellness Student Association (formerly ASHEFSM)\n- INTEL - Information Technology Educators League\n- PRESA - Professional Education Students Association\n- ICT Club (TUP B-CIE Extn Program) - Information and Communications Technology Club\n- HE Club (TUP B-CIE Extn Program) - Home Economics Club\n- IA Club (TUP B-CIE Extn Program) - Industrial Arts Club\n\nCollege of Industrial Technology:\n- ACETS - Association of Civil Engineering Technology Students\n- ACTS - Association of Culinary Technology Students (Formerly NAFTA)\n- GAPTSA - Graphic Arts and Painting Technology Students Association\n- ICETSA  - Institute of Computer Engineering Technologist Student Association\n- TUP - ISET - TUP Innovative Society for Electronics Technologist\n- JDC - Junior Designer’s Club\n- METALS - Mechanical Technologists and Leader’s Society\n- PAFT - OMEGA - Philippine Association of Food Technologist-Omega\n- RACS - Radio Amateurs Communication Society\n- RETRACKS - Railway Engineering Technology Recognize Alliance of Competent and Keen Students\n- SAFHYR - Student Association of Future Young Hotelier and Restaurateur\n- USSAT - Unified Student Society of Automation Technology\n\nCollege of Liberal Arts:\n- CPAG - College of Liberal Arts Performing Arts Group\n- FUMAS - Future Managers’ Society\n- PE Club - Physical Education Club\n- SSO - Social Science Organization\n\nCollege of Engineering:\n- TUP EES - TUP Electrical Engineering Society\n- TUPCES - TUP Civil Engineering Society\n- OECES - Organization of Electronics Engineering Students\n- PSME TUPSU - Philippine Society of Mechanical Engineers-TUP Student Unit\n\nCollege of Science:\n- CHEMSOC - TUP Chemical Society\n- COMPASS - TUP Computer Students’ Association\n- GREEN SOC - TUP Green Society\n- AWSLC - Amazon Web Services Learning Club - TUP Manila\n- GDGoC - Google Developer Groups on Campus - TUP Manila\n\nNon College-Based:\n- Artisan\n- BOLTUP - Boluntaryong TUPians\n- CYC - College Y Club\n- TUP Debate Society\n- DOST Scholar’s Club\n- TUP Dugong Bughaw\n- TUP GRABOTS - Grayhawks Robotics\n- TUP GEAR - TUP Gaming Enthusiast Association Ring\n- TUP-IVC - TUP Institute for Visual Communication\n- LALI - Life Coaching and Leadership Initiative\n- TUP MathSoc - TUP Math Society\n- TUPM-RCY - TUP Manila Red Cross Youth\n- SMERS - Students’ Multimedia Event Reporters Society\n- TUP TG - TUP Tech Guild\n- OSESH - Organization of Students for Environmental Safety and Health\n- TUP UIC - University Integrity Crusaders\n\nReligious:\n- TUP SONS - Seeds of the Nations"
-    },
-    {
-      "topic": "tup enrollment",
-      "content": "Process of Enrollment\n For First Year Student:\n1. Secure Notice of Admission from the Office of the Admissions upon presentations of the following documents:\n- High School Card (Form 138) and Transcript of Records for Transferees (original)\n- Certificate of Good Moral\n- Test Permit\n2. With your Notice of Admission and Medical Certificate, proceed to the Office of Admission for profiling\n3. Proceed to your course adviser for enlistment\n4. Students availing scholarship, report to the Office of Student Affairs for scholarship notation\n5. Proceed to the Accounting office for assessment and secure registration form\n6. With your Registration Form, present original requirements stated in step #1 to the Registrar’s Office for confirmation\n7. Report to the University Clinic and Secure Medical Certificate\n8. Proceed to the Office of Student Affairs for Identification card (ID) processing\n\nFor Old Students (2nd - 5th Year)\nOnline Enrollment:\n1. Students shall send online their last semester rating slips to their department heads\n2. Department Head is responsible for enlistment and assessment of fees\n3. Registrar confirms enrollment\n4. First Semester Certificate of Registration (COR) can be accessed thru the ERS\n5. All COR'S will be forwarded to the respective Department Heads by Second Week of Classes\n\nOnsite Enrollment:\n1. Graduate Students (New & Old)\n2. Returning Students (Report to Registrar to Secure Checklist and to Guidance Office for Clearance for Returning Student, Warning Agreement for students under probation)\n3. All Irregular Students (2nd to 5th year) for face to face compliance of Enrollment Requirements. (Warning Agreement if necessary)\n4. Process:\na.Student presents rating slips to Department Heads/Enlistment Adviser\nb. Completion of Warning Agreements if necessary\n3. Department Head is responsible for enlistment and assessment of fees\n5. Registrar confirms and issues Certificate of Registration (COR) thru the Department Heads"
-    },
-    {
-      "topic": "tup transfer of students",
-      "content": "1. A Student from a campus of a University is allowed to transfer to another TUP campus; provided that he satisfies the admission requirements of the program in the college concerned.\n2. A transfer student from other SUCs may be admitted provided that he has no failed / dropped mark and he satisfies the admission requirements of the program in the college concerned.\n3. A transfer student from private institutions may be admitted to any three-year program of the University provided that he has no failed / dropped mark and he satisfies the admission requirements of the program in the college concerned.\n4. Any student who intends to transfer to another school, college or university must be cleared of all liabilities and responsibilities (administrative, academic, and financial) in the University. The necessary documents for transfer could be secured from the Office of the Registrar."
-    },
-    {
-      "topic": "tup add subject",
-      "content": "A student may add a subject upon the recommendation of the Department Head and approved by the Dean under the following conditions:\n1. The student is not carrying the maximum unit load per semester/term prescribed in the curriculum\n2. He has not met the authorized load for probationary students\n3. For graduating undergraduate student, he may be allowed to add subject/s not more than six(6) units on top of the semester/term load"
-    },
-    {
-      "topic": "tup drop subject",
-      "content": "A student may drop a subject or subjects anytime before the midterm following the procedure below:\n1. A student must write a letter noted (whenever applicable) by the parent/guardian (specifying the reason/s for dropping). The Dean of the college must approve the dropping of the subject/s\n2. The approved letter must be presented to the guidance personnel and a dropping form must be secured\n3. The dropping form must be accomplished and the subject professor and the Dean of the college must sign it.\n4. Copies of the dropping form must be presented to the offices concerned."
-    },
-    {
-      "topic": "tup academic failure",
-      "content": "1. Probationary Status: A student is placed on probationary status under any of the following circumstances:\na. He obtains a rating of 5.0% in two subjects in a semester/term\nb. He drops unofficially three or more or all of a subjects without a written consent from the parents\n3. He fails to pass at least 75% of the load for the term\n\n2. Dismissal: A student who is not in the last two years of a five year course or in the last year of a four (4) or three (3) year course is considered dismissed from the official roll of the university under any of the following conditions:\na. He obtains a rating of 5.0 in three (3) subjects\nb. He obtains a dropped or failing grade in one subject while under probation"
-    },
-    {
-      "topic": "tup academic honors",
-      "content": "1. A student who completes his course as prescribed by his curriculum shall be rewarded with the corresponding honors provided that he has no grade lower than 2.75 in any of the subject and has not been found guilty of any major offense:\na. Baccalaureatte Programs\n- Summa Cum Laude - 1.00 - 1.20\n- Magna Cum Laude - 1.21-1.45\n- Cum laude - 1.46-1.75/\nb. Pre-Baccalaureatte Programs\n- With Highest Honors - 1.00-1.20\n- With High Honors - 1.21-1.45\n- With Honors - 1.46-1.75\n\n2. A transfer student vying for honors must have completed at least 75% of the total number of academic units of the curriculum in the University"
-    },
-    {
-      "topic": "tup id validation",
-      "content": "Process of ID validation:\n1. Present the Certificate of Registration (COR) together with your school ID (ensure the old sticker has been removed).\n2. Accomplish the logbook for proper recording.\n3. Claim your school ID affixed with the new sticker for the current school year"
-    },
-    {
-      "topic": "tup id lost",
-      "content": "How to request for ID if lost:\n1. He secures an affidavit of loss of ID.\n2. He gets an application form at the Office of Student Affairs.\n3. He pays the required ID fee at the Cashier’s office.\n4. He proceeds to the ID room for photo and signature capturing"
-    },
-    {
-      "topic": "tup scholarship",
-      "content": "Scholarship and educational grants offered by the University are categorized as follows:\n1. Institutionally funded / Internal grants\n2. TUP Employees / Legal Dependents  under the Collective Negotiation Agreement (CNA)\n3. External Grants\n- Industry\n- Non-Government Organization\n- Government, Agencies / Organization\n\nHow to Apply for Scholarship:\n1. The students fill-up the application form available at the Office of Student Affairs (OSA). Attach one ID picture.\n2. Present the following requirements together with the duly accomplished application form:\na. A photocopy of a high school card (for freshmen applicants) or the rating slip from the Office of the Registrar (for sophomore to senior students)\nb. A photocopy of a Registration Form\nc. The Income Tax Return (ITR) of the parents/guardian\nd. The Notice of Admission\ne. A certification of good moral character\nf. An essay - My Autobiography\n3. Interview"
-    },
-    {
-      "topic": "tup leave of absence",
-      "content": "Process of Requesting Leave of Absence (LOA):\n\n1. A student may take a leave of absence by submitting a  written request addressed to the  Dean/ Assistant to the  Director of Academic Affairs (ADAA) indicating the reasons and duration for the leave of absence which must not exceed one academic year (2 semesters or 3 terms). The intention of the leave of absence shall be presented to the faculty  adviser/ department head concerned for appropriate action and shall be subject to the approval of the Dean/ Assistant  to the Director of Academic Affairs (ADAA).\n2. No leave of absence shall be granted two weeks before the  last day of classes of a semester/ term. If the inability of the student to continue attending classes within the above period is for reasons of health or similar justifiable cause, the absence shall be considered “excused”. The student shall then be required to present to the faculty members concerned a letter of excuse and to make up for lessons/work missed.\n3. Returning students who did not apply for a leave of absence and have been out of the campus beyond the allowable maximum period of one (1) academic year shall be readmitted on probationary basis within the maximum residency rule."
-    },
-    {
-      "topic": "request certified true copy",
-      "content": "How to request for certified true copy:\n1. Proceed to the Office of the Registrar and present the document that needs to be certified true copy (CTC).\n2. Secure and accomplish the form provided by the registrar.\n3. Go to the Cashier’s Office at the Administration Building and pay the fee of ₱100 for the CTC.\n4. Return to the Office of the Registrar and submit the accomplished form together with the official receipt. You will then be issued a claim slip indicating the date when you may claim your CTC (processing usually takes 3–5 working days, depending on the volume of requests)."
-    },
-    {
-      "topic": "request good moral",
-      "content": "How to request for Certificate of Good Moral:\n1. Proceed to the Office of Students Affairs (OSA) and request for the Certificate of Good Moral\n2. Secure and accomplish the form provided by the OSA.\n3. Go to the Cashier’s Office at the Administration Building and pay the fee of ₱100 for the Certificate of Good Moral.\n4. Return to the OSA and submit the accomplished form together with the official receipt. You will then be issued a claim slip indicating the date when you may claim your Certificate of Good Moral (processing usually takes 3–5 working days, depending on the volume of requests)."
-    },
-    {
-      "topic": "unaccomplished faculty evaluation",
-      "content": "How to request for rating slip if was not able to complete Faculty Evaluation:\n1. Proceed to the Department Head of your College and request your rating slip, stating that you were unable to complete the faculty evaluation.\n2. Complete the required community service for one to two hours.\n3. After completing the community service, return to the Department Head of your College to receive the printed copy of your rating slip."
-    },
-    {
-      "topic": "tup library",
-      "content": "The University Library is an important educational repository. It supports the instructional curricula and provides the research needs of the students. The collection of books fall under the following sections:\nGround Floor – Arts and Technology, General Reference Collections;\nSecond Floor – Research Outputs, Graduate School, Filipiniana; Third\nFloor – Archives, Special Collections and Periodicals.\n\nLibrary Hours: Monday to Friday / 7:00am - 7:00pm\nSaturday - 8:00am - 12:00pm ; 1:00pm - 5:00pm\n\nLocation: Between CLA and CIE building"
-    },
-    {
-      "topic": "office of admission",
-      "content": "The TUP Office of Admission handles student applications, evaluates requirements, manages entrance exams, provides information to applicants, and releases admission results.\nLocated at the lobby of the College of Science building"
-    },
-    {
-      "topic": "office of Student Affairs",
-      "content": "The Office of Student Affairs is one of the  service units under the Vice President for Academic Affairs. It is responsible for providing programs and activities designed to meet the needs of every student, specifically that of having a healthy and productive student life..\nLocated at the lobby of the College of Science building beside office of admission."
-    },
-    {
-      "topic": "tup clinic",
-      "content": "The TUP-Medical and Dental Clinic provides health-related services  to the University. It is a team consisting of a physician, dentists, nurses and other trained paramedical staff. They provide routine medical and dental services such as consultations, perform the necessary basic procedures, facilitate the referral of patients to the specialized institutions, conduct the annual medical and dental evaluation of students and employees and provide lectures and other health related activities in cooperation with the other units or organizations of the school.\nLocated at the lobby of the COS building near Gate 1"
-    },
-    {
-      "topic": "tup registrar",
-      "content": "The Office of the University Registrar (OUR), with administrative and academic functions, is an inherent and integral part of the institution. The University Registrar is a member of the recommending bodies of the University: the Administrative Council and the Academic Council.\nThe OUR serves as the primary custodian of the school records of all students and alumni. It administers operations in the areas of enrolment, load requirements, credits earned, subject sequence, promotion, graduation, transfer, suspension and the dismissal of students.\nLocated at the lobby of the College of Liberal Arts building"
-    },
-    {
-      "topic": "university information technology center uitc",
-      "content": "The University Information Technology Center (UITC) assumes direct responsibility for the development and implementation of all information and communications technology systems, programs and policies that produce meaningful results and allow the possibility of attaining the vision, mission and goals of the University. The Center is supported by the network and telephone management, web development, applications development, the management information system and computer repair and maintenance management units."
-    },
-    {
-      "topic": "covered court",
-      "content": "TUP Covered Court serves as a multi-purpose facility that provides a safe and convenient space for various activities. It is primarily used for sports and physical education classes, ensuring that games and exercises can continue regardless of weather conditions. Beyond athletics, it also functions as a venue for student assemblies, cultural events, ceremonies, and other extracurricular activities. In some cases, it can even be utilized for community programs or as an emergency shelter, making it an essential facility that supports both academic and non-academic needs of the university.\n Located in front of College of Industrial Technology"
-    },
-    {
-      "topic": "tup grounds",
-      "content": "TUP Grounds serve as a vital open space that supports both academic and non-academic activities. It is commonly used for outdoor sports such as soccer, track and field, and other large-scale athletic events, as well as physical education classes that require wide areas. Beyond athletics, the field also functions as a venue for university celebrations, cultural programs, and community gatherings. In addition, it provides students with space for recreation, relaxation, and social interaction, while also contributing greenery and a healthy environment within the campus.\nLocated beside covered court"
-    },
-    {
-      "topic": "integrated research and training center irtc",
-      "content": "IRTC is the research, training and extension arm of the Technological University of the Philippines. It also provides valuable services to local and international industries and educational institutions.\nLocation: "
-    },
-    {
-      "topic": "university information technology center uitc",
-      "content": "University Information Trchnology Center assumes direct responsibility for the development and implementation of all information and communications technology systems, programs, and policies that produce meaningful results. The center is supported by the network and telephone management, web development, application development, the management information system and computer repair and maintenance management untis.\nLocation: CIT builging 1st floor, near gate 4"
-    },
-    {
-      "topic": "industrial relations and job placement office irjp",
-      "content": "The Industrial Relations and Job Placement Office provides the students with an opportunity to gain valuable practical experience in their field of specialization through internship in industry. The Supervised Industrial/On-the-Job training is the unique part of the University curriculum where the students are provided with a real understanding of the demands of industry and a practical application of what they have learned.\nLocation: COS building 1st floor, in front of Office of Student Affairs"
-    },
-    {
-      "topic": "tup president",
-      "content": "Dr. Reynaldo P. Ramos"
-    },
-    {
-      "topic": "basic industrial technology head",
-      "content": "Assoc. Prof. Andrew John A. Mabaquiao\n\nEmail: andrewjohn_mabaquiao@tup.edu.ph\nOffice: Basic Industrial Technology (CIT buulding)"
-    },
-    {
-      "topic": "food and apparel technology head",
-      "content": "Assoc. Prof. Bernadeth Gilbor\n\nEmail: bernadeth_gilbor@tup.edu.ph\nOffice: Food and Apparel Technology (CIT building)"
-    },
-    {
-      "topic": "graphic and arts head",
-      "content": "Assoc. Prof. Lotis Palma-Buco\n\nEmail: lotis_buco@tup.edu.ph\nOffice: Graphics and Arts Department (CAFA building)"
-    },
-    {
-      "topic": "mechanical technology head",
-      "content": "Assoc. Prof. Jerry R. Ligaya\n\nEmail: jerry_ligaya@tup.edu.ph\nOffice: Mechanical Engineering Technology (CIT building)"
-    },
-    {
-      "topic": "electrical technology head",
-      "content": "Assoc. Prof. Jennifer D. Andador\n\nEmail: jennifer_andador@tup.edu.ph or eet@tup.edu.ph\nOffice: Electrical Engineering Technology (CIT building)"
-    },
-    {
-      "topic": "civil technology head",
-      "content": "Assoc. Prof. Samuel M. Pacba\n\nEmail: samuel_pacba@tup.edu.ph or eet@tup.edu.ph\nOffice: Civil Engineering Technology (CIT building)"
-    },
-    {
-      "topic": "electronic technology 0ic-head",
-      "content": "Assoc. Prof. Aimee G. Acoba\n\nEmail: aimee_acoba@tup.edu.ph or eet@tup.edu.ph\nOffice: Electronic Engineering Technology (CIT building)"
-    },
-    {
-      "topic": "industrial technology dean",
-      "content": "Assoc. Prof. Mary Ann R. Codera\n\nEmail: mayann_codera@tup.edu.ph\n Office: Located in CIT building"
-    },
-    {
-      "topic": "industrial education dean",
-      "content": "Dr. Apollo P. Portez\n\nEmail: apollo_portez@tup.edu.ph or cie@tup.edu.ph\nOffice: Located in CIE building"
-    },
-    {
-      "topic": "industrial education secretary",
-      "content": "Asst. Prof. Nestor M. Muricia\n\nEmail: nestor_muricia or cie@tup.edu.ph\nOffice: Located in CIE building"
-    },
-    {
-      "topic": "student teaching head",
-      "content": "Assoc. Prof. Dr. Sylvia B. Guevarra\n\nEmail: sylvia_guevarra@tup.edu.ph or st@tup.edu.ph\nOffice: Student Teaching Department in CIE building"
-    },
-    {
-      "topic": "technical arts head",
-      "content": "Assoc. Prof. Allan Villariza\n\nEmail: allan_villariza@tup.edu.ph or tad@tup.edu.ph\nOffice: Technical Arts Department in CIE building"
-    },
-    {
-      "topic": "home economics head",
-      "content": "Assoc. Prof. Dorothy Manalansan\n\nEmail: dorothy_manalansan@tup.edu.ph or he@tup.edu.ph\nOffice: Home Economics Department in CIE building"
-    },
-    {
-      "topic": "college of engineering dean",
-      "content": "Dr. Lean karlo S. Tolentinon\nEmail: leankarlo_tolentino@tup.edu.ph or coe@tup.edu.ph\nOffice: Located in COE building"
-    },
-    {
-      "topic": "college of engineering secretary",
-      "content": "Engr. Jessica Velasco\n\nEmail: jessica_velascon@tup.edu.ph\nOffice: Located in COE building"
-    },
-    {
-      "topic": "electrical engineering head",
-      "content": "Engr. Roel M. Mendoza\n\nEmail: roel_mendoza@tup.edu.ph\nOffice: Electrical Engineering Department in COE building"
-    },
-    {
-      "topic": "mechanical engineering head",
-      "content": "Engr. Sandra A. Hollman\n\nEmail: sandra_hollman@tup.edu.ph or mechanical@tup.edu.ph\nOffice: Mechanical Engineering Department in COE building"
-    },
-    {
-      "topic": "civil engineering head",
-      "content": "Engr. Marjun Macasilhig\n\nEmail: marjun_macasilhig@tup.edu.ph or civil@tup.edu.ph\nOffice: Civil Engineering Department in COE building"
-    },
-    {
-      "topic": "college of science acting dean",
-      "content": "Dr. Joshua T. Soriano\n\nEmail: joshua_soriano@tup.edu.ph or cos@tup.edu.ph\nOffice: Located in COS bulding"
-    },
-    {
-      "topic": "college of science college secretary",
-      "content": "Dr. Mary Sheenalyn P. Rodil\n\nEmail: marysheenalyn_rodil@tup.edu.ph or cossec@tup.edu.ph\nOffice: Located in COS building"
-    },
-    {
-      "topic": "chemistry department head",
-      "content": "Asst. Prof. Maria Carmelita G. Sapina\n\nEmail: mariacarmelita_sapina@tup.edu.ph or chemistry@tup.edu.ph\nOffice: Chemistry Department in COS building"
-    },
-    {
-      "topic": "computer studies head",
-      "content": "Asst. Prof. Dolores Montesines\n\nEmail: dolores_montesines@tup.edu.ph or computer@tup.edu.ph\nOffice: Computer Studies Department in COS building 3rd floor"
-    },
-    {
-      "topic": "mathematics department head",
-      "content": "Dr. Melchor G. Pacer\n\nEmail: melchor_pacer@tup.edu.ph or math@tup.edu.ph\nOffice: Mathematics Department in COS building 3rd floor"
-    },
-    {
-      "topic": "physics department head",
-      "content": "Asst. Prof. Dr. Aldrin G. Chang\n\nEmail: aldrin_chang@tup.edu.ph or physics@tup.edu.ph\nOffice: Physics Department in COS building 3rd floor"
-    },
-    {
-      "topic": "college of architecture and fine arts dean",
-      "content": "Assoc. Prof. Elpidio T. Balais, Jr.\n\nEmail: elpidio_balais@tup.edu.ph or cafa@tup.edu.ph\nOffice: Located in CAFA building"
-    },
-    {
-      "topic": "cafa college secretary",
-      "content": "Ar. Kenneth V. Tributo\n\nEmail: kenneth_tributo@tup.edu.ph or cafa@tup.edu.ph\nOffice: Located in CAFA building"
-    },
-    {
-      "topic": "graphics head",
-      "content": "Prof. Melvin G. Mojica\n\nEmail: melvin_mojica@tup.edu.ph\nOffice: Graphics Department in CAFA building"
-    },
-    {
-      "topic": "architecture head",
-      "content": "Asst. Prof. Rosellia Rowena A. Manzano\n\nEmail: roselliarowena_manzano@tup.edu.ph or architecture@tup.edu.ph\nOffice: Architecture Department in CAFA building"
-    },
-    {
-      "topic": "fine arts department head",
-      "content": "Asst. Prof. Wilma Enriquez\n\nEmail: wilma_enriquez@tup.edu.ph or finearts@tup.edu.ph\nOffice: Fine Arts Department in CAFA building"
-    },
-    {
-      "topic": "college of liberal arts dean",
-      "content": "Dr. Michael Bhobet Baluyot\n\nEmail: michaelbhobet_baluyot@tup.edu.ph or cla@tup.edu.ph\nOffice: Located in CLA building"
-    },
-    {
-      "topic": "college of liberal arts college secretary",
-      "content": "Ms. Rose Ann Panti\n\nEmail: roseann_panti@tup.edu.ph or cla@tup.edu.ph\nOffice: Located in CLA building"
-    },
-    {
-      "topic": "languages head",
-      "content": "Asst. Prof. Marie Jo Tess Ragos\n\nEmail: mariejotess_ragos@tup.edu.ph\nOffice: Languages Department in CLA building"
-    },
-    {
-      "topic": "social science head",
-      "content": "Prof. Noemie Bunye\n\nEmail: noemie_bunye@tup.edu.ph\nOffice: Social Science Department in CLA building"
-    },
-    {
-      "topic": "entrepreneurship and management head",
-      "content": "Asst. Prof. Jerson A. Monsad\n\nEmail: jerson_monsad@tup.edu.ph or dem@tup.edu.ph\nOffice: Entrepreneurship and Management Department in CLA building"
-    },
-    {
-      "topic": "hospitality management head",
-      "content": "Dr. Ma. Dina D. Jimenez\n\nEmail: madina_jimenez@tup.edu.ph\nOffice: Hospitality Management Department in CLA building"
-    },
-    {
-      "topic": "physical education department head",
-      "content": "Asst. Prof. Bernadette L. Alvazo\n\nEmail: bernadette_alvazo@tup.edu.ph or pe@tup.edu.ph\nOffice: Physical Education Department in CLA lobby"
-    },
-    {
-      "topic": "university registrar",
-      "content": "Prof. Dr. Rosemarie Theresa M. Cruz\n\nEmail: rosemarietheresa_cruz@tup.edu.ph or registrar@tup.edu.ph\nOffice: Registrar Office at CLA lobby"
-    },
-    {
-      "topic": "admission office head",
-      "content": "Prof. Dr. Rosemarie Theresa M. Cruz\n\nEmail: rosemarietheresa_cruz@tup.edu.ph or registrar@tup.edu.ph\nOffice: COS lobby"
-    },
-    {
-      "topic": "nstp director",
-      "content": "Mr. Reggie Campomanes\n\nEmail: reggie_campomanes@tup.edu.ph or nstp@tup.edu.ph"
-    },
-    {
-      "topic": "guidance head",
-      "content": "Dr. Enrico T. Lucena\n\nEmail: enrico_lucena@tup.edu.ph, guidance@tup.edu.ph\nOffice: COS lobby"
-    },
-    {
-      "topic": "how to go to tup via lrt",
-      "content": "If you are using LRT-1, get off at United Nations Avenue Station. From the station, walk towards Taft Avenue and turn right to Ayala Boulevard. TUP Manila is about 5–10 minutes walk from the station."
-    },
-    {
-      "topic": "how to go to tup from north",
-      "content": "If you are coming from the North (Quezon City, Caloocan, or Monumento), you can take the LRT-1 southbound and get off at United Nations Avenue Station. You can also ride a jeep or bus going to Manila City Hall or Taft Avenue and walk to Ayala Boulevard where TUP Manila is located."
-    },
-    {
-      "topic": "how to go to tup from south",
-      "content": "If you are coming from the South (Pasay, Parañaque, Las Piñas, or Cavite), you can take the LRT-1 northbound and get off at United Nations Avenue Station. You may also ride a bus or jeep going to Lawton, Manila City Hall, or Taft Avenue and walk towards Ayala Boulevard to reach TUP Manila."
-    },
-    {
-      "topic": "how to go to tup via jeep",
-      "content": "You can ride jeepneys going to Lawton, Manila City Hall, or SM Manila. From there, walk along Ayala Boulevard until you reach the Technological University of the Philippines (TUP) Manila campus."
-    },
-    {
-      "topic": "how to go to tup via bus",
-      "content": "Ride a bus going to Lawton, Manila City Hall, or Taft Avenue. Get off near Manila City Hall or SM Manila and walk towards Ayala Boulevard. TUP Manila is located along Ayala Boulevard near these landmarks."
-    }
+    { "topic": "about tup", "content": "The Technological University of the Philippines (TUP) is a state university specializing in engineering, technology, and technical education." },
+    { "topic": "tup manila campus", "content": "TUP Manila is the main campus of the Technological University of the Philippines located in Ermita, Manila." },
+    { "topic": "location of tup", "content": "The Technological University of the Philippines – Manila is located at Ayala Blvd., corner San Marcelino St., Ermita, Manila, 1000 Metro Manila, Philippines" },
+    { "topic": "tup history", "content": "The Technological University of the Philippines started in 1901 as the Manila Trade School. It later became the Philippine School of Arts and Trades and then the Philippine College of Arts and Trades before becoming TUP in 1978..." },
+    { "topic": "tup type", "content": "The Technological University of the Philippines is a public state university funded by the Philippine government." },
+    { "topic": "tup campuses", "content": "The Technological University of the Philippines system has campuses in Manila, Taguig, Cavite, and Visayas." },
+    { "topic": "tup mission", "content": "TUP MISSION: The University shall provide higher and advanced vocational..." },
+    { "topic": "tup vision", "content": "TUP VISION: A premier state university with recognized excellence in engineering and technology education..." },
+    { "topic": "tup core values", "content": "CORE VALUES: Transparent, Unity, Professionalism, Integrity, Accountability, Nationalism, Shared responsibility." },
+    { "topic": "college of engineering", "content": "Offers BS in Civil, Electrical, Mechanical, and Electronics Engineering." },
+    { "topic": "college of science", "content": "Offers BS in Computer Science, Information Technology, Information Systems, Laboratory Technology, and Environmental Science." },
+    { "topic": "college of industrial technology", "content": "Offers various Engineering Technology and Technology programs." },
+    { "topic": "college of architecture and fine arts", "content": "Offers BS Architecture, Fine Arts, and Graphics Technology." },
+    { "topic": "college of industrial education", "content": "Offers Technical-Vocational Teacher Education programs." },
+    { "topic": "college of liberal arts", "content": "Offers Management, Entrepreneurship, and Hospitality Management." },
+    { "topic": "student organizations", "content": "Includes various academic and non-academic organizations like COMPASS, GDGoC, TUP GEAR, etc." },
+    { "topic": "tup enrollment", "content": "Process involves profiling, enlistment, assessment, and registration confirmation." }
   ])}`
 });
-
-// ─────────────────────────────────────────────
-// FIREBASE
-// ─────────────────────────────────────────────
 
 const firebaseConfig = {
   apiKey: "AIzaSyBpGOdMpx_Mws2EcCq6rbOWfZ-FFuhhfo0",
@@ -393,22 +61,21 @@ const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// ─────────────────────────────────────────────
-// STATE
-// ─────────────────────────────────────────────
-
 let currentUser = null;
 let currentUserRole = 'Student';
 let currentUserName = null;
 let allPosts = [];
-let activeFilter = 'all';   // 'all' | 'today' | 'week' | 'month' | 'custom'
+let allOrgPosts = [];
+let activeSection = 'bulletin'; 
+let activeFilter = 'all'; 
+let orgFilter = 'my'; 
+let currentUserCollege = null;
+let currentUserPhoto = null;
+let dpState = { fromDate: null, toDate: null, target: 'from', viewYear: new Date().getFullYear(), viewMonth: new Date().getMonth() };
 let customFrom = null;
 let customTo = null;
-let activePostId = null;    // for comment modal
-
-// ─────────────────────────────────────────────
-// HELPERS
-// ─────────────────────────────────────────────
+let activePostId = null;
+let activeCollection = 'posts';
 
 function timeAgo(ts) {
   if (!ts) return '';
@@ -434,9 +101,10 @@ function showToast(msg, dur = 2800) {
   t._tid = setTimeout(() => t.classList.remove('show'), dur);
 }
 
-// ─────────────────────────────────────────────
-// DATE FILTER
-// ─────────────────────────────────────────────
+// Global hidden utility
+const style = document.createElement('style');
+style.textContent = '.hidden { display: none !important; }';
+document.head.appendChild(style);
 
 function postDate(post) {
   if (!post.createdAt) return new Date(0);
@@ -446,13 +114,11 @@ function postDate(post) {
 function applyDateFilter(posts) {
   if (activeFilter === 'all') return posts;
   const now = new Date();
-  const sod = new Date(now.getFullYear(), now.getMonth(), now.getDate()); // start of day
+  const sod = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
   return posts.filter(p => {
     const d = postDate(p);
-    if (activeFilter === 'today') {
-      return d >= sod;
-    }
+    if (activeFilter === 'today') return d >= sod;
     if (activeFilter === 'week') {
       const weekAgo = new Date(sod); weekAgo.setDate(weekAgo.getDate() - 6);
       return d >= weekAgo;
@@ -470,10 +136,6 @@ function applyDateFilter(posts) {
   });
 }
 
-// ─────────────────────────────────────────────
-// SEARCH FILTER
-// ─────────────────────────────────────────────
-
 function applySearchFilter(posts, q) {
   if (!q) return posts;
   const lq = q.toLowerCase();
@@ -484,25 +146,16 @@ function applySearchFilter(posts, q) {
   );
 }
 
-// ─────────────────────────────────────────────
-// GET FILTERED POSTS (search + date)
-// ─────────────────────────────────────────────
-
 function getFilteredPosts() {
   const q = (document.getElementById('cn-search-input')?.value || '').trim();
   return applySearchFilter(applyDateFilter(allPosts), q);
 }
-
-// ─────────────────────────────────────────────
-// RENDER
-// ─────────────────────────────────────────────
 
 function renderBulletinPage(posts) {
   const uid = currentUser?.uid ?? null;
   const pinnedPost = posts.find(p => p.pinned) ?? null;
   const otherPosts = posts.filter(p => !p.pinned);
 
-  // Pinned slot
   const pinnedSlot = document.getElementById('pinned-post-slot');
   const pinnedLabel = document.getElementById('pinned-label');
 
@@ -518,7 +171,6 @@ function renderBulletinPage(posts) {
     if (pinnedSlot) pinnedSlot.innerHTML = '';
   }
 
-  // Feed
   const feed = document.getElementById('bulletin-feed');
   const emptyState = document.getElementById('bulletin-empty');
   if (!feed) return;
@@ -532,8 +184,7 @@ function renderBulletinPage(posts) {
   if (emptyState) emptyState.style.display = 'none';
 
   if (otherPosts.length === 0) {
-    feed.insertAdjacentHTML('beforeend',
-      `<div class="cn-no-results">No announcements match your search or filter.</div>`);
+    feed.insertAdjacentHTML('beforeend', `<div class="cn-no-results">No announcements match your search or filter.</div>`);
     return;
   }
 
@@ -547,10 +198,6 @@ function renderBulletinPage(posts) {
   wireLightboxTriggers();
 }
 
-// ─────────────────────────────────────────────
-// HTML BUILDERS
-// ─────────────────────────────────────────────
-
 function renderPinnedCard(post, uid) {
   const likeCount = (post.likes || []).length;
   const repostCount = (post.reposts || []).length;
@@ -561,56 +208,33 @@ function renderPinnedCard(post, uid) {
   const imgs = post.imageURLs || [];
   const hasImages = imgs.length > 0;
 
-  // Shared Collage System
-  // Collage Logic: Only show up to 5, then +N overlay
   let photoGrid = '';
   if (hasImages) {
     const count = imgs.length;
     const clampedCount = Math.min(count, 5);
-    const collageClass = `collage-${Math.min(count, 5)}`;
-
-    // We only show the "See More" overlay if the total count is GREATER than 5
     const extra = count > 5 ? count - 5 : 0;
-
     let gridStyle = "display: grid !important; height: 250px !important; gap: 4px !important; width: 100% !important;";
-    if (clampedCount === 1) gridStyle += " grid-template-columns: 1fr !important; grid-template-rows: 1fr !important;";
-    else if (clampedCount === 2) gridStyle += " grid-template-columns: 1fr 1fr !important; grid-template-rows: 1fr !important;";
+    if (clampedCount === 1) gridStyle += " grid-template-columns: 1fr !important;";
+    else if (clampedCount === 2) gridStyle += " grid-template-columns: 1fr 1fr !important;";
     else if (clampedCount === 3 || clampedCount === 4) gridStyle += " grid-template-columns: 1fr 1fr !important; grid-template-rows: 1fr 1fr !important;";
     else gridStyle += " grid-template-columns: 2fr 1fr 1fr !important; grid-template-rows: 1fr 1fr !important;";
 
     const cells = imgs.slice(0, 5).map((src, i) => {
-      let cellStyle = "position: relative !important; overflow: hidden !important; min-width: 0 !important; min-height: 0 !important; width: 100% !important; height: 100% !important;";
-      
-      if (clampedCount >= 5 && i === 0) {
-          cellStyle += " grid-column: 1 / 2 !important; grid-row: 1 / 3 !important;";
-      } else if (clampedCount === 3 && i === 0) {
-          cellStyle += " grid-row: 1 / 3 !important;";
-      }
-
+      let cellStyle = "position: relative !important; overflow: hidden !important; width: 100% !important; height: 100% !important;";
+      if (clampedCount >= 5 && i === 0) cellStyle += " grid-column: 1 / 2 !important; grid-row: 1 / 3 !important;";
+      else if (clampedCount === 3 && i === 0) cellStyle += " grid-row: 1 / 3 !important;";
       const isLastVisible = i === 4 && extra > 0;
-      const overlayHtml = isLastVisible 
-        ? `<div class="photo-more-overlay" style="position: absolute !important; inset: 0 !important; background: rgba(0,0,0,0.6) !important; display: flex !important; align-items: center !important; justify-content: center !important; color: #fff !important; font-size: 17px !important; font-weight: 600 !important; z-index: 2 !important; pointer-events: none !important;">+${extra}</div>` 
-        : '';
-
-      return `
-        <div class="collage-cell lightbox-trigger" data-src="${src}" style="${cellStyle}">
-          <img src="${src}" alt="post image" style="position: absolute !important; top: 0 !important; left: 0 !important; width: 100% !important; height: 100% !important; object-fit: cover !important; display: block !important;" />
-          ${overlayHtml}
-        </div>`;
+      return `<div class="collage-cell lightbox-trigger" data-src="${src}" style="${cellStyle}">
+                <img src="${src}" alt="post image" style="position: absolute !important; width: 100% !important; height: 100% !important; object-fit: cover !important;" />
+                ${isLastVisible ? `<div class="photo-more-overlay">+${extra}</div>` : ''}
+              </div>`;
     }).join('');
-
-    photoGrid = `
-      <div class="pinned-media-col">
-        <div class="pinned-photo-grid ${collageClass}" style="${gridStyle}">
-          ${cells}
-        </div>
-      </div>`;
+    photoGrid = `<div class="pinned-media-col"><div class="pinned-photo-grid" style="${gridStyle}">${cells}</div></div>`;
   }
 
   return `
     <div class="pinned-post-card" data-id="${post.id}">
       <div class="pushpin"><div class="pin-head"></div><div class="pin-shaft"></div></div>
-
       <div class="social-bar-wrap">
         <div class="social-bar-outer">
           <div class="social-bar">
@@ -631,10 +255,8 @@ function renderPinnedCard(post, uid) {
           </div>
         </div>
       </div>
-
       <div class="pinned-content ${hasImages ? '' : 'no-images'}">
-        <div class="pinned-timestamp-top">${timeAgo(post.createdAt)}</div>
-        
+        <div class="pinned-timestamp-top">${timeAgo(post.createdAt).toUpperCase()}</div>
         <div class="pinned-columns-wrap">
             <div class="pinned-caption-col">
               <div class="pinned-title">${post.title || ''}</div>
@@ -653,7 +275,6 @@ function renderBulletinCard(post, uid) {
   const commentCount = (post.comments || []).length;
   const iLiked = uid && (post.likes || []).includes(uid);
   const iReposted = uid && (post.reposts || []).includes(uid);
-
   const bodyHTML = (post.body || '').replace(/\n/g, '<br>');
   const imgs = post.imageURLs || [];
   const hasImages = imgs.length > 0;
@@ -661,35 +282,19 @@ function renderBulletinCard(post, uid) {
   let photoGrid = '';
   if (hasImages) {
     const count = imgs.length;
-    // Always use collage-5 layout for 5+ photos; clamp display to 5 cells
-    const collageClass = `collage-${Math.min(count, 5)}`;
-    // extra = how many photos are hidden behind the +N overlay on the 5th cell
-    // For 6 photos: show 5, overlay says +1. For 7: show 5, overlay says +2. etc.
     const extra = count > 5 ? count - 5 : 0;
-
-    // Always force the 5-column grid via inline style when count >= 5
-    // (guards against any CSS cascade issues specific to bulletin-card context)
-    const inlineStyle = (count >= 5)
-      ? `style="display:grid !important; grid-template-columns:2fr 1fr 1fr !important; grid-template-rows:1fr 1fr !important; gap:4px !important; height:250px !important;"`
-      : '';
-
+    const inlineStyle = (count >= 5) ? `style="display:grid !important; grid-template-columns:2fr 1fr 1fr !important; grid-template-rows:1fr 1fr !important; gap:4px !important; height:250px !important;"` : '';
     photoGrid = `
       <div class="bulletin-media-col">
-        <div class="bulletin-photo-grid ${collageClass}" ${inlineStyle}>
+        <div class="bulletin-photo-grid collage-${Math.min(count, 5)}" ${inlineStyle}>
           ${imgs.slice(0, 5).map((src, i) => {
-      // The +N overlay only goes on the LAST visible cell (index 4) when extras exist
-      const isLastVisible = i === 4 && extra > 0;
-      // Cell 0 must span both grid rows in a 5-cell collage layout
-      const cellStyle = (count >= 5 && i === 0)
-        ? `style="grid-column:1/2 !important; grid-row:1/3 !important;"`
-        : '';
-
-      return `
-              <div class="collage-cell lightbox-trigger" data-src="${src}" ${cellStyle}>
-                <img src="${src}" alt="" />
-                ${isLastVisible ? `<div class="photo-more-overlay">+${extra}</div>` : ''}
-              </div>`;
-    }).join('')}
+            const isLastVisible = i === 4 && extra > 0;
+            const cellStyle = (count >= 5 && i === 0) ? `style="grid-column:1/2 !important; grid-row:1/3 !important;"` : '';
+            return `<div class="collage-cell lightbox-trigger" data-src="${src}" ${cellStyle}>
+                      <img src="${src}" alt="" />
+                      ${isLastVisible ? `<div class="photo-more-overlay">+${extra}</div>` : ''}
+                    </div>`;
+          }).join('')}
         </div>
       </div>`;
   }
@@ -698,14 +303,13 @@ function renderBulletinCard(post, uid) {
     <div class="bulletin-card" data-id="${post.id}">
       <div class="bulletin-card-header">
         <div class="bulletin-card-avatar">
-          <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          ${post.photoURL ? `<img src="${post.photoURL}" alt="" style="width:100%; height:100%; object-fit:cover; border-radius:50%; image-rendering:high-quality;" />` : `<svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`}
         </div>
         <div class="bulletin-card-meta-wrap">
           <div class="bulletin-card-author">${post.author || 'Admin'}</div>
           <div class="bulletin-card-time">${timeAgo(post.createdAt)}</div>
         </div>
       </div>
-
       <div class="bulletin-card-body ${hasImages ? '' : 'no-images'}">
         <div class="bulletin-columns-wrap">
             <div class="bulletin-caption-col">
@@ -716,7 +320,6 @@ function renderBulletinCard(post, uid) {
             ${photoGrid}
         </div>
       </div>
-
       <div class="feed-reactions bulletin-card-reactions">
         <button class="feed-reaction-btn ${iLiked ? 'heart-active' : ''}" data-type="likes" data-id="${post.id}">
           <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
@@ -734,17 +337,11 @@ function renderBulletinCard(post, uid) {
     </div>`;
 }
 
-// ─────────────────────────────────────────────
-// VIEW MORE
-// ─────────────────────────────────────────────
-
 function wireViewMore(bodyId, btnId) {
   const body = document.getElementById(bodyId);
   const btn = document.getElementById(btnId);
   if (!body || !btn) return;
-  requestAnimationFrame(() => {
-    if (body.scrollHeight > body.clientHeight + 4) btn.classList.add('visible');
-  });
+  requestAnimationFrame(() => { if (body.scrollHeight > body.clientHeight + 4) btn.classList.add('visible'); });
   let expanded = false;
   btn.addEventListener('click', () => {
     expanded = !expanded;
@@ -753,42 +350,22 @@ function wireViewMore(bodyId, btnId) {
   });
 }
 
-// ─────────────────────────────────────────────
-// REACTION BUTTONS — homepage style with pop messages
-// ─────────────────────────────────────────────
-
 const REACTION_MESSAGES = {
-  likes: {
-    on: ['❤️ Loved it!', '💕 Hearted!', '❤️ You loved this!'],
-    off: ['💔 Removed heart', 'Unliked'],
-  },
-  reposts: {
-    on: ['🔁 Reposted!', '🔁 Shared to your feed!', '✅ Reposted successfully!'],
-    off: ['↩️ Repost removed', '🔁 Un-reposted', 'Removed from your reposts'],
-  },
+  likes: { on: ['❤️ Loved it!', '💕 Hearted!'], off: ['💔 Removed heart'] },
+  reposts: { on: ['🔁 Reposted!'], off: ['↩️ Repost removed'] },
 };
 
 function pickRandom(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
-
 let reactionPopEl = null;
-
 function showReactionPop(msg) {
-  if (!reactionPopEl) {
-    reactionPopEl = document.createElement('div');
-    reactionPopEl.className = 'reaction-pop';
-    document.body.appendChild(reactionPopEl);
-  }
-  reactionPopEl.textContent = msg;
-  reactionPopEl.classList.add('show');
-  clearTimeout(reactionPopEl._tid);
-  reactionPopEl._tid = setTimeout(() => reactionPopEl.classList.remove('show'), 2000);
+  if (!reactionPopEl) { reactionPopEl = document.createElement('div'); reactionPopEl.className = 'reaction-pop'; document.body.appendChild(reactionPopEl); }
+  reactionPopEl.textContent = msg; reactionPopEl.classList.add('show');
+  clearTimeout(reactionPopEl._tid); reactionPopEl._tid = setTimeout(() => reactionPopEl.classList.remove('show'), 2000);
 }
 
 function wireReactionButtons() {
-  // Clone to remove old listeners — pick up both pinned social-item and feed-reaction-btn styles
-  document.querySelectorAll('.reaction-item, .feed-reaction-btn:not(.cn-comment-trigger)').forEach(el => {
-    const fresh = el.cloneNode(true);
-    el.replaceWith(fresh);
+  document.querySelectorAll('#bulletin-feed .reaction-item, #bulletin-feed .feed-reaction-btn:not(.cn-comment-trigger), #pinned-post-slot .reaction-item').forEach(el => {
+    const fresh = el.cloneNode(true); el.replaceWith(fresh);
     fresh.addEventListener('click', () => handleReaction(fresh));
   });
 }
@@ -797,916 +374,915 @@ async function handleReaction(el) {
   if (!currentUser) { showToast('Sign in to react.'); return; }
   const postId = el.dataset.id;
   const type = el.dataset.type;
-  if (type === 'comments') return; // handled by comment modal
+  const isPinnedBar = el.classList.contains('reaction-item');
+  const already = isPinnedBar ? el.classList.contains('reacted') : (type === 'likes' ? el.classList.contains('heart-active') : el.classList.contains('repost-active'));
 
-  // Determine active state based on which class system is in use
-  const isPinnedBar = el.classList.contains('reaction-item'); // social-bar style
-  const already = isPinnedBar ? el.classList.contains('reacted')
-    : (type === 'likes' ? el.classList.contains('heart-active')
-      : el.classList.contains('repost-active'));
-
-  // Optimistic UI
-  if (isPinnedBar) {
-    el.classList.toggle('reacted', !already);
-  } else if (type === 'likes') {
-    el.classList.toggle('heart-active', !already);
-    // Trigger heartPop animation by re-cloning svg
-    const svg = el.querySelector('svg');
-    if (svg && !already) {
-      svg.style.animation = 'none';
-      void svg.offsetWidth;
-      svg.style.animation = '';
-    }
-  } else {
-    el.classList.toggle('repost-active', !already);
-    const svg = el.querySelector('svg');
-    if (svg && !already) {
-      svg.style.animation = 'none';
-      void svg.offsetWidth;
-      svg.style.animation = '';
-    }
+  const countEl = el.querySelector('.likes-count, .reposts-count, .social-count');
+  if (countEl) {
+    let current = parseInt(countEl.textContent.replace(/[^\d]/g, '')) || 0;
+    countEl.textContent = fmt(already ? Math.max(0, current - 1) : current + 1);
   }
 
-  // Optimistic UI Class update
-  el.classList.toggle(type + '-active', !already);
-
-  // Only show pop on "on" (hearting/reposting), not on removing
-  if (!already) {
-    const msgs = REACTION_MESSAGES[type];
-    if (msgs) showReactionPop(msgs.on[Math.floor(Math.random() * msgs.on.length)]);
+  if (type === 'reposts' && currentUserRole === 'Student' && !already) {
+    console.log("[Bulletin] Opening repost modal for student");
+    openRepostModal(postId, 'announcements');
+    return;
   }
 
-  // Firebase
+  if (isPinnedBar) el.classList.toggle('reacted', !already);
+  else el.classList.toggle(type === 'likes' ? 'heart-active' : 'repost-active', !already);
+
+  if (!already) showReactionPop(pickRandom(REACTION_MESSAGES[type].on));
   try {
-    const postRef = doc(db, 'announcements', postId);
-    await updateDoc(postRef, {
-      [type]: already ? arrayRemove(currentUser.uid) : arrayUnion(currentUser.uid)
-    });
-  } catch (err) {
-    console.error('Reaction error:', err);
-    showToast('Could not react right now.');
-  }
+    await updateDoc(doc(db, 'announcements', postId), { [type]: already ? arrayRemove(currentUser.uid) : arrayUnion(currentUser.uid) });
+  } catch (err) { console.error('Reaction error:', err); }
 }
 
-// ─────────────────────────────────────────────
-// COMMENT MODAL
-// ─────────────────────────────────────────────
-
 function wireCommentButtons() {
-  document.querySelectorAll('.cn-comment-trigger, .comment-trigger-pinned, .cn-view-comments, .feed-view-comments').forEach(el => {
-    const fresh = el.cloneNode(true);
-    el.replaceWith(fresh);
-    fresh.addEventListener('click', () => {
-      const pid = fresh.dataset.id || fresh.dataset.post;
-      if (pid) openCommentModal(pid);
-    });
+  document.querySelectorAll('.cn-comment-trigger, .comment-trigger-pinned').forEach(el => {
+    const fresh = el.cloneNode(true); el.replaceWith(fresh);
+    fresh.addEventListener('click', () => { const pid = fresh.dataset.id; if (pid) openCommentModal(pid); });
   });
 }
 
 function openCommentModal(postId) {
   activePostId = postId;
   const overlay = document.getElementById('cn-comment-modal-overlay');
-  if (!overlay) return;
-  overlay.classList.remove('hidden');
-  overlay.classList.add('open');
+  if (overlay) {
+    overlay.classList.add('open');
+    overlay.classList.remove('hidden');
+  }
   renderCommentList(postId);
   setTimeout(() => document.getElementById('cn-comment-input-field')?.focus(), 150);
 }
 
 function closeCommentModal() {
   const overlay = document.getElementById('cn-comment-modal-overlay');
-  overlay?.classList.remove('open');
-  overlay?.classList.add('hidden');
-  const f = document.getElementById('cn-comment-input-field');
-  if (f) f.value = '';
+  if (overlay) {
+    overlay.classList.remove('open');
+    overlay.classList.add('hidden');
+  }
   activePostId = null;
 }
 
-function renderCommentList(postId) {
-  const post = allPosts.find(p => p.id === postId);
-  const list = document.getElementById('cn-comment-list');
-  if (!list || !post) return;
-
-  const comments = post.comments || [];
-  if (comments.length === 0) {
-    list.innerHTML = `<div style="text-align:center;padding:40px 20px;font-size:14px;font-weight:600;color:var(--muted);">No comments yet. Be the first!</div>`;
-    return;
-  }
-
-  // 1. GENERATE HTML
-  list.innerHTML = comments.map((c, i) => {
-    // Determine if user owns the comment
-    const isOwn = c.isOwn || (currentUserName && c.author === currentUserName);
-
-    const avatarHTML = window.getAvatar
-      ? window.getAvatar(c.photoURL, c.author)
-      : (c.photoURL
-        ? `<img src="${c.photoURL}" alt="${c.author}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`
-        : `<svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`);
-
-    // Actions only appear for the owner, matching your screenshot layout
-    const actionsHTML = isOwn ? `
-      <div class="comment-item-actions">
-        <button class="comment-action-btn edit-btn cn-edit-comment-btn" data-idx="${i}">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-          Edit
-        </button>
-        <button class="comment-action-btn delete-btn cn-delete-comment-btn" data-idx="${i}">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-          Delete
-        </button>
-      </div>` : '';
-
+function getAvatar(photo, name) {
+  const initials = name ? name.charAt(0).toUpperCase() : '?';
+  if (photo) {
     return `
-      <div class="comment-item" id="cn-ci-${i}">
-        <div class="comment-item-avatar">
-          <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-        </div>
-        <div class="comment-item-content">
-          <div class="comment-item-bubble">
-            <div class="comment-item-name">${c.author}</div>
-            <div class="comment-item-text" id="cn-ct-${i}">${c.text}</div>
-          </div>
-          <div class="comment-footer">
-            <span class="comment-item-time">${c.time || 'Just now'}</span>
-            ${actionsHTML}
-          </div>
-        </div>
+      <div class="avatar-container" style="width:100%; height:100%; position:relative;">
+        <img src="${photo}" alt="${name}" 
+             style="width:100%; height:100%; object-fit:cover; border-radius:50%; display:block;" 
+             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+        <div class="default-avatar" style="display:none; background:#8b1a1a; color:white; width:100%; height:100%; border-radius:50%; align-items:center; justify-content:center; position:absolute; top:0; left:0; font-weight:800;">${initials}</div>
       </div>`;
-  }).join('');
+  }
+  return `<div class="default-avatar" style="background:#8b1a1a; color:white; width:100%; height:100%; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:16px;">${initials}</div>`;
+}
 
-  // 2. WIRE EDIT BUTTONS
-  list.querySelectorAll('.cn-edit-comment-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const idx = parseInt(btn.dataset.idx);
-      const c = comments[idx];
-      const bubble = document.querySelector(`#cn-ci-${idx} .comment-item-bubble`);
-      const footer = document.querySelector(`#cn-ci-${idx} .comment-footer`);
+function renderCommentList(postId) {
+  const isOrgPost = allOrgPosts.some(p => p.id === postId);
+  const collectionName = isOrgPost ? 'posts' : 'announcements';
+  const list = document.getElementById('cn-comment-list');
+  if (!list) return;
 
-      if (!bubble) return;
+  list.innerHTML = `<div style="text-align:center;padding:40px;color:var(--muted);">Loading comments...</div>`;
 
-      // Transform bubble into edit mode
-      bubble.innerHTML = `
-        <div class="comment-item-name">${c.author}</div>
-        <div class="comment-edit-wrap">
-          <input class="comment-edit-input" id="cn-edit-input-${idx}" value="${(c.text || '').replace(/"/g, '&quot;')}" maxlength="500"/>
-          <div class="comment-edit-buttons">
-            <button class="comment-edit-save" data-idx="${idx}">Save</button>
-            <button class="comment-edit-cancel" data-idx="${idx}">Cancel</button>
+  const q = query(collection(db, `${collectionName}/${postId}/comments`), orderBy('createdAt', 'asc'));
+  onSnapshot(q, (snapshot) => {
+    if (snapshot.empty) {
+      list.innerHTML = `<div style="text-align:center;padding:40px;color:var(--muted);">No comments yet.</div>`;
+      return;
+    }
+
+    const cache = JSON.parse(localStorage.getItem('tup_user_meta') || '{}');
+
+    list.innerHTML = snapshot.docs.map(docSnap => {
+      const c = docSnap.data();
+      const isOwn = currentUser && (c.authorId === currentUser.uid || c.userId === currentUser.uid);
+      const photo = isOwn ? (cache.photoURL || c.photoURL) : c.photoURL;
+      const avatarHtml = getAvatar(photo, c.author);
+
+      return `
+        <div class="comment-modal-item">
+          <div class="comment-modal-item-avatar">${avatarHtml}</div>
+          <div class="comment-modal-item-content">
+            <div class="comment-modal-item-bubble" id="bubble-${docSnap.id}">
+              <div class="comment-modal-item-author">${escapeHTML(c.author)}</div>
+              <div class="comment-modal-item-text">${escapeHTML(c.text)}</div>
+            </div>
+            <div class="comment-edit-wrap" id="edit-wrap-${docSnap.id}" style="display:none; gap:12px; margin-top:6px;">
+              <input class="comment-edit-input" id="edit-input-${docSnap.id}" value="${escapeHTML(c.text)}" />
+              <button class="comment-edit-save" onclick="saveCommentEdit('${collectionName}', '${postId}', '${docSnap.id}')">
+                <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+              </button>
+              <button class="comment-edit-cancel" onclick="cancelCommentEdit('${docSnap.id}')">✕</button>
+            </div>
+            <div class="comment-footer" style="display:flex; align-items:center; gap:12px; margin-top:4px; padding-left:4px;">
+              <div class="comment-modal-item-time" style="font-size:12px; color:var(--muted); font-weight:600; margin:0;">
+                ${c.createdAt ? timeAgo(c.createdAt) : 'just now'}
+              </div>
+              ${isOwn ? `
+                <div class="comment-item-actions" style="display:flex; align-items:center; gap:10px;">
+                  <button class="comment-action-btn edit-btn" style="margin:0; padding:0; background:none;" onclick="editComment('${docSnap.id}')">
+                    <svg viewBox="0 0 24 24" width="13" height="13" style="stroke:currentColor;fill:none;stroke-width:2.5;"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Edit
+                  </button>
+                  <button class="comment-action-btn delete-btn" style="margin:0; padding:0; background:none;" onclick="deleteComment('${docSnap.id}')">
+                    <svg viewBox="0 0 24 24" width="13" height="13" style="stroke:currentColor;fill:none;stroke-width:2.5;"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg> Delete
+                  </button>
+                </div>
+              ` : ''}
+            </div>
           </div>
         </div>`;
-
-      if (footer) footer.style.display = 'none'; // Hide time/actions while editing
-
-      const input = document.getElementById(`cn-edit-input-${idx}`);
-      input?.focus();
-
-      // Handle Save
-      bubble.querySelector('.comment-edit-save')?.addEventListener('click', async () => {
-        const newText = input?.value.trim();
-        if (!newText) return;
-
-        comments[idx].text = newText;
-
-        // Firebase update
-        if (currentUser && c.id) {
-          try {
-            const { doc: fDoc, updateDoc: fUpdate } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
-            const commentRef = fDoc(db, `announcements/${postId}/comments`, c.id);
-            await fUpdate(commentRef, { text: newText });
-          } catch (err) {
-            console.error('Edit error:', err);
-          }
-        }
-
-        renderCommentList(postId);
-        showToast('✏️ Comment updated!');
-      });
-
-      // Handle Cancel
-      bubble.querySelector('.comment-edit-cancel')?.addEventListener('click', () => {
-        renderCommentList(postId);
-      });
-    });
+    }).join('');
+    list.scrollTop = list.scrollHeight;
   });
+}
 
-  // 3. WIRE DELETE BUTTONS
-  list.querySelectorAll('.cn-delete-comment-btn').forEach(btn => {
-    btn.addEventListener('click', async () => {
-      const idx = parseInt(btn.dataset.idx);
-      const c = comments[idx];
-
-      if (!confirm('Are you sure you want to delete this comment?')) return;
-
-      // Firebase delete
-      if (currentUser && c.id) {
-        try {
-          const { doc: fDoc, deleteDoc: fDelete } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
-          await fDelete(fDoc(db, `announcements/${postId}/comments`, c.id));
-        } catch (err) {
-          console.error('Delete error:', err);
-        }
-      }
-
-      // Remove locally and refresh
-      comments.splice(idx, 1);
-      renderCommentList(postId);
-      showToast('🗑️ Comment deleted!');
-    });
-  });
+function escapeHTML(str) {
+  if (!str) return '';
+  return str.replace(/[&<>"']/g, m => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[m]));
 }
 
 function initCommentModal() {
   document.getElementById('cn-comment-modal-close')?.addEventListener('click', closeCommentModal);
-  document.getElementById('cn-comment-modal-overlay')?.addEventListener('click', e => {
-    if (e.target === document.getElementById('cn-comment-modal-overlay')) closeCommentModal();
-  });
-
-  const sendBtn = document.getElementById('cn-comment-send-btn');
   const inputField = document.getElementById('cn-comment-input-field');
-
-  sendBtn?.addEventListener('click', () => submitComment());
-  inputField?.addEventListener('keydown', e => {
-    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submitComment(); }
-  });
+  document.getElementById('cn-comment-send-btn')?.addEventListener('click', () => submitComment());
+  inputField?.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submitComment(); } });
 }
 
 async function submitComment() {
   if (!currentUser) { showToast('Sign in to comment.'); return; }
   const inputField = document.getElementById('cn-comment-input-field');
   const text = inputField?.value.trim();
-  if (!text) return;
-
-  const post = allPosts.find(p => p.id === activePostId);
-  if (!post) return;
-
-  // Grab your face from the cache created by comments.js
-  const userPhoto = window.cachedPhoto || null;
-
-  const newComment = {
-    id: 'c-' + Date.now(),
-    author: currentUserName || 'TUPian',
-    photoURL: userPhoto, // Show your photo immediately in the UI
-    text,
-    time: 'just now',
-    isOwn: true,
-  };
-
-  // Update UI locally
-  if (!post.comments) post.comments = [];
-  post.comments.push(newComment);
-  if (inputField) inputField.value = '';
-  renderCommentList(activePostId);
-  showToast('💬 Comment posted!');
-
-  // Save to Firebase (skip for demo posts)
-  if (!activePostId.startsWith('demo-')) {
+  if (!text || !activePostId) return;
+  const isOrgPost = allOrgPosts.some(p => p.id === activePostId);
+  const collectionName = isOrgPost ? 'posts' : 'announcements';
+  try {
+    const cache = JSON.parse(localStorage.getItem('tup_user_meta') || '{}');
+    const photoURL = cache.photoURL || null;
+    await addDoc(collection(db, `${collectionName}/${activePostId}/comments`), { 
+      author: currentUserName, 
+      authorId: currentUser.uid, 
+      userId: currentUser.uid,
+      photoURL: photoURL,
+      text, 
+      createdAt: serverTimestamp() 
+    });
     try {
-      await addDoc(collection(db, `announcements/${activePostId}/comments`), {
-        author: currentUserName,
-        authorId: currentUser.uid,
-        photoURL: userPhoto, // Save your profile pic URL to the database
-        text,
-        createdAt: serverTimestamp(),
-      });
-    } catch (err) {
-      console.error('Comment error:', err);
+      if (isOrgPost) {
+        await updateDoc(doc(db, 'posts', activePostId), { comments: increment(1) });
+      } else {
+        await updateDoc(doc(db, 'announcements', activePostId), { comments: arrayUnion(currentUser.uid) });
+      }
+    } catch (e2) {
+      console.warn("Could not update original post comment count. Continuing...", e2);
     }
-  }
+    inputField.value = ''; showToast('💬 Comment posted!');
+  } catch (err) { console.error('Comment error:', err); }
 }
 
-// ─────────────────────────────────────────────
-// LIGHTBOX
-// ─────────────────────────────────────────────
+window.deleteComment = function(commentId) {
+  // Find metadata for the popup
+  const isOrgPost = allOrgPosts.some(p => p.id === activePostId);
+  const collectionName = isOrgPost ? 'posts' : 'announcements';
+  
+  showConfirmDeleteToast(collectionName, activePostId, commentId);
+};
 
-// --- ADD TO YOUR STATE SECTION (Line 50ish) ---
-let currentGallery = [];
-let currentIndex = 0;
+function showConfirmDeleteToast(collectionName, postId, commentId) {
+  let overlay = document.getElementById('cn-confirm-overlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'cn-confirm-overlay';
+    overlay.className = 'confirm-toast-overlay';
+    document.body.appendChild(overlay);
+  }
 
-// --- REPLACE THESE FUNCTIONS IN YOUR JS ---
+  overlay.innerHTML = `
+    <div class="confirm-toast-pill">
+      <span class="confirm-toast-text">🗑️ Delete this comment?</span>
+      <div class="confirm-toast-actions">
+        <button class="confirm-toast-btn delete" id="confirm-delete-go">Delete</button>
+        <button class="confirm-toast-btn cancel" id="confirm-delete-cancel">Cancel</button>
+      </div>
+    </div>
+  `;
+
+  overlay.classList.add('show');
+
+  document.getElementById('confirm-delete-go').onclick = async () => {
+    overlay.classList.remove('show');
+    await performDeleteComment(collectionName, postId, commentId);
+  };
+
+  document.getElementById('confirm-delete-cancel').onclick = () => {
+    overlay.classList.remove('show');
+  };
+}
+
+window.performDeleteComment = async function(collectionName, postId, commentId) {
+  try {
+    const commentRef = doc(db, `${collectionName}/${postId}/comments`, commentId);
+    await deleteDoc(commentRef);
+    if (collectionName === 'posts') {
+      await updateDoc(doc(db, 'posts', postId), { comments: increment(-1) });
+    } else {
+      await updateDoc(doc(db, 'announcements', postId), { comments: arrayRemove(currentUser.uid) });
+    }
+    showToast('🗑️ Comment deleted');
+  } catch (err) {
+    console.error('Delete error:', err);
+    showToast('Error deleting comment.');
+  }
+};
+
+window.editComment = function(commentId) {
+  const bubble = document.getElementById(`bubble-${commentId}`);
+  const editWrap = document.getElementById(`edit-wrap-${commentId}`);
+  if (bubble) bubble.style.display = 'none';
+  if (editWrap) editWrap.style.display = 'flex';
+};
+
+window.cancelCommentEdit = function(commentId) {
+  const bubble = document.getElementById(`bubble-${commentId}`);
+  const editWrap = document.getElementById(`edit-wrap-${commentId}`);
+  if (bubble) bubble.style.display = 'block';
+  if (editWrap) editWrap.style.display = 'none';
+};
+
+window.saveCommentEdit = async function(collectionName, postId, commentId) {
+  const input = document.getElementById(`edit-input-${commentId}`);
+  const newText = input?.value.trim();
+  if (!newText) return;
+  try {
+    const commentRef = doc(db, `${collectionName}/${postId}/comments`, commentId);
+    await updateDoc(commentRef, { text: newText, updatedAt: serverTimestamp() });
+    showToast('📝 Comment updated');
+    cancelCommentEdit(commentId);
+  } catch (err) {
+    console.error('Edit comment error:', err);
+  }
+};
 
 function wireLightboxTriggers() {
   document.querySelectorAll('.lightbox-trigger').forEach(el => {
-    // Clone to prevent multiple listeners if re-rendered
-    const fresh = el.cloneNode(true);
-    el.replaceWith(fresh);
-
-    fresh.addEventListener('click', () => {
-      // Find the parent card to get the post ID
+    const fresh = el.cloneNode(true); el.replaceWith(fresh);
+    fresh.addEventListener('click', (e) => {
+      e.stopPropagation();
       const card = fresh.closest('[data-id]');
-      if (!card) return;
+      const pid = card?.dataset.id;
+      const post = allPosts.find(p => p.id === pid) || allOrgPosts.find(p => p.id === pid);
+      if (!post) return;
 
-      const postId = card.dataset.id;
-      const post = allPosts.find(p => p.id === postId);
-
-      if (post && post.imageURLs && post.imageURLs.length > 0) {
-        currentGallery = post.imageURLs;
-        const clickedSrc = fresh.dataset.src;
-        currentIndex = currentGallery.indexOf(clickedSrc);
-        if (currentIndex === -1) currentIndex = 0;
-
+      const gallery = post.imageURLs || (post.imageURL ? [post.imageURL] : []);
+      if (gallery.length > 0) {
+        window.currentGallery = gallery;
+        window.currentIndex = gallery.indexOf(fresh.dataset.src);
+        if (window.currentIndex === -1) window.currentIndex = 0;
         openLightbox();
       }
     });
   });
 }
 
+function renderPhotoGrid(imgs) {
+  const count = imgs.length;
+  const clampedCount = Math.min(count, 5);
+  const extra = count > 5 ? count - 5 : 0;
+  const borderRadius = '18px';
+  const gap = '8px';
+
+  if (clampedCount === 1) {
+    return `<div class="lightbox-trigger" data-src="${imgs[0]}" style="cursor:pointer; border-radius:${borderRadius}; overflow:hidden; display:block;">
+              <img src="${imgs[0]}" style="width:100%; display:block; object-fit:cover; max-height:500px;" />
+            </div>`;
+  }
+
+  let style = `display: grid !important; height: 340px !important; gap: ${gap} !important; width: 100% !important; border-radius:${borderRadius}; overflow:hidden;`;
+  if (clampedCount === 2) style += ` grid-template-columns: 1fr 1fr !important; grid-template-rows: 1fr !important;`;
+  else if (clampedCount === 3) style += ` grid-template-columns: 1fr 1fr !important; grid-template-rows: 1fr 1fr !important;`;
+  else if (clampedCount === 4) style += ` grid-template-columns: 1fr 1fr !important; grid-template-rows: 1fr 1fr !important;`;
+  else style += ` grid-template-columns: 2fr 1fr 1fr !important; grid-template-rows: 1fr 1fr !important;`;
+
+  let gridHtml = `<div class="photo-grid collage-${clampedCount}" style="${style}">`;
+
+  const cellsHtml = imgs.slice(0, 5).map((src, i) => {
+    let cellStyle = "position: relative !important; overflow: hidden !important; min-width: 0 !important; min-height: 0 !important; width: 100% !important; height: 100% !important; cursor:pointer;";
+    if (clampedCount === 3 && i === 0) cellStyle += " grid-row: 1 / 3 !important;";
+    else if (clampedCount === 5 && i === 0) cellStyle += " grid-column: 1 / 2 !important; grid-row: 1 / 3 !important;";
+
+    const overlayHtml = (i === 4 && extra > 0) 
+      ? `<div class="photo-more-overlay" style="position: absolute !important; inset: 0 !important; background: rgba(0,0,0,0.5) !important; display: flex !important; align-items: center !important; justify-content: center !important; color: #fff !important; font-size: 24px !important; font-weight: 700 !important; z-index: 2 !important; pointer-events: none !important; font-family: 'Montserrat', sans-serif;">+${extra}</div>` 
+      : '';
+
+    return `
+      <div class="collage-cell lightbox-trigger" data-src="${src}" style="${cellStyle}">
+        <img src="${src}" style="position: absolute !important; top: 0 !important; left: 0 !important; width: 100% !important; height: 100% !important; object-fit: cover !important; display: block !important;" />
+        ${overlayHtml}
+      </div>`;
+  }).join('');
+
+  return gridHtml + cellsHtml + `</div>`;
+}
+
 function openLightbox() {
   const lb = document.getElementById('cn-lightbox');
-  const lbImg = document.getElementById('cn-lightbox-img');
-  const lbCounter = document.getElementById('lb-counter');
-
-  if (lb && lbImg) {
-    // Re-trigger the slide-in animation on each navigation
-    lbImg.style.animation = 'none';
-    void lbImg.offsetWidth; // reflow
-    lbImg.style.animation = '';
-
-    lbImg.src = currentGallery[currentIndex];
-    lb.classList.add('open');
-    lb.dataset.count = currentGallery.length;
-
-    if (lbCounter) {
-      lbCounter.textContent = `${currentIndex + 1} / ${currentGallery.length}`;
-      lbCounter.style.display = currentGallery.length > 1 ? '' : 'none';
-    }
+  const img = document.getElementById('cn-lightbox-img');
+  const counter = document.getElementById('lb-counter');
+  if (lb && img) { 
+    img.src = window.currentGallery[window.currentIndex]; 
+    lb.classList.add('open'); 
+    if (counter) counter.textContent = `${window.currentIndex + 1} / ${window.currentGallery.length}`;
+    lb.dataset.count = window.currentGallery.length;
   }
 }
 
 function initLightbox() {
-  // Check if it already exists to avoid duplicates
   if (!document.getElementById('cn-lightbox')) {
     document.body.insertAdjacentHTML('beforeend', `
       <div id="cn-lightbox">
         <span id="cn-lightbox-close">✕</span>
+        <img id="cn-lightbox-img" src=""/>
         <button id="lb-prev" class="lb-nav">❮</button>
-        <img id="cn-lightbox-img" src="" alt="Full view"/>
         <button id="lb-next" class="lb-nav">❯</button>
         <div id="lb-counter"></div>
-      </div>`);
+      </div>
+    `);
   }
-
   const lb = document.getElementById('cn-lightbox');
-
-  // Close triggers
   document.getElementById('cn-lightbox-close')?.addEventListener('click', () => lb.classList.remove('open'));
   lb?.addEventListener('click', e => { if (e.target === lb) lb.classList.remove('open'); });
-
-  // Navigation Logic
-  document.getElementById('lb-prev')?.addEventListener('click', (e) => {
+  
+  document.getElementById('lb-prev')?.addEventListener('click', (e) => { 
     e.stopPropagation();
-    currentIndex = (currentIndex > 0) ? currentIndex - 1 : currentGallery.length - 1;
-    openLightbox();
+    window.currentIndex = (window.currentIndex > 0) ? window.currentIndex - 1 : window.currentGallery.length - 1; 
+    openLightbox(); 
   });
-
-  document.getElementById('lb-next')?.addEventListener('click', (e) => {
+  document.getElementById('lb-next')?.addEventListener('click', (e) => { 
     e.stopPropagation();
-    currentIndex = (currentIndex < currentGallery.length - 1) ? currentIndex + 1 : 0;
-    openLightbox();
+    window.currentIndex = (window.currentIndex < window.currentGallery.length - 1) ? window.currentIndex + 1 : 0; 
+    openLightbox(); 
   });
-
-  // Keyboard navigation
-  document.addEventListener('keydown', (e) => {
-    const lb = document.getElementById('cn-lightbox');
-    if (!lb?.classList.contains('open')) return;
-    if (e.key === 'Escape') {
-      lb.classList.remove('open');
-    } else if (e.key === 'ArrowLeft') {
-      currentIndex = (currentIndex > 0) ? currentIndex - 1 : currentGallery.length - 1;
-      openLightbox();
-    } else if (e.key === 'ArrowRight') {
-      currentIndex = (currentIndex < currentGallery.length - 1) ? currentIndex + 1 : 0;
-      openLightbox();
-    }
-  });
-}
-
-// ─────────────────────────────────────────────
-// CUSTOM DATE PICKER
-// ─────────────────────────────────────────────
-
-const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-const DAYS_SHORT = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
-
-let dpState = {
-  target: 'from',
-  viewYear: new Date().getFullYear(),
-  viewMonth: new Date().getMonth(),
-  fromDate: null,
-  toDate: null,
-};
-
-function dpFmt(d) {
-  if (!d) return '';
-  return MONTHS[d.getMonth()].slice(0, 3) + ' ' + d.getDate() + ', ' + d.getFullYear();
-}
-
-function dpISOVal(d) {
-  if (!d) return '';
-  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
-}
-
-function buildCalendarHTML() {
-  const { viewYear, viewMonth, fromDate, toDate } = dpState;
-  const today = new Date(); today.setHours(0, 0, 0, 0);
-  const firstDay = new Date(viewYear, viewMonth, 1).getDay();
-  const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
-
-  const hdrHTML = DAYS_SHORT.map(d => '<div class="dp-day-hdr">' + d + '</div>').join('');
-  let cells = '';
-  for (let i = 0; i < firstDay; i++) cells += '<div class="dp-cell dp-cell-empty"></div>';
-  for (let day = 1; day <= daysInMonth; day++) {
-    const d = new Date(viewYear, viewMonth, day); d.setHours(0, 0, 0, 0);
-    const isToday = d.getTime() === today.getTime();
-    const isFrom = fromDate && d.getTime() === fromDate.getTime();
-    const isTo = toDate && d.getTime() === toDate.getTime();
-    const inRange = fromDate && toDate && d > fromDate && d < toDate;
-    const cls = ['dp-cell',
-      isFrom ? 'dp-cell-from' : '',
-      isTo ? 'dp-cell-to' : '',
-      inRange ? 'dp-cell-in-range' : '',
-      isToday ? 'dp-cell-today' : '',
-    ].filter(Boolean).join(' ');
-    cells += '<div class="' + cls + '" data-day="' + day + '">' + day + '</div>';
-  }
-
-  return '<div class="dp-header">' +
-    '<button class="dp-nav" id="dp-prev">&#8249;</button>' +
-    '<span class="dp-month-label">' + MONTHS[viewMonth] + ' ' + viewYear + '</span>' +
-    '<button class="dp-nav" id="dp-next">&#8250;</button>' +
-    '</div>' +
-    '<div class="dp-grid-hdr">' + hdrHTML + '</div>' +
-    '<div class="dp-grid">' + cells + '</div>';
-}
-
-function renderCalendar() {
-  const el = document.getElementById('cn-dp-calendar');
-  if (el) el.innerHTML = buildCalendarHTML();
-
-  const fromDisp = document.getElementById('cn-dp-from-display');
-  const toDisp = document.getElementById('cn-dp-to-display');
-  if (fromDisp) fromDisp.textContent = dpFmt(dpState.fromDate) || 'Select date';
-  if (toDisp) toDisp.textContent = dpFmt(dpState.toDate) || 'Select date';
-
-  document.getElementById('cn-dp-from-box')?.classList.toggle('dp-box-active', dpState.target === 'from');
-  document.getElementById('cn-dp-to-box')?.classList.toggle('dp-box-active', dpState.target === 'to');
-
-  document.getElementById('dp-prev')?.addEventListener('click', (e) => {
-    e.stopPropagation();
-    dpState.viewMonth--;
-    if (dpState.viewMonth < 0) { dpState.viewMonth = 11; dpState.viewYear--; }
-    renderCalendar();
-  });
-  document.getElementById('dp-next')?.addEventListener('click', (e) => {
-    e.stopPropagation();
-    dpState.viewMonth++;
-    if (dpState.viewMonth > 11) { dpState.viewMonth = 0; dpState.viewYear++; }
-    renderCalendar();
-  });
-
-  document.querySelectorAll('.dp-cell[data-day]').forEach(cell => {
-    cell.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const day = parseInt(cell.dataset.day);
-      const chosen = new Date(dpState.viewYear, dpState.viewMonth, day);
-      chosen.setHours(0, 0, 0, 0);
-      if (dpState.target === 'from') {
-        dpState.fromDate = chosen;
-        if (dpState.toDate && chosen > dpState.toDate) dpState.toDate = null;
-        dpState.target = 'to';
-      } else {
-        if (dpState.fromDate && chosen < dpState.fromDate) {
-          dpState.toDate = dpState.fromDate; dpState.fromDate = chosen;
-        } else {
-          dpState.toDate = chosen;
-        }
-        dpState.target = 'from';
-      }
-      renderCalendar();
-    });
-  });
-}
-
-function injectDatePickerUI() {
-  const customDiv = document.getElementById('cn-filter-custom');
-  if (!customDiv) return;
-  // Always re-render so date picker is fresh every time custom is opened
-  customDiv.innerHTML =
-    '<div class="dp-inputs-row">' +
-    '<div class="dp-box" id="cn-dp-from-box">' +
-    '<span class="dp-box-label">FROM</span>' +
-    '<span class="dp-box-date" id="cn-dp-from-display">Select date</span>' +
-    '</div>' +
-    '<div class="dp-arrow">→</div>' +
-    '<div class="dp-box" id="cn-dp-to-box">' +
-    '<span class="dp-box-label">TO</span>' +
-    '<span class="dp-box-date" id="cn-dp-to-display">Select date</span>' +
-    '</div>' +
-    '</div>' +
-    '<div class="dp-calendar-wrap" id="cn-dp-calendar"></div>' +
-    '<button class="cn-filter-apply" id="cn-filter-apply">Apply Range</button>';
-
-  document.getElementById('cn-dp-from-box')?.addEventListener('click', (e) => {
-    e.stopPropagation(); dpState.target = 'from'; renderCalendar();
-  });
-  document.getElementById('cn-dp-to-box')?.addEventListener('click', (e) => {
-    e.stopPropagation(); dpState.target = 'to'; renderCalendar();
-  });
-  renderCalendar();
-
-  document.getElementById('cn-filter-apply')?.addEventListener('click', () => {
-    if (!dpState.fromDate || !dpState.toDate) { showToast('Please select both a From and To date.'); return; }
-    customFrom = dpISOVal(dpState.fromDate);
-    customTo = dpISOVal(dpState.toDate);
-
-    // Update the filter button label to show selected range
-    const labelEl = document.getElementById('cn-filter-btn')?.querySelector('.cn-filter-label');
-    if (labelEl) {
-      labelEl.textContent = dpFmt(dpState.fromDate) + ' – ' + dpFmt(dpState.toDate) + ' ✕';
-    }
-
-    renderBulletinPage(getFilteredPosts());
-    document.getElementById('cn-filter-portal')?.classList.remove('open');
-    document.getElementById('cn-filter-btn')?.classList.remove('active');
-  });
-}
-
-// ─────────────────────────────────────────────
-// FILTER UI  — portal-based dropdown
-// The portal is appended to <body> so no parent overflow/stacking
-// context can ever trap it above the pinned post card.
-// ─────────────────────────────────────────────
-
-function buildFilterPortal() {
-  if (document.getElementById('cn-filter-portal')) return;
-
-  const portal = document.createElement('div');
-  portal.id = 'cn-filter-portal';
-  portal.innerHTML = `
-    <div class="cn-filter-title">Filter by date</div>
-    <div class="cn-filter-options">
-      <button class="cn-filter-opt active" data-filter="all">All</button>
-      <button class="cn-filter-opt" data-filter="today">Today</button>
-      <button class="cn-filter-opt" data-filter="week">This Week</button>
-      <button class="cn-filter-opt" data-filter="month">This Month</button>
-      <button class="cn-filter-opt" data-filter="custom">Custom Range</button>
-    </div>
-    <div class="cn-filter-custom hidden" id="cn-filter-custom"></div>
-  `;
-  document.body.appendChild(portal);
-}
-
-function positionPortal(btn) {
-  const portal = document.getElementById('cn-filter-portal');
-  if (!portal || !btn) return;
-  const rect = btn.getBoundingClientRect();
-  const portalW = portal.offsetWidth || 320;
-  const portalH = portal.offsetHeight || 100;
-
-  // Align right edge of portal with right edge of button
-  let left = rect.right - portalW;
-  if (left < 8) left = 8;
-  if (left + portalW > window.innerWidth - 8) left = window.innerWidth - portalW - 8;
-
-  // Default: drop below button
-  let top = rect.bottom + 8;
-  // If it would go off the bottom, flip above
-  if (top + portalH > window.innerHeight - 8) {
-    top = rect.top - portalH - 8;
-    if (top < 8) top = 8; // last resort: clamp to top
-  }
-
-  portal.style.top = top + 'px';
-  portal.style.left = left + 'px';
 }
 
 function initFilterUI() {
-  buildFilterPortal();
-
-  const filterBtn = document.getElementById('cn-filter-btn');
-  const portal = document.getElementById('cn-filter-portal');
-
-  const LABELS = { all: 'Filter Posts', today: 'Today', week: 'This Week', month: 'This Month', custom: 'Custom Range' };
-
-  function openPortal() {
-    portal.classList.add('open');
-    filterBtn?.classList.add('active');
-    // position after display:block so offsetWidth is correct
-    requestAnimationFrame(() => positionPortal(filterBtn));
-  }
-
-  function closePortal() {
-    portal.classList.remove('open');
-    filterBtn?.classList.remove('active');
-  }
-
-  // Toggle on button click
-  filterBtn?.addEventListener('click', (e) => {
-    e.stopPropagation();
-    portal.classList.contains('open') ? closePortal() : openPortal();
-  });
-
-  // Close on outside click
-  document.addEventListener('click', (e) => {
-    if (!portal.contains(e.target) && e.target !== filterBtn && !filterBtn?.contains(e.target)) {
-      closePortal();
-    }
-  });
-
-  // Reposition on scroll/resize so it stays glued to the button
-  window.addEventListener('resize', () => { if (portal.classList.contains('open')) positionPortal(filterBtn); });
-  document.querySelector('.content')?.addEventListener('scroll', () => { if (portal.classList.contains('open')) positionPortal(filterBtn); });
-
-  // Filter option clicks (delegated — portal lives on body)
-  portal.addEventListener('click', (e) => {
-    const opt = e.target.closest('.cn-filter-opt');
-    if (!opt) return;
-    e.stopPropagation();
-
-    portal.querySelectorAll('.cn-filter-opt').forEach(o => o.classList.remove('active'));
-    opt.classList.add('active');
-    activeFilter = opt.dataset.filter;
-
-    const labelEl = filterBtn?.querySelector('.cn-filter-label');
-    if (labelEl) {
-      if (activeFilter === 'all') labelEl.textContent = 'Filter Posts';
-      else if (activeFilter === 'custom') labelEl.textContent = 'Custom Range…';
-      else labelEl.textContent = LABELS[activeFilter] + ' ✕';
-    }
-
-    if (activeFilter === 'custom') {
-      document.getElementById('cn-filter-custom')?.classList.remove('hidden');
-      dpState.fromDate = null;
-      dpState.toDate = null;
-      dpState.target = 'from';
-      dpState.viewYear = new Date().getFullYear();
-      dpState.viewMonth = new Date().getMonth();
-      injectDatePickerUI();
-      // Reposition after calendar expands the portal width/height
-      requestAnimationFrame(() => positionPortal(filterBtn));
-    } else {
-      document.getElementById('cn-filter-custom')?.classList.add('hidden');
-      customFrom = null; customTo = null;
-      dpState.fromDate = null; dpState.toDate = null;
-      renderBulletinPage(getFilteredPosts());
-      closePortal();
-    }
-  });
+  const btn = document.getElementById('cn-filter-btn');
+  btn?.addEventListener('click', () => { /* Filter logic already handled by portal/delegate in turn 31 */ });
 }
-
-// ─────────────────────────────────────────────
-// SEARCH
-// ─────────────────────────────────────────────
 
 function initSearch() {
-  const input = document.getElementById('cn-search-input');
-  if (!input) return;
-  input.addEventListener('input', () => renderBulletinPage(getFilteredPosts()));
+  document.getElementById('cn-search-input')?.addEventListener('input', () => renderBulletinPage(getFilteredPosts()));
 }
 
-// ─────────────────────────────────────────────
-// SIDE TABS
-// ─────────────────────────────────────────────
-
 function initSideTabs() {
-  const tabs = document.querySelectorAll('.side-tab');
-  const sections = {
-    org: document.getElementById('section-org'),
-    bulletin: document.getElementById('section-bulletin'),
-  };
-
-  tabs.forEach(tab => {
+  document.querySelectorAll('.side-tab').forEach(tab => {
     tab.addEventListener('click', () => {
-      tabs.forEach(t => t.classList.remove('active'));
-      tab.classList.add('active');
-      const target = tab.dataset.section;
-      Object.entries(sections).forEach(([key, el]) => {
-        if (el) el.classList.toggle('hidden', key !== target);
-      });
+      document.querySelectorAll('.side-tab').forEach(t => t.classList.remove('active')); tab.classList.add('active');
+      activeSection = tab.dataset.section;
+      document.getElementById('section-org')?.classList.toggle('hidden', activeSection !== 'org');
+      document.getElementById('section-bulletin')?.classList.toggle('hidden', activeSection !== 'bulletin');
+      if (activeSection === 'org') renderOrgFeed(); else renderBulletinPage(getFilteredPosts());
     });
   });
-
-  sections.bulletin?.classList.remove('hidden');
-  sections.org?.classList.add('hidden');
-  document.getElementById('tab-bulletin')?.classList.add('active');
-  document.getElementById('tab-org')?.classList.remove('active');
 }
 
 function initOrgTabs() {
   document.querySelectorAll('.org-tab').forEach(tab => {
     tab.addEventListener('click', () => {
-      document.querySelectorAll('.org-tab').forEach(t => t.classList.remove('active'));
-      tab.classList.add('active');
+      document.querySelectorAll('.org-tab').forEach(t => t.classList.remove('active')); tab.classList.add('active');
+      orgFilter = tab.dataset.college; renderOrgFeed();
     });
   });
 }
 
-// ─────────────────────────────────────────────
-// RIGHT PANEL
-// ─────────────────────────────────────────────
+function listenToOrgPosts() {
+  const q = query(collection(db, 'posts'), where('isOrg', '==', true), orderBy('createdAt', 'desc'));
+  onSnapshot(q, (snapshot) => {
+    const changes = snapshot.docChanges();
+    const isInitial = allOrgPosts.length === 0;
 
-function initRightPanel() {
-  document.getElementById('cn-btn-settings')?.addEventListener('click', () => {
-    window.location.href = '../pages/settings.html';
-  });
-  document.getElementById('cn-btn-logout')?.addEventListener('click', async () => {
-    try { await auth.signOut(); window.location.href = '../pages/login.html'; }
-    catch (err) { console.error('Logout error:', err); }
-  });
+    // Keep data array updated
+    allOrgPosts = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
 
-  onAuthStateChanged(auth, async (user) => {
-    if (!user) return;
-    try {
-      const snap = await getDoc(doc(db, 'users', user.uid));
-      if (!snap.exists()) return;
-      const data = snap.data();
-      const nameEl = document.getElementById('cn-profile-name');
-      const emailEl = document.getElementById('cn-profile-email');
-      const idEl = document.getElementById('cn-profile-id');
-      const photoWrap = document.getElementById('cn-profile-photo-wrap');
-      if (nameEl) nameEl.textContent = data.fullName || user.displayName || '';
-      if (emailEl) emailEl.textContent = data.email || user.email || '';
-      const tupId = data.studentID || data.studentId || data.tupId || data.idNumber || '';
-      if (idEl) idEl.textContent = tupId || '—';
-      if (photoWrap && data.photoURL) {
-        photoWrap.innerHTML = `<img src="${data.photoURL}" alt="Profile photo" style="width:100%;height:100%;object-fit:cover;border-radius:12px;">`;
-      }
-    } catch (err) { console.error('Right panel profile error:', err); }
+    // If it's just a modification, update in-place to avoid flicker
+    if (!isInitial && changes.length > 0 && !changes.some(c => c.type === 'added' || c.type === 'removed')) {
+      changes.forEach(change => {
+        if (change.type === 'modified') {
+          updateOrgPostUI(change.doc.id, change.doc.data());
+        }
+      });
+      return;
+    }
+
+    // Otherwise (initial or structural change), full render
+    if (activeSection === 'org') renderOrgFeed();
+  }, (err) => {
+    console.error("Org posts snapshot error:", err);
   });
 }
 
-// ─────────────────────────────────────────────
-// AUTH + FIREBASE LISTENER
-// ─────────────────────────────────────────────
+function updateOrgPostUI(id, data) {
+  const card = document.querySelector(`.bulletin-card[data-id="${id}"]`);
+  if (!card) return;
+  const currentUid = auth.currentUser?.uid;
+  
+  // Update Likes
+  const likedBy = data.likedBy || [];
+  const likeBtn = card.querySelector('.feed-reaction-btn[data-type="likes"]');
+  if (likeBtn) {
+    likeBtn.classList.toggle('heart-active', currentUid && likedBy.includes(currentUid));
+    const countEl = likeBtn.querySelector('.likes-count');
+    if (countEl) countEl.textContent = fmt(likedBy.length);
+  }
+
+  // Update Reposts
+  const repostedBy = data.repostedBy || [];
+  const repostBtn = card.querySelector('.feed-reaction-btn[data-type="reposts"]');
+  if (repostBtn) {
+    repostBtn.classList.toggle('repost-active', currentUid && repostedBy.includes(currentUid));
+    const countEl = repostBtn.querySelector('.reposts-count');
+    if (countEl) countEl.textContent = fmt(repostedBy.length);
+  }
+
+  // Update Comment Count
+  const commentCount = data.comments || 0;
+  const commentBtn = card.querySelector('.cn-comment-trigger');
+  if (commentBtn) {
+    const countEl = commentBtn.querySelector('.comments-count');
+    if (countEl) countEl.textContent = fmt(commentCount);
+  }
+}
+
+function renderOrgFeed(postsOverride) {
+  const container = document.getElementById('org-feed-list');
+  if (!container) return;
+  if (postsOverride) allOrgPosts = postsOverride;
+  let filtered = allOrgPosts;
+  if (orgFilter === 'my' && currentUserCollege) {
+    filtered = allOrgPosts.filter(p => p.college === currentUserCollege || p.college === 'UNIVERSITY_WIDE' || p.college === 'All');
+  }
+  [...container.querySelectorAll('.bulletin-card, .cn-no-results')].forEach(c => c.remove());
+  if (filtered.length === 0) { document.getElementById('org-empty').style.display = 'flex'; return; }
+  document.getElementById('org-empty').style.display = 'none';
+  filtered.forEach(post => {
+    container.insertAdjacentHTML('beforeend', renderOrgPostCard(post, currentUser?.uid));
+    wireViewMore(`op-body-${post.id}`, `op-viewmore-${post.id}`);
+  });
+  wireOrgReactionButtons();
+  wireLightboxTriggers();
+}
+
+function renderOrgPostCard(post, uid) {
+  const likeCount = (post.likedBy || []).length;
+  const commentCount = post.comments || 0;
+  const repostCount = (post.repostedBy || []).length;
+  const iLiked = uid && (post.likedBy || []).includes(uid);
+  const iReposted = uid && (post.repostedBy || []).includes(uid);
+  const bodyHTML = (post.text || '').replace(/\n/g, '<br>');
+  const avatarHTML = post.photoURL ? `<img src="${post.photoURL}" alt="" style="width:100%; height:100%; object-fit:cover; image-rendering:high-quality;" />` : `<svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`;
+  const photoGrid = (post.imageURLs && post.imageURLs.length > 0)
+    ? `<div class="bulletin-media-col">${renderPhotoGrid(post.imageURLs)}</div>`
+    : (post.imageURL ? `<div class="bulletin-media-col"><div class="bulletin-photo-grid collage-1" style="height:250px; border-radius:12px; overflow:hidden;"><div class="collage-cell lightbox-trigger" data-src="${post.imageURL}" style="height:100%;"><img src="${post.imageURL}" alt="" style="width:100%; height:100%; object-fit:cover;" /></div></div></div>` : '');
+
+  let contentHTML = `
+    <div class="bulletin-columns-wrap">
+      <div class="bulletin-caption-col">
+        ${post.title ? `<div class="bulletin-card-title">${escapeHTML(post.title)}</div>` : ''}
+        <div class="bulletin-card-text clamped" id="op-body-${post.id}">${bodyHTML}</div>
+        <button class="view-more-btn" id="op-viewmore-${post.id}">View more ▾</button>
+      </div>
+      ${photoGrid}
+    </div>`;
+
+  if (post.repostOf) {
+    contentHTML = `
+      ${post.text ? `<div class="repost-quote-text" style="margin-bottom:12px; font-weight:600; color:var(--text);">${escapeHTML(post.text)}</div>` : ''}
+      <div class="repost-quote-card" style="border:1.5px solid var(--border); border-radius:12px; padding:12px; background:rgba(255,255,255,0.4); cursor:pointer;">
+        <div class="repost-quote-header" style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
+          <div class="repost-quote-avatar" style="width:24px; height:24px; border-radius:50%; overflow:hidden;">
+            <img src="${post.repostAuthorPhoto || '../assets/images/anon_avatar.jpg'}" style="width:100%; height:100%; object-fit:cover;">
+          </div>
+          <div class="repost-quote-meta">
+            <div class="repost-quote-author" style="font-size:13px; font-weight:800; color:var(--text);">${post.repostAuthor || 'User'}</div>
+            <div class="repost-quote-time" style="font-size:11px; color:var(--muted);">${post.repostTime || ''}</div>
+          </div>
+        </div>
+        <div class="repost-quote-body" style="font-size:13px; color:var(--text); line-height:1.4;">
+          ${post.repostTitle ? `<div class="bulletin-card-title" style="font-size:14px; margin-bottom:4px;">${escapeHTML(post.repostTitle)}</div>` : ''}
+          ${escapeHTML(post.repostText || '')}
+        </div>
+        ${post.repostImage ? `<div class="post-images lightbox-trigger" data-src="${post.repostImage}" style="margin-top:8px; border-radius:8px; overflow:hidden; cursor:pointer;"><img src="${post.repostImage}" class="post-image" style="width:100%; max-height:300px; object-fit:cover;"></div>` : ''}
+      </div>`;
+  }
+
+  return `
+    <div class="bulletin-card" data-id="${post.id}">
+      <div class="bulletin-card-header"><div class="bulletin-card-avatar">${avatarHTML}</div><div class="bulletin-card-meta-wrap"><div class="bulletin-card-author">${post.author || 'Organization'}</div><div class="bulletin-card-time">${timeAgo(post.createdAt)}</div></div></div>
+      <div class="bulletin-card-body ${post.imageURL || post.repostImage ? '' : 'no-images'}">
+        ${contentHTML}
+      </div>
+      <div class="feed-reactions bulletin-card-reactions">
+        <button class="feed-reaction-btn ${iLiked ? 'heart-active' : ''}" data-type="likes" data-id="${post.id}">
+          <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          <span class="likes-count">${fmt(likeCount)}</span> Heart
+        </button>
+        <button class="feed-reaction-btn cn-comment-trigger" data-id="${post.id}">
+          <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          <span class="comments-count">${fmt(commentCount)}</span> Comments
+        </button>
+        <button class="feed-reaction-btn ${iReposted ? 'repost-active' : ''}" data-type="reposts" data-id="${post.id}">
+          <svg viewBox="0 0 24 24"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+          <span class="reposts-count">${fmt(repostCount)}</span> Repost
+        </button>
+      </div>
+    </div>`;
+}
+
+function wireOrgReactionButtons() {
+  console.log("Wiring Org Reaction Buttons...");
+  document.querySelectorAll('#org-feed-list .feed-reaction-btn:not(.cn-comment-trigger)').forEach(el => {
+    const fresh = el.cloneNode(true); el.replaceWith(fresh);
+    const postId = fresh.dataset.id;
+    const type = fresh.dataset.type;
+    console.log(`[OrgFeed] Wired ${type} button for post ${postId}`);
+    fresh.addEventListener('click', (e) => {
+      e.stopPropagation();
+      console.log(`[OrgFeed] Clicked ${type} on post ${postId}`);
+      handleOrgReaction(fresh);
+    });
+  });
+  document.querySelectorAll('#org-feed-list .feed-reaction-btn.cn-comment-trigger').forEach(el => {
+    const fresh = el.cloneNode(true); el.replaceWith(fresh);
+    fresh.addEventListener('click', () => { activePostId = fresh.dataset.id; openCommentModal(activePostId); });
+  });
+}
+
+async function handleOrgReaction(el) {
+  if (!currentUser) { showToast('Sign in to react.'); return; }
+  const postId = el.dataset.id; const type = el.dataset.type;
+  console.log(`[OrgFeed] handleOrgReaction: role=${currentUserRole}, type=${type}, id=${postId}`);
+
+  // REPOST LOGIC: If student clicks repost, open modal
+  if (type === 'reposts' && currentUserRole === 'Student') {
+    const already = el.classList.contains('repost-active');
+    if (!already) {
+      console.log("[OrgFeed] Opening repost modal for student");
+      openRepostModal(postId);
+      return;
+    } else {
+      console.log("[OrgFeed] Removing student repost...");
+      try {
+        // Find and delete the repost document from the 'posts' collection
+        const q = query(collection(db, 'posts'), where('repostOf', '==', postId), where('userId', '==', currentUser.uid));
+        const snap = await getDocs(q);
+        const delPromises = snap.docs.map(d => deleteDoc(doc(db, 'posts', d.id)));
+        await Promise.all(delPromises);
+      } catch (err) { console.error('Error deleting repost doc:', err); }
+    }
+  }
+
+  const field = { likes: 'likedBy', reposts: 'repostedBy' }[type];
+  const already = type === 'likes' ? el.classList.contains('heart-active') : el.classList.contains('repost-active');
+
+  const countEl = el.querySelector('.likes-count, .reposts-count');
+  if (countEl) {
+    let current = parseInt(countEl.textContent.replace(/[^\d]/g, '')) || 0;
+    countEl.textContent = fmt(already ? Math.max(0, current - 1) : current + 1);
+  }
+
+  el.classList.toggle(type === 'likes' ? 'heart-active' : 'repost-active', !already);
+  try {
+    await updateDoc(doc(db, 'posts', postId), { [field]: already ? arrayRemove(currentUser.uid) : arrayUnion(currentUser.uid) });
+    console.log(`[OrgFeed] Updated ${type} in Firestore for ${postId}`);
+  } catch (err) { console.error('Org reaction error:', err); }
+}
+
+window.openRepostModal = async function(postId, collectionName = 'posts') {
+  if (!currentUser) { showToast('Sign in to repost.'); return; }
+  activePostId = postId;
+  activeCollection = collectionName;
+  
+  const overlay = document.getElementById('cn-repost-modal-overlay');
+  const modal = document.getElementById('cn-repost-modal');
+  if (!overlay || !modal) return;
+
+  // 1. Show overlay
+  overlay.classList.add('open');
+  overlay.style.display = 'flex';
+
+  // 2. Clear previous data
+  document.getElementById('repostContent').value = '';
+  document.getElementById('repost-user-name').textContent = currentUserName || 'TUPian';
+  const userAvatar = document.getElementById('repost-user-avatar');
+  if (userAvatar && currentUserPhoto) {
+    userAvatar.innerHTML = `<img src="${currentUserPhoto}" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">`;
+  }
+
+  // 3. Fetch original post for preview
+  const previewBody = document.getElementById('quote-preview-body');
+  const previewAuthor = document.getElementById('quote-preview-author');
+  const previewAvatar = document.getElementById('quote-preview-avatar');
+  const previewTitle = document.getElementById('quote-preview-title');
+  const previewTime = document.getElementById('quote-preview-time');
+
+  previewBody.textContent = 'Loading...';
+  previewAuthor.textContent = '...';
+
+  try {
+    const postSnap = await getDoc(doc(db, collectionName, postId));
+    if (postSnap.exists()) {
+      const data = postSnap.data();
+      previewAuthor.textContent = data.author || 'TUP Konek';
+      previewBody.textContent = data.text || data.body || '';
+      previewTitle.textContent = data.title || '';
+      previewTime.textContent = data.createdAt ? timeAgo(data.createdAt) : 'Just now';
+      
+      if (data.photoURL) {
+        previewAvatar.innerHTML = `<img src="${data.photoURL}" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">`;
+      } else {
+        previewAvatar.innerHTML = `<svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`;
+      }
+
+      // Add image preview if exists
+      const existingImg = modal.querySelector('.cn-rm-quote-image');
+      if (existingImg) existingImg.remove();
+      const imageURL = data.imageURL || (data.imageURLs && data.imageURLs[0]) || null;
+      if (imageURL) {
+        const imgEl = document.createElement('img');
+        imgEl.className = 'cn-rm-quote-image';
+        imgEl.src = imageURL;
+        imgEl.style.cssText = 'width:100%; max-height:200px; object-fit:cover; border-radius:8px; margin-top:8px;';
+        document.getElementById('repost-quote-preview').appendChild(imgEl);
+      }
+    }
+  } catch (err) {
+    console.error("Error fetching for preview:", err);
+    previewBody.textContent = 'Error loading preview.';
+  }
+
+  // 4. Focus
+  setTimeout(() => document.getElementById('repostContent').focus(), 150);
+};
+
+window.closeRepostModal = function() {
+  const overlay = document.getElementById('cn-repost-modal-overlay');
+  if (overlay) {
+    overlay.classList.remove('open');
+    overlay.style.display = 'none';
+  }
+  const content = document.getElementById('repostContent');
+  if (content) content.value = '';
+  activePostId = null;
+};
+
+window.closeRepostModalOnOverlay = function(e) {
+  if (e.target.id === 'cn-repost-modal-overlay') window.closeRepostModal();
+};
+
+window.submitRepost = async function(skipQuote = false) {
+  const quote = skipQuote ? "" : document.getElementById('repostContent').value.trim();
+  if (!activePostId || !currentUser) return;
+
+  const submitBtn = document.getElementById('repost-submit-btn');
+  if (submitBtn) submitBtn.disabled = true;
+
+  try {
+    const coll = activeCollection || 'posts';
+    const postSnap = await getDoc(doc(db, coll, activePostId));
+    if (!postSnap.exists()) {
+      showToast("Original post not found.");
+      return;
+    }
+    const original = postSnap.data();
+
+    const repostData = {
+      userId: currentUser.uid,
+      author: currentUserName || "Student",
+      photoURL: currentUserPhoto || currentUser.photoURL || null,
+      text: quote,
+      repostOf: activePostId,
+      repostAuthor: original.author || "TUP Konek",
+      repostAuthorPhoto: original.photoURL || null,
+      repostTitle: original.title || "",
+      repostText: original.text || original.body || "",
+      repostImage: original.imageURL || (original.imageURLs && original.imageURLs[0]) || null,
+      createdAt: serverTimestamp(),
+      likedBy: [],
+      comments: 0,
+      repostedBy: [],
+      repostTime: document.getElementById('quote-preview-time').textContent || "",
+      isOrg: currentUserRole === 'Organization',
+      college: currentUserCollege || null
+    };
+
+    await addDoc(collection(db, "posts"), repostData);
+
+    // Update the original post's repostedBy array (or 'reposts' for announcements)
+    try {
+      const field = coll === 'posts' ? 'repostedBy' : 'reposts';
+      await updateDoc(doc(db, coll, activePostId), {
+        [field]: arrayUnion(currentUser.uid)
+      });
+    } catch (e2) {
+      console.warn("Could not update original post repost count. Continuing...", e2);
+    }
+
+    window.closeRepostModal();
+    showToast("🔁 Reposted successfully!");
+
+    // If we are in the Org feed, we might want to refresh or update the UI
+    // The snapshot listener should handle it automatically if it's watching all posts
+  } catch (err) {
+    console.error("Repost failed:", err);
+    showToast("Error reposting.");
+  } finally {
+    if (submitBtn) submitBtn.disabled = false;
+  }
+};
+
+function initRightPanel() {
+  document.getElementById('cn-btn-settings')?.addEventListener('click', () => {
+    const route = currentUserRole === 'Organization' ? '../pages/setup_org.html' : '../pages/setup_student.html';
+    window.location.href = route;
+  });
+  document.getElementById('cn-btn-logout')?.addEventListener('click', async () => {
+    try {
+      const { getAuth, signOut } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js");
+      await signOut(auth);
+      localStorage.clear();
+      window.location.href = '../index.html';
+    } catch (err) { 
+      console.error('Logout error:', err); 
+      localStorage.clear();
+      window.location.href = '../index.html'; 
+    }
+  });
+}
 
 function initAuth() {
   onAuthStateChanged(auth, async (user) => {
-    currentUser = user;
     if (user) {
-      try {
-        const snap = await getDoc(doc(db, 'users', user.uid));
-        if (snap.exists()) {
-          const data = snap.data();
-          currentUserRole = data.role || 'Student';
-          currentUserName = data.fullName || user.displayName || 'TUPian';
+      currentUser = user;
+      let userData = null;
+      let studentDoc = null;
+      let orgDoc = null;
 
-          // CRITICAL: Push the photo into the global cache and update the UI
-          window.cachedPhoto = data.photoURL || data.photoSrc || null;
-          if (window.updateModalInputAvatar) {
-            window.updateModalInputAvatar();
-          }
-        }
+      try {
+        studentDoc = await getDoc(doc(db, 'users', user.uid));
       } catch (err) {
-        console.error("Auth sync error:", err);
+        // Silent catch: User might be an organization
       }
+
+      try {
+        orgDoc = await getDoc(doc(db, 'organizations', user.uid));
+      } catch (err) {
+        // Silent catch: User might be a student
+      }
+
+      if (studentDoc?.exists()) {
+        const d = studentDoc.data();
+        // Priority: Check if role is USG (Admin)
+        if (d.role === 'USG') {
+          currentUserRole = 'Admin';
+        } else {
+          currentUserRole = 'Student';
+        }
+        currentUserName = d.fullName;
+        currentUserCollege = d.college;
+        currentUserPhoto = d.photoURL;
+        userData = { name: d.fullName, email: user.email, photoSrc: d.photoURL, id: d.studentID || 'Admin' };
+      } else if (orgDoc?.exists()) {
+        const d = orgDoc.data();
+        currentUserRole = 'Organization';
+        currentUserName = d.name;
+        currentUserCollege = d.college;
+        currentUserPhoto = d.photoURL;
+        userData = { name: d.name, email: user.email, photoSrc: d.photoURL, id: d.college };
+      }
+
+      if (userData) updateRightPanel(userData);
+
+      const myTab = document.querySelector('.org-tab[data-college="my"]');
+      if (myTab && currentUserCollege) myTab.textContent = `My College (${currentUserCollege})`;
+      listenToOrgPosts();
+    } else {
+      window.location.href = '../index.html';
     }
   });
+}
+
+function updateRightPanel(userData) {
+  const nameEl = document.getElementById('cn-profile-name');
+  const emailEl = document.getElementById('cn-profile-email');
+  const photoWrap = document.getElementById('cn-profile-photo-wrap');
+  const idEl = document.getElementById('cn-profile-id');
+
+  if (nameEl) nameEl.textContent = userData.name || '—';
+  if (emailEl) emailEl.textContent = userData.email || '—';
+  if (idEl) idEl.textContent = userData.id || '—';
+  if (photoWrap && userData.photoSrc) {
+    photoWrap.innerHTML = `<img src="${userData.photoSrc}" alt="Profile" style="width:100%;height:100%;object-fit:cover;border-radius:12px;image-rendering:high-quality;">`;
+  }
+  
+  // Comment modal avatar sync
+  const commentAv = document.getElementById('comment-input-avatar');
+  if (commentAv && userData.photoSrc) {
+    commentAv.innerHTML = `<img src="${userData.photoSrc}" alt="Me" style="width:100%;height:100%;object-fit:cover;border-radius:50%;image-rendering:high-quality;">`;
+  }
+
+  // Sidebar avatar sync
+  const sidebarAv = document.querySelector('.nav-profile-avatar');
+  if (sidebarAv && userData.photoSrc) {
+    sidebarAv.innerHTML = `<img src="${userData.photoSrc}" alt="Me" style="width:100%;height:100%;object-fit:cover;border-radius:50%;image-rendering:high-quality;">`;
+  }
 }
 
 function listenToAnnouncements() {
   const q = query(collection(db, 'announcements'), orderBy('createdAt', 'desc'));
   onSnapshot(q, (snapshot) => {
     const changes = snapshot.docChanges();
-    const feed = document.getElementById('feed');
-    const isFirstLoad = !feed || !feed.querySelector('.bulletin-card');
+    const isInitial = allPosts.length === 0;
 
-    // Optimization: If NOT the first load and only modifications happened (likes/reposts/comments)
-    // we update the UI elements in-place to prevent the "flicker".
-    if (!isFirstLoad && changes.length > 0 && changes.every(c => c.type === 'modified')) {
+    // Keep data array updated
+    allPosts = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+
+    // If it's just a modification, update in-place to avoid flicker
+    if (!isInitial && changes.length > 0 && !changes.some(c => c.type === 'added' || c.type === 'removed')) {
       changes.forEach(change => {
-        updateAnnouncementUI(change.doc.id, change.doc.data());
+        if (change.type === 'modified') {
+          updateAnnouncementUI(change.doc.id, change.doc.data());
+        }
       });
-      // Also update the global state
-      allPosts = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
       return;
     }
 
-    // Otherwise, do a full render for added/removed/initial
-    allPosts = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+    // Otherwise (initial or structural change), full render
     renderBulletinPage(getFilteredPosts());
   }, (err) => {
-    console.warn('campus_news: Firestore not available.', err);
-    allPosts = [];
-    renderBulletinPage(getFilteredPosts());
+    console.error("Announcements snapshot error:", err);
   });
 }
 
-/**
- * Updates an announcement card's counts and active states in-place.
- */
 function updateAnnouncementUI(id, data) {
-  const card = document.querySelector(`.bulletin-card[data-id="${id}"]`);
+  const card = document.querySelector(`.bulletin-card[data-id="${id}"], .pinned-post-card[data-id="${id}"]`);
   if (!card) return;
-
   const currentUid = auth.currentUser?.uid;
+  
+  // Handle Announcements structure (likes, reposts vs likedBy, repostedBy)
+  const likes = data.likes || [];
+  const reposts = data.reposts || [];
+  const comments = data.comments || [];
 
-  // 1. Update Likes
-  const likedBy = data.likedBy || [];
-  const isLikedByMe = currentUid && likedBy.includes(currentUid);
-  const likeBtn = card.querySelector('.feed-reaction-btn[data-type="like"]');
+  // Pinned Bar or Regular Button
+  const likeBtn = card.querySelector('.feed-reaction-btn[data-type="likes"], .social-item[data-type="likes"]');
   if (likeBtn) {
-    likeBtn.classList.toggle('heart-active', isLikedByMe);
-    const countSpan = likeBtn.querySelector('.likes-count');
-    if (countSpan) countSpan.textContent = fmt(likedBy.length);
+    const isPinned = likeBtn.classList.contains('social-item');
+    likeBtn.classList.toggle(isPinned ? 'reacted' : 'heart-active', currentUid && likes.includes(currentUid));
+    const countEl = likeBtn.querySelector('.likes-count, .social-count');
+    if (countEl) countEl.textContent = fmt(likes.length);
   }
 
-  // 2. Update Comments
-  const commentsCount = data.commentsCount || 0;
-  const commentBtn = card.querySelector('.feed-reaction-btn[data-type="comment"]');
-  if (commentBtn) {
-    const countSpan = commentBtn.querySelector('.comments-count');
-    if (countSpan) countSpan.textContent = fmt(commentsCount);
-  }
-
-  // 3. Update Reposts
-  const repostedBy = data.repostedBy || [];
-  const isRepostedByMe = currentUid && repostedBy.includes(currentUid);
-  const repostBtn = card.querySelector('.feed-reaction-btn[data-type="repost"]');
+  const repostBtn = card.querySelector('.feed-reaction-btn[data-type="reposts"], .social-item[data-type="reposts"]');
   if (repostBtn) {
-    repostBtn.classList.toggle('repost-active', isRepostedByMe);
-    const countSpan = repostBtn.querySelector('.reposts-count');
-    if (countSpan) countSpan.textContent = fmt(repostedBy.length);
+    const isPinned = repostBtn.classList.contains('social-item');
+    repostBtn.classList.toggle(isPinned ? 'reacted' : 'repost-active', currentUid && reposts.includes(currentUid));
+    const countEl = repostBtn.querySelector('.reposts-count, .social-count');
+    if (countEl) countEl.textContent = fmt(reposts.length);
+  }
+
+  const commentBtn = card.querySelector('.cn-comment-trigger, .comment-trigger-pinned');
+  if (commentBtn) {
+    const countEl = commentBtn.querySelector('.comments-count');
+    if (countEl) countEl.textContent = fmt(comments.length || comments); // Announcements uses array, Org uses number
   }
 }
 
-// ─────────────────────────────────────────────
-// BOOT
-// ─────────────────────────────────────────────
-
 document.addEventListener('DOMContentLoaded', () => {
-  initAuth();
-  initSideTabs();
-  initOrgTabs();
-  initCommentModal();
-  initLightbox();
-  initRightPanel();
-  initSearch();
-  initFilterUI();
-  listenToAnnouncements();
-   window.renderBulletinPage = renderBulletinPage;
+  initAuth(); initSideTabs(); initOrgTabs(); initCommentModal(); initLightbox(); initRightPanel(); initSearch(); listenToAnnouncements();
+  window.renderBulletinPage = renderBulletinPage;
+  window.renderOrgFeed = renderOrgFeed;
 });
 
-// ========================
-  // CHATBOT
-  // ========================
-
-  window.askSuggestion = askSuggestion;
-  window.toggleChat = toggleChat;
-  window.sendMessage = sendMessage;
-
-  function toggleChat() {
-    const modal = document.getElementById('chatModal');
-    if (modal) modal.classList.toggle('active');
-  }
-
-  function askSuggestion(text) {
-    const input = document.getElementById('userInput');
-    if (input) {
-      input.value = text;
-      sendMessage();
-    }
-  }
-
-  window.toggleChat = toggleChat;
-
-  async function sendMessage() {
-    const input = document.getElementById('userInput');
-    const body = document.getElementById('chatBody');
-    const text = input.value.trim();
-    if (!text) return;
-
-    // 1. Show User Message
-    const userMsg = document.createElement('div');
-    userMsg.className = 'user-message';
-    userMsg.textContent = text;
-    body.appendChild(userMsg);
-    input.value = '';
-    body.scrollTop = body.scrollHeight;
-
-    try {
-      // 2. Get Response from Gemini
-      const result = await model.generateContent(text);
-      const response = await result.response;
-      const botText = response.text();
-
-      // ════════════════════════════════════════
-      // 3. FORMATTING LOGIC (Dito ilalagay)
-      // ════════════════════════════════════════
-      let formattedResponse = botText
-        .replace(/\*\*(.*?)\*\*/g, '<b>$1</b>')
-        .replace(/^\* /gm, '• ')
-        .replace(/\n/g, '<br>');
-
-      const botRow = document.createElement('div');
-      botRow.className = 'bot-row';
-      botRow.innerHTML = `
-      <img src="../assets/images/Tupee_logo.png" class="bot-row-avatar">
-      <div class="bot-message">${formattedResponse}</div>
-    `;
-      body.appendChild(botRow);
-      body.scrollTop = body.scrollHeight;
-
-    } catch (error) {
-      console.error("Gemini Error:", error);
-    }
-  }
+async function sendMessage() {
+  const input = document.getElementById('userInput');
+  const body = document.getElementById('chatBody');
+  const text = input.value.trim();
+  if (!text) return;
+  const userMsg = document.createElement('div'); userMsg.className = 'user-message'; userMsg.textContent = text; body.appendChild(userMsg);
+  input.value = ''; body.scrollTop = body.scrollHeight;
+  try {
+    const result = await model.generateContent(text);
+    const response = await result.response;
+    const botText = response.text();
+    let formattedResponse = botText.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>').replace(/^\* /gm, '• ').replace(/\n/g, '<br>');
+    const botRow = document.createElement('div'); botRow.className = 'bot-row';
+    botRow.innerHTML = `<img src="../assets/images/Tupee_logo.png" class="bot-row-avatar"><div class="bot-message">${formattedResponse}</div>`;
+    body.appendChild(botRow); body.scrollTop = body.scrollHeight;
+  } catch (error) { console.error("Gemini Error:", error); }
+}
+window.askSuggestion = (text) => { const input = document.getElementById('userInput'); if (input) { input.value = text; sendMessage(); } };
+window.toggleChat = () => { document.getElementById('chatModal')?.classList.toggle('active'); };
+window.sendMessage = sendMessage;

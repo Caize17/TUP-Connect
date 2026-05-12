@@ -31,12 +31,13 @@ const db   = getFirestore(app);
 function timeAgo(ts) {
   if (!ts) return '';
   const date = ts.toDate ? ts.toDate() : new Date(ts);
+  if (isNaN(date.getTime())) return 'Just now';
   const diff = (Date.now() - date.getTime()) / 1000;
-  if (diff < 60)        return 'just now';
-  if (diff < 3600)      return `${Math.floor(diff / 60)}m ago`;
-  if (diff < 86400)     return `${Math.floor(diff / 3600)}h ago`;
-  if (diff < 7 * 86400) return `${Math.floor(diff / 86400)}d ago`;
-  return date.toLocaleDateString('en-PH', { month: 'short', day: 'numeric' });
+  if (diff < 60)        return 'JUST NOW';
+  if (diff < 3600)      return `${Math.floor(diff / 60)}m ago`.toUpperCase();
+  if (diff < 86400)     return `${Math.floor(diff / 3600)}h ago`.toUpperCase();
+  if (diff < 7 * 86400) return `${Math.floor(diff / 86400)}d ago`.toUpperCase();
+  return date.toLocaleDateString('en-PH', { month: 'short', day: 'numeric' }).toUpperCase();
 }
 
 function fmt(n) {
@@ -65,15 +66,25 @@ function populatePinnedCard(post) {
 
   // Reaction counts
   const likes    = (post.likes    || []).length;
-  const thumbsup = (post.thumbsup || []).length;
+  const comments = (post.comments || []).length;
   const reposts  = (post.reposts  || []).length;
 
-  const countLikes    = document.getElementById('count-likes');
-  const countThumbsup = document.getElementById('count-thumbsup');
-  const countReposts  = document.getElementById('count-reposts');
-  if (countLikes)    countLikes.textContent    = fmt(likes);
-  if (countThumbsup) countThumbsup.textContent = fmt(thumbsup);
-  if (countReposts)  countReposts.textContent  = fmt(reposts);
+  const lEl = document.getElementById('count-likes');
+  const cEl = document.getElementById('count-comments');
+  const rEl = document.getElementById('count-reposts');
+
+  const likesArr = post.likes || [];
+  const iLiked   = auth.currentUser && likesArr.includes(auth.currentUser.uid);
+
+  if (lEl) {
+    lEl.textContent = fmt(likesArr.length);
+    const likeBtn = document.getElementById('btn-likes');
+    if (likeBtn) {
+        likeBtn.classList.toggle('reacted', iLiked);
+    }
+  }
+  if (cEl) cEl.textContent = fmt(comments);
+  if (rEl) rEl.textContent = fmt(reposts);
 
   // Poster card fields
   const posterOrg      = document.getElementById('poster-org');
@@ -137,7 +148,7 @@ function populatePinnedCard(post) {
     mediaGrid.innerHTML = gridHtml + cellsHtml + `</div>`;
 
     // 3. Lightbox wiring
-    grid.querySelectorAll('.demo-lb-trigger').forEach(cell => {
+    mediaGrid.querySelectorAll('.demo-lb-trigger').forEach(cell => {
       cell.addEventListener('click', () => {
         if (window.openGallery) window.openGallery(imgs, cell.dataset.src);
       });
@@ -169,7 +180,6 @@ function populatePinnedCard(post) {
 }
 
 function showEmptyPinnedCard() {
-  if (window.__DEMO_PINNED__) return; 
   const annCard = document.getElementById('ann-card');
   if (annCard) {
     annCard.innerHTML = `
@@ -190,33 +200,65 @@ function showEmptyPinnedCard() {
 let currentPinnedPost = null;
 
 function initHomepageReactions() {
-  const handlers = {
-    'btn-likes':    'likes',
-    'btn-thumbsup': 'thumbsup',
-    'btn-reposts':  'reposts',
-  };
+  const annCard = document.getElementById('ann-card');
+  if (!annCard) return;
 
-  Object.entries(handlers).forEach(([btnId, field]) => {
-    const btn = document.getElementById(btnId);
-    if (!btn) return;
-    btn.addEventListener('click', async () => {
-      const user = auth.currentUser;
-      if (!user)                  { alert('Sign in to react.'); return; }
-      if (!currentPinnedPost?.id) return;
+  annCard.addEventListener('click', async (e) => {
+    if (!currentPinnedPost?.id) return;
+    const user = auth.currentUser;
 
-      const postRef = doc(db, 'announcements', currentPinnedPost.id);
-      const already = (currentPinnedPost[field] || []).includes(user.uid);
+    // 1. Heart (Like) Reaction
+    const likeBtn = e.target.closest('#btn-likes');
+    if (likeBtn) {
+      if (!user) { showToast('Sign in to react.'); return; }
+      const postId = currentPinnedPost.id;
+      const likes = currentPinnedPost.likes || [];
+      const already = likes.includes(user.uid);
+      const postRef = doc(db, 'announcements', postId);
+
+      if (!already) showReactionPop('❤️ Loved it!');
+      else showReactionPop('💔 Heart removed');
+
       try {
         await updateDoc(postRef, {
-          [field]: already ? arrayRemove(user.uid) : arrayUnion(user.uid)
+          likes: already ? arrayRemove(user.uid) : arrayUnion(user.uid)
         });
-        // onSnapshot on campus_news side will handle the count update there;
-        // the homepage listener below handles it here
-      } catch (err) {
-        console.error('Homepage reaction error:', err);
+      } catch (err) { console.error("Heart error:", err); }
+      return;
+    }
+
+    // 2. Comment Trigger
+    const commentBtn = e.target.closest('#btn-comments');
+    if (commentBtn) {
+      if (window.openCommentModalPinned) {
+        window.openCommentModalPinned(currentPinnedPost.id);
       }
-    });
+      return;
+    }
+
+    // 3. Repost Trigger
+    const repostBtn = e.target.closest('#btn-reposts');
+    if (repostBtn) {
+      if (window.openRepostModalHP) {
+        window.openRepostModalHP(currentPinnedPost, 'announcements');
+      }
+      return;
+    }
   });
+
+  // Helper for reaction feedback
+  let reactionPopEl = null;
+  function showReactionPop(msg) {
+    if (!reactionPopEl) {
+      reactionPopEl = document.createElement('div');
+      reactionPopEl.className = 'reaction-pop';
+      document.body.appendChild(reactionPopEl);
+    }
+    reactionPopEl.textContent = msg;
+    reactionPopEl.classList.add('show');
+    clearTimeout(reactionPopEl._tid);
+    reactionPopEl._tid = setTimeout(() => reactionPopEl.classList.remove('show'), 2000);
+  }
 }
 
 // ─────────────────────────────────────────────
@@ -224,20 +266,6 @@ function initHomepageReactions() {
 // ─────────────────────────────────────────────
 
 function listenForPinnedAnnouncement() {
-  console.log('🔍 listenForPinnedAnnouncement called, __DEMO_PINNED__:', window.__DEMO_PINNED__);
-  
-  // ── DEMO MODE ──────────────────────────────────────
-  if (window.__DEMO_PINNED__) {
-  currentPinnedPost = window.__DEMO_PINNED__;
-  try {
-    populatePinnedCard(currentPinnedPost);
-    console.log('✅ populatePinnedCard finished');
-  } catch(err) {
-    console.error('❌ populatePinnedCard crashed:', err);
-  }
-  return;
-}
-  // ── LIVE MODE (unchanged below) ────────────────────
   const q = query(
     collection(db, 'announcements'),
     where('pinned', '==', true)
@@ -245,11 +273,16 @@ function listenForPinnedAnnouncement() {
   onSnapshot(q, (snapshot) => {
     if (snapshot.empty) {
       currentPinnedPost = null;
+      localStorage.removeItem('tup_pinned_cache');
       showEmptyPinnedCard();
       return;
     }
     const d = snapshot.docs[0];
     currentPinnedPost = { id: d.id, ...d.data() };
+    
+    // Cache for flicker-free load next time
+    localStorage.setItem('tup_pinned_cache', JSON.stringify(currentPinnedPost));
+    
     populatePinnedCard(currentPinnedPost);
   }, (err) => {
     console.error('homepage_pinned_sync: listener error', err);
@@ -260,7 +293,25 @@ function listenForPinnedAnnouncement() {
 // BOOT
 // ─────────────────────────────────────────────
 
-document.addEventListener('DOMContentLoaded', () => {
+function boot() {
+  // 1. Immediate cache load to prevent flicker
+  const cache = localStorage.getItem('tup_pinned_cache');
+  if (cache) {
+    try {
+      const cachedPost = JSON.parse(cache);
+      currentPinnedPost = cachedPost;
+      populatePinnedCard(cachedPost);
+    } catch (e) {
+      console.error("Pinned cache error", e);
+    }
+  }
+
   listenForPinnedAnnouncement();
   initHomepageReactions();
-});
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', boot);
+} else {
+  boot();
+}

@@ -386,6 +386,7 @@ let USER = {
   name:     "TUPian",
   photoSrc: "../assets/images/anon_avatar.jpg"
 };
+let allPosts = [];
 
 // ========================
 // IMAGE COMPRESSION
@@ -450,6 +451,12 @@ onAuthStateChanged(auth, async (user) => {
       const userSnap = await getDoc(userDocRef);
       if (userSnap.exists()) {
         const userData = userSnap.data();
+
+        // Redirect if Admin
+        if (userData.role === 'USG' || userData.role === 'Admin') {
+          window.location.href = '../pages/admin_profile.html';
+          return;
+        }
         
         // Sync global USER object
         USER.name     = userData.fullName || user.displayName || "TUPian";
@@ -776,20 +783,28 @@ function renderPost(data, postId) {
           </div>
           <div class="repost-quote-meta">
             <div class="repost-quote-author">${data.repostAuthor}</div>
-            <div class="repost-quote-time">${formatRelativeTime(data.createdAt.toDate())}</div>
+            <div class="repost-quote-time" style="font-size:11px; color:var(--muted);">${data.repostTime || ''}</div>
           </div>
         </div>
-        <div class="repost-quote-body">${data.repostText}</div>
-        ${data.repostImage ? `<div class="post-images" style="display:flex; justify-content:center; align-items:center; text-align: center;"><img src="${data.repostImage}" class="post-image" style="image-rendering: high-quality;"></div>` : ''}
+        <div class="repost-quote-content">
+          ${data.repostTitle ? `<div class="repost-quote-title" style="font-weight: 800; font-size: 14px; margin-bottom: 4px; color: var(--text);">${data.repostTitle}</div>` : ''}
+          <div class="repost-quote-body">
+            ${data.repostText || ''}
+          </div>
+        </div>
+        ${data.repostImage ? `<div class="post-images lightbox-trigger" data-src="${data.repostImage}" style="display:flex; justify-content:center; align-items:center; text-align: center; cursor:pointer;"><img src="${data.repostImage}" class="post-image" style="image-rendering: high-quality;"></div>` : ''}
       </div>`;
   } else {
-    bodyHtml = `${data.text ? `<div class="post-body">${data.text}</div>` : ''}${data.imageURL ? `<div class="post-images" style="display:flex; justify-content:center; align-items:center;"><img src="${data.imageURL}" class="post-image"></div>` : ''}`;
+    bodyHtml = `
+      ${data.text ? `<div class="post-body">${data.text}</div>` : ''}
+      ${data.imageURLs && data.imageURLs.length > 0 ? renderPhotoGrid(data.imageURLs) : ''}
+    `;
   }
 
   postCard.innerHTML = `
     <div class="post-header">
       <div class="post-avatar">
-        <img src="${data.photoURL || '../assets/images/anon_avatar.jpg'}" alt="Avatar">
+        <img src="${data.photoURL || '../assets/images/anon_avatar.jpg'}" alt="Avatar" style="image-rendering: high-quality; object-fit: cover;">
       </div>
       <div class="post-meta">
         <div class="post-author">
@@ -811,19 +826,12 @@ function renderPost(data, postId) {
     <div class="post-repost-info" onclick="viewReposts(event)" style="display:none;">
       <svg width="193px" height="193px" viewBox="0 0 24.00 24.00" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="#000000" stroke-width="0.00024000000000000003"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M14.2893 5.70708C13.8988 5.31655 13.2657 5.31655 12.8751 5.70708L7.98768 10.5993C7.20729 11.3805 7.2076 12.6463 7.98837 13.427L12.8787 18.3174C13.2693 18.7079 13.9024 18.7079 14.293 18.3174C14.6835 17.9269 14.6835 17.2937 14.293 16.9032L10.1073 12.7175C9.71678 12.327 9.71678 11.6939 10.1073 11.3033L14.2893 7.12129C14.6799 6.73077 14.6799 6.0976 14.2893 5.70708Z" fill="#0F0F0F"></path> </g></svg>
       <span class="repost-info-text"></span>
-    </div>
-    <span class="view-comments" onclick="openCommentModal(this)" style="display:none;">View more comments</span>
-    <div class="comment-input-row always-visible" onclick="openCommentModal(this)">
-      <div class="comment-avatar">
-        <img src="${USER.photoSrc || '../assets/images/anon_avatar.jpg'}" alt="You">
-      </div>
-      <input class="comment-input" placeholder="Write a comment..." readonly>
     </div>`;
 
   feed.appendChild(postCard);
-  if (data.comments && data.comments > 0) {
-    loadCommentsForPost(postId, postCard);
-  }
+  // if (data.comments && data.comments > 0) {
+  //   loadCommentsForPost(postId, postCard);
+  // }
   // Always load repost documents for this post so the "View repost(s)" line appears
   // even when the repost metadata field is missing or out of sync.
   loadRepostsForPost(postId, postCard);
@@ -939,7 +947,12 @@ function loadUserPosts(userId) {
 
     // Full render for structure changes or initial load
     feedContainer.innerHTML = '';
-    snapshot.forEach((d) => renderPost(d.data(), d.id));
+    allPosts = [];
+    snapshot.forEach((d) => {
+      const p = { id: d.id, ...d.data() };
+      allPosts.push(p);
+      renderPost(p, d.id);
+    });
 
     setTimeout(() => {
       const user = auth.currentUser;
@@ -950,6 +963,7 @@ function loadUserPosts(userId) {
         document.querySelectorAll('.post-card').forEach(card => {
           updateFeedCommentPreview(card);
         });
+        wireLightboxTriggers();
       }
     }, 500);
     
@@ -1076,10 +1090,21 @@ async function deletePost(e) {
     if (snap.exists()) {
       const data = snap.data();
       if (data.repostOf) {
-        const originalRef = doc(db, "posts", data.repostOf);
-        await updateDoc(originalRef, {
-          repostedBy: arrayRemove(user.uid)
-        });
+        try {
+          const originalRef = doc(db, "posts", data.repostOf);
+          await updateDoc(originalRef, {
+            repostedBy: arrayRemove(user.uid)
+          });
+        } catch (e1) {
+          try {
+            const annRef = doc(db, "announcements", data.repostOf);
+            await updateDoc(annRef, {
+              reposts: arrayRemove(user.uid)
+            });
+          } catch (e2) {
+            console.warn("Could not update original post/announcement:", e2);
+          }
+        }
       }
     }
 
@@ -1212,15 +1237,13 @@ async function submitPost() {
   const author = isAnon ? 'Anonymous' : USER.name;
   const avatar = isAnon ? '../assets/images/anon_avatar.jpg' : USER.photoSrc;
 
-  const imageURLs = thumbs.map(img => img.src);
-
   try {
     await addDoc(collection(db, "posts"), {
       userId: user.uid,
       author: author,
       photoURL: avatar,
       text: content,
-      imageURL: imageURLs.length > 0 ? imageURLs[0] : null, // For simplicity, take first image
+      imageURLs: thumbs.map(t => t.src),
       createdAt: serverTimestamp(),
       likedBy: [],
       comments: 0
@@ -1252,7 +1275,7 @@ async function openCommentModal(el) {
 
   const existingComments = card.querySelectorAll('.comment-data');
   if (existingComments.length === 0) {
-    const commentCount = parseInt(card.querySelector('.reaction-comments-count')?.textContent || '0');
+    const commentCount = parseInt(card.querySelector('.comments-count')?.textContent || '0');
     if (commentCount > 0) {
       await loadCommentsForPost(card.dataset.id, card);
     }
@@ -1293,17 +1316,15 @@ function buildCommentModalItem(author, avatar, text, time, isOwn, cIdx, userId =
         </button>
         <button class="comment-edit-cancel" data-comment="${cIdx}">✕</button>
       </div>
-      <div class="comment-footer">
-        <div class="comment-modal-item-time" data-timestamp="${time}">${formatRelativeTime(new Date(time))}</div>
+      <div class="comment-footer" style="display:flex; align-items:center; gap:12px; margin-top:4px;">
+        <div class="comment-modal-item-time" style="margin:0;" data-timestamp="${time}">${formatRelativeTime(new Date(time))}</div>
         ${isOwn ? `
-        <div class="comment-item-actions">
-          <button class="comment-action-btn edit-btn" data-comment="${cIdx}">
-            <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-            Edit
+        <div class="comment-item-actions" style="display:flex; align-items:center; gap:8px;">
+          <button class="comment-action-btn edit-btn" data-comment="${cIdx}" style="margin:0; padding:0; background:none;">
+            <svg viewBox="0 0 24 24" width="13" height="13" style="stroke:currentColor;fill:none;stroke-width:2.5;"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Edit
           </button>
-          <button class="comment-action-btn delete-btn" data-comment="${cIdx}">
-            <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
-            Delete
+          <button class="comment-action-btn delete-btn" data-comment="${cIdx}" style="margin:0; padding:0; background:none;">
+            <svg viewBox="0 0 24 24" width="13" height="13" style="stroke:currentColor;fill:none;stroke-width:2.5;"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg> Delete
           </button>
         </div>` : ''}
       </div>
@@ -1469,6 +1490,11 @@ async function submitModalComment() {
 }
 
 function updateFeedCommentPreview(card) {
+  // Comment preview removed per user request.
+  return;
+}
+
+function updateFeedCommentPreview_OLD(card) {
   const allComments = card.querySelectorAll('.comment-data');
   const count       = allComments.length;
   const viewMore    = card.querySelector('.view-comments');
@@ -1519,11 +1545,72 @@ function scrollToTop() {
 let _currentRepostBtn = null;
 let _repostSubmitted = false;
 
-function openRepostModal(btn) {
+async function openRepostModal(btn) {
   _currentRepostBtn = btn;
   _repostSubmitted = false;
-  document.getElementById('repostModal').classList.add('open');
-  document.getElementById('repostContent').focus();
+
+  const originalCard = btn.closest('.post-card');
+  const postId = originalCard.dataset.id;
+  const overlay = document.getElementById('hp-repost-modal-overlay');
+  const modal = document.getElementById('hp-repost-modal');
+
+  if (!overlay || !modal) return;
+
+  // 1. Show overlay
+  overlay.classList.add('open');
+  overlay.style.display = 'flex';
+
+  // 2. Clear previous data
+  document.getElementById('repostContent').value = '';
+  document.getElementById('repost-user-name').textContent = USER.name || 'TUPian';
+  const userAvatar = document.getElementById('repost-user-avatar');
+  if (userAvatar && USER.photoSrc) {
+    userAvatar.innerHTML = `<img src="${USER.photoSrc}" style="width:100%; height:100%; object-fit:cover; border-radius:50%; image-rendering:high-quality;">`;
+  }
+
+  // 3. Fetch original post for preview
+  const previewBody = document.getElementById('quote-preview-body');
+  const previewAuthor = document.getElementById('quote-preview-author');
+  const previewAvatar = document.getElementById('quote-preview-avatar');
+  const previewTitle = document.getElementById('quote-preview-title');
+  const previewTime = document.getElementById('quote-preview-time');
+
+  previewBody.textContent = 'Loading...';
+  previewAuthor.textContent = '...';
+
+  try {
+    const postSnap = await getDoc(doc(db, "posts", postId));
+    if (postSnap.exists()) {
+      const data = postSnap.data();
+      previewAuthor.textContent = data.author || 'TUPian';
+      previewBody.textContent = data.text || '';
+      previewTitle.textContent = data.title || '';
+      previewTime.textContent = data.createdAt ? formatRelativeTime(data.createdAt.toDate()) : 'Just now';
+
+      if (data.photoURL) {
+        previewAvatar.innerHTML = `<img src="${data.photoURL}" style="width:100%; height:100%; object-fit:cover; border-radius:50%; image-rendering:high-quality;">`;
+      } else {
+        previewAvatar.innerHTML = `<svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`;
+      }
+
+      // Add image preview if exists
+      const existingImg = modal.querySelector('.cn-rm-quote-image');
+      if (existingImg) existingImg.remove();
+      const imageURL = data.imageURL || null;
+      if (imageURL) {
+        const imgEl = document.createElement('img');
+        imgEl.className = 'cn-rm-quote-image';
+        imgEl.src = imageURL;
+        imgEl.style.cssText = 'width:100%; max-height:200px; object-fit:cover; border-radius:8px; margin-top:8px; image-rendering:high-quality;';
+        document.getElementById('repost-quote-preview').appendChild(imgEl);
+      }
+    }
+  } catch (err) {
+    console.error("Error fetching for preview:", err);
+    previewBody.textContent = 'Error loading preview.';
+  }
+
+  setTimeout(() => document.getElementById('repostContent').focus(), 150);
 }
 
 function closeRepostModal() {
@@ -1531,18 +1618,22 @@ function closeRepostModal() {
     _currentRepostBtn.classList.remove('repost-active');
     _currentRepostBtn.lastChild.textContent = ' Repost';
   }
-  document.getElementById('repostModal').classList.remove('open');
+  const overlay = document.getElementById('hp-repost-modal-overlay');
+  if (overlay) {
+    overlay.classList.remove('open');
+    overlay.style.display = 'none';
+  }
   document.getElementById('repostContent').value = '';
   _currentRepostBtn = null;
   _repostSubmitted = false;
 }
 
 function closeRepostModalOnOverlay(e) {
-  if (e.target === document.getElementById('repostModal')) closeRepostModal();
+  if (e.target.id === 'hp-repost-modal-overlay') closeRepostModal();
 }
 
-async function submitRepost() {
-  const quote = document.getElementById('repostContent').value.trim();
+async function submitRepost(skipQuote = false) {
+  const quote = skipQuote ? "" : document.getElementById('repostContent').value.trim();
   _repostSubmitted = true;
   if (_currentRepostBtn) {
     await createRepost(_currentRepostBtn, quote);
@@ -1558,9 +1649,10 @@ async function createRepost(btn, quote = '') {
   const originalCard = btn.closest('.post-card');
   const originalPostId = originalCard.dataset.id;
   const originalAuthor = originalCard.querySelector('.post-author')?.textContent || 'Unknown';
-  const originalText = originalCard.querySelector('.post-body')?.innerHTML || '';
+  const originalText = originalCard.querySelector('.post-body')?.innerHTML || originalCard.querySelector('.repost-quote-body')?.innerHTML || '';
+  const originalTitle = originalCard.querySelector('.post-title')?.textContent || originalCard.querySelector('.repost-quote-title')?.textContent || '';
   const originalImage = originalCard.querySelector('.post-images img')?.src || null;
-  const originalAuthorPhoto = originalCard.querySelector('.post-avatar img')?.src || '../assets/images/anon_avatar.jpg';
+  const originalAuthorPhoto = originalCard.querySelector('.post-avatar img')?.src || originalCard.querySelector('.repost-quote-avatar img')?.src || '../assets/images/anon_avatar.jpg';
 
   try {
     const repostRef = await addDoc(collection(db, "posts"), {
@@ -1574,9 +1666,11 @@ async function createRepost(btn, quote = '') {
       comments: 0,
       repostOf: originalPostId,
       repostAuthor: originalAuthor,
+      repostTitle: originalTitle,
       repostText: originalText,
       repostImage: originalImage,
-      repostAuthorPhoto: originalAuthorPhoto
+      repostAuthorPhoto: originalAuthorPhoto,
+      repostTime: document.getElementById('quote-preview-time').textContent || ""
     });
 
     const originalPostRef = doc(db, "posts", originalPostId);
@@ -1622,9 +1716,7 @@ function updateRepostInfo(card) {
 
   const count = repostDatas.length;
   const textEl = info.querySelector('.repost-info-text');
-  if (textEl) textEl.textContent = count === 1
-    ? 'View repost'
-    : `View reposts (${count})`;
+  if (textEl) textEl.textContent = `${count} ${count === 1 ? 'student reposted' : 'students reposted'} this`;
 
   info.style.display = 'flex';
   info.classList.add('repost-active');
@@ -1660,6 +1752,11 @@ function buildRepostViewItem(author, avatar, quote, hasQuote, time, rIdx) {
   const item = document.createElement('div');
   item.className = 'comment-modal-item';
   item.id = `repost-view-item-${rIdx}`;
+  const dateObj = new Date(time);
+  const dateStr = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  const timeStr = dateObj.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+  const timeFormatted = `${dateStr} at ${timeStr}`;
+
   item.innerHTML = `
     <div class="comment-modal-item-avatar">
       <img src="${avatar}" alt="${escapeHTML(author)}" onerror="this.parentElement.textContent='👩'">
@@ -1667,9 +1764,9 @@ function buildRepostViewItem(author, avatar, quote, hasQuote, time, rIdx) {
     <div class="comment-modal-item-content">
       <div class="comment-modal-item-bubble">
         <div class="comment-modal-item-author">${escapeHTML(author)}</div>
-        ${hasQuote ? `<div class="comment-modal-item-text">${escapeHTML(quote)}</div>` : '<div class="reposted-without-quote"><em>Reposted without quote</em></div>'}
+        ${hasQuote ? `<div class="comment-modal-item-text">${escapeHTML(quote)}</div>` : '<div class="reposted-without-quote">Reposted without quote</div>'}
       </div>
-      <div class="comment-modal-item-time" data-timestamp="${time}">${formatRelativeTime(new Date(time))}</div>
+      <div class="comment-modal-item-time" data-timestamp="${time}">${timeFormatted}</div>
     </div>`;
   return item;
 }
@@ -1801,8 +1898,120 @@ window.handleModalCommentKey         = handleModalCommentKey;
 window.submitModalComment            = submitModalComment;
 window.openRepostModal               = openRepostModal;
 window.closeRepostModal              = closeRepostModal;
-window.closeRepostModalOnOverlay     = closeRepostModalOnOverlay;
-window.submitRepost                  = submitRepost;
+window.closeRepostModalOnOverlay = closeRepostModalOnOverlay;
+window.submitRepost = submitRepost;
+
+// ========================
+// LIGHTBOX
+// ========================
+function initLightbox() {
+  if (!document.getElementById('cn-lightbox')) {
+    document.body.insertAdjacentHTML('beforeend', `
+      <div id="cn-lightbox">
+        <span id="cn-lightbox-close">✕</span>
+        <img id="cn-lightbox-img" src=""/>
+        <button id="lb-prev" class="lb-nav">❮</button>
+        <button id="lb-next" class="lb-nav">❯</button>
+        <div id="lb-counter"></div>
+      </div>
+    `);
+  }
+  const lb = document.getElementById('cn-lightbox');
+  document.getElementById('cn-lightbox-close')?.addEventListener('click', () => lb.classList.remove('open'));
+  lb?.addEventListener('click', e => { if (e.target === lb) lb.classList.remove('open'); });
+  
+  document.getElementById('lb-prev')?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    window.currentIndex = (window.currentIndex > 0) ? window.currentIndex - 1 : window.currentGallery.length - 1;
+    updateLightbox();
+  });
+  document.getElementById('lb-next')?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    window.currentIndex = (window.currentIndex < window.currentGallery.length - 1) ? window.currentIndex + 1 : 0;
+    updateLightbox();
+  });
+}
+
+function updateLightbox() {
+  const lb = document.getElementById('cn-lightbox');
+  const img = document.getElementById('cn-lightbox-img');
+  const counter = document.getElementById('lb-counter');
+  if (lb && img) {
+    img.src = window.currentGallery[window.currentIndex];
+    lb.classList.add('open');
+    if (counter) counter.textContent = `${window.currentIndex + 1} / ${window.currentGallery.length}`;
+    lb.dataset.count = window.currentGallery.length;
+  }
+}
+
+function wireLightboxTriggers() {
+  document.querySelectorAll('.lightbox-trigger').forEach(el => {
+    const fresh = el.cloneNode(true); el.replaceWith(fresh);
+    fresh.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const src = fresh.dataset.src;
+      if (!src) return;
+
+      const card = fresh.closest('.post-card');
+      const pid = card?.dataset.id;
+      const post = allPosts.find(p => p.id === pid);
+      
+      if (post && post.imageURLs && post.imageURLs.length > 0) {
+        window.currentGallery = post.imageURLs;
+        window.currentIndex = post.imageURLs.indexOf(src);
+        if (window.currentIndex === -1) window.currentIndex = 0;
+        updateLightbox();
+      } else {
+        window.currentGallery = [src];
+        window.currentIndex = 0;
+        updateLightbox();
+      }
+    });
+  });
+}
+
+function renderPhotoGrid(imgs) {
+  const count = imgs.length;
+  const clampedCount = Math.min(count, 5);
+  const extra = count > 5 ? count - 5 : 0;
+  const borderRadius = '18px';
+  const gap = '8px';
+
+  if (clampedCount === 1) {
+    return `<div class="lightbox-trigger" data-src="${imgs[0]}" style="cursor:pointer; margin-top:12px; border-radius:${borderRadius}; overflow:hidden; display:block;">
+              <img src="${imgs[0]}" style="width:100%; display:block; object-fit:cover; max-height:500px;" />
+            </div>`;
+  }
+
+  let style = `display: grid !important; height: 340px !important; gap: ${gap} !important; width: 100% !important; margin-top:12px; border-radius:${borderRadius}; overflow:hidden;`;
+  if (clampedCount === 2) style += ` grid-template-columns: 1fr 1fr !important; grid-template-rows: 1fr !important;`;
+  else if (clampedCount === 3) style += ` grid-template-columns: 1fr 1fr !important; grid-template-rows: 1fr 1fr !important;`;
+  else if (clampedCount === 4) style += ` grid-template-columns: 1fr 1fr !important; grid-template-rows: 1fr 1fr !important;`;
+  else style += ` grid-template-columns: 2fr 1fr 1fr !important; grid-template-rows: 1fr 1fr !important;`;
+
+  let gridHtml = `<div class="photo-grid collage-${clampedCount}" style="${style}">`;
+
+  const cellsHtml = imgs.slice(0, 5).map((src, i) => {
+    let cellStyle = "position: relative !important; overflow: hidden !important; min-width: 0 !important; min-height: 0 !important; width: 100% !important; height: 100% !important; cursor:pointer;";
+    if (clampedCount === 3 && i === 0) cellStyle += " grid-row: 1 / 3 !important;";
+    else if (clampedCount === 5 && i === 0) cellStyle += " grid-column: 1 / 2 !important; grid-row: 1 / 3 !important;";
+
+    const overlayHtml = (i === 4 && extra > 0) 
+      ? `<div class="photo-more-overlay" style="position: absolute !important; inset: 0 !important; background: rgba(0,0,0,0.5) !important; display: flex !important; align-items: center !important; justify-content: center !important; color: #fff !important; font-size: 24px !important; font-weight: 700 !important; z-index: 2 !important; pointer-events: none !important; font-family: 'Montserrat', sans-serif;">+${extra}</div>` 
+      : '';
+
+    return `
+      <div class="collage-cell lightbox-trigger" data-src="${src}" style="${cellStyle}">
+        <img src="${src}" style="position: absolute !important; top: 0 !important; left: 0 !important; width: 100% !important; height: 100% !important; object-fit: cover !important; display: block !important;" />
+        ${overlayHtml}
+      </div>`;
+  }).join('');
+
+  return gridHtml + cellsHtml + `</div>`;
+}
+
+// Boot lightbox
+initLightbox();
 window.viewReposts                   = viewReposts;
 window.closeRepostViewModal          = closeRepostViewModal;
 window.closeRepostViewModalOnOverlay = closeRepostViewModalOnOverlay;
