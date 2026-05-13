@@ -1,31 +1,18 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getFirestore, doc, getDoc, updateDoc, collection, query, where, getDocs, orderBy, addDoc, serverTimestamp, increment, onSnapshot, deleteDoc, arrayUnion, arrayRemove, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-import { CONFIG } from "./config.js";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyBpGOdMpx_Mws2EcCq6rbOWfZ-FFuhhfo0",
-  authDomain: "tup-connect-b162d.firebaseapp.com",
-  projectId: "tup-connect-b162d",
-  storageBucket: "tup-connect-b162d.firebasestorage.app",
-  messagingSenderId: "193141013544",
-  appId: "1:193141013544:web:72b403e84aa4d3313f091d"
-};
-
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
+import { auth, db } from "../firebaseConfig.js";
+import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { doc, getDoc, updateDoc, collection, query, where, getDocs, orderBy, addDoc, serverTimestamp, increment, onSnapshot, deleteDoc, arrayUnion, arrayRemove, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 let USER = {
-  name: "Admin",
-  photoSrc: "../assets/images/anon_avatar.jpg"
+  name: "",
+  photoSrc: ""
 };
+
 let allOrgPosts = [];
 
 // ========================
 // IMAGE COMPRESSION
 // ========================
-async function compressImage(file, maxWidth = 400, maxHeight = 400) {
+async function compressImage(file, maxWidth = 1200, maxHeight = 1200) {
   return new Promise((resolve) => {
     const reader = new FileReader();
     reader.readAsDataURL(file);
@@ -45,27 +32,31 @@ async function compressImage(file, maxWidth = 400, maxHeight = 400) {
         canvas.height = height;
         const ctx = canvas.getContext('2d');
         ctx.drawImage(img, 0, 0, width, height);
-        resolve(canvas.toDataURL('image/jpeg', 0.95));
+        resolve(canvas.toDataURL('image/jpeg', 0.7));
       };
     };
   });
 }
 
 // ========================
-// INSTANT UI PRE-FILL
+// INSTANT FEED PRE-FILL
 // ========================
-(function() {
-    const cache = localStorage.getItem('tup_user_meta');
-    if (cache) {
-        try {
-            const data = JSON.parse(cache);
-            USER.name = data.fullName || USER.name;
-            USER.photoSrc = data.photoURL || USER.photoSrc;
-            document.addEventListener('DOMContentLoaded', () => {
-              updateProfileUI(data, data.email || '');
-            });
-        } catch(e) {}
-    }
+(function () {
+  const feedCache = localStorage.getItem('tup_admin_feed_cache');
+  if (feedCache) {
+    try {
+      const posts = JSON.parse(feedCache);
+      document.addEventListener('DOMContentLoaded', () => {
+        const feed = document.getElementById('feed');
+        if (feed && posts.length > 0) {
+          feed.innerHTML = '';
+          posts.forEach(p => renderPost(p, p.id));
+          wireLightboxTriggers();
+          feed.dataset.fromCache = 'true';
+        }
+      });
+    } catch (e) { }
+  }
 })();
 
 // ========================
@@ -80,11 +71,11 @@ onAuthStateChanged(auth, async (user) => {
       const userSnap = await getDoc(userDocRef);
       if (userSnap.exists()) {
         const userData = userSnap.data();
-        
-        USER.name = userData.fullName || user.displayName || "Admin";
-        USER.photoSrc = userData.photoURL || user.photoURL || "../assets/images/anon_avatar.jpg";
-        USER.college = userData.college || null;
-        
+
+        USER.name = userData.fullName || user.displayName || "";
+        USER.photoSrc = userData.photoURL || user.photoURL || "";
+        USER.college = userData.college || "";
+
         localStorage.setItem('tup_user_meta', JSON.stringify({
           ...userData,
           email: user.email,
@@ -115,11 +106,11 @@ function updateProfileUI(userData, email) {
   const emailEl = document.getElementById('profile-email');
   const collegeEl = document.getElementById('profile-college');
 
-  if (nameEl) nameEl.textContent = userData.fullName || "Organization";
+  if (nameEl) nameEl.textContent = userData.fullName || "";
   if (emailEl) emailEl.textContent = email;
 
   if (collegeEl) {
-    collegeEl.textContent = userData.position || userData.role || "Administrator";
+    collegeEl.textContent = userData.position || userData.role || "";
   }
 
   const sidebarImg = document.querySelector('.sidebar-avatar-img');
@@ -134,7 +125,7 @@ function updateProfileUI(userData, email) {
   }
 
   const modalNameEl = document.getElementById('modal-user-name');
-  if (modalNameEl) modalNameEl.textContent = userData.fullName || "Organization";
+  if (modalNameEl) modalNameEl.textContent = userData.fullName || "";
 
   const commentModalAv = document.querySelector('.comment-modal-avatar img');
   if (commentModalAv && userData.photoURL) commentModalAv.src = userData.photoURL;
@@ -143,7 +134,7 @@ function updateProfileUI(userData, email) {
 // ========================
 // CHANGE PHOTO MENU
 // ========================
-window.toggleChangePhotoMenu = function(e) {
+window.toggleChangePhotoMenu = function (e) {
   e.stopPropagation();
   const dropdown = document.getElementById('changePhotoDropdown');
   const btn = e.currentTarget;
@@ -220,7 +211,7 @@ if (logoutBtn) {
 // ========================
 // POST LOGIC
 // ========================
-window.openPostModal = function() {
+window.openPostModal = function () {
   document.getElementById('postModal').classList.add('open');
   const postContent = document.getElementById('postContent');
   const postSubmitBtn = document.getElementById('modal-submit-btn');
@@ -241,7 +232,7 @@ document.addEventListener('DOMContentLoaded', () => {
       postSubmitBtn.disabled = !postContent.value.trim() && attachWrap.children.length === 0;
     };
     postContent.addEventListener('input', updateBtnState);
-    
+
     // Mutation observer to watch for image attachments
     const observer = new MutationObserver(updateBtnState);
     if (attachWrap) observer.observe(attachWrap, { childList: true });
@@ -249,7 +240,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Sidebar navigation
   (function () {
-    const navWrap  = document.getElementById('sidebar-nav');
+    const navWrap = document.getElementById('sidebar-nav');
     const teardrop = document.getElementById('nav-teardrop');
     if (!navWrap || !teardrop) return;
 
@@ -257,7 +248,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const profBtn = document.getElementById('sidebar-avatar-wrap');
     const allBtns = [...navBtns];
     if (profBtn) allBtns.push(profBtn);
-    
+
     const TD_BASE_H = 66;
 
     function moveTo(item) {
@@ -275,8 +266,8 @@ document.addEventListener('DOMContentLoaded', () => {
         this.classList.add('active');
         moveTo(this);
 
-        if (route === 'settings')    window.location.href = '../pages/setup_org.html';
-        if (route === 'profile')     window.location.href = '../pages/org_profile.html';
+        if (route === 'settings') window.location.href = '../pages/setup_org.html';
+        if (route === 'profile') window.location.href = '../pages/org_profile.html';
       });
     });
 
@@ -308,33 +299,46 @@ document.addEventListener('DOMContentLoaded', () => {
   })();
 });
 
-window.closePostModal = function() {
+window.closePostModal = function () {
   document.getElementById('postModal').classList.remove('open');
 };
 
-window.closeModalOnOverlay = function(e) {
+window.closeModalOnOverlay = function (e) {
   if (e.target.id === 'postModal') closePostModal();
 };
 
-window.submitPost = async function() {
+window.submitPost = async function () {
   const title = document.getElementById('postTitle').value.trim();
   const content = document.getElementById('postContent').value.trim();
   const attachWrap = document.getElementById('modal-attachments');
   const thumbs = Array.from(attachWrap.querySelectorAll('.modal-attach-thumb'));
-  
+
   if (!title && !content && thumbs.length === 0) { showToast('Write something first!'); return; }
 
   const user = auth.currentUser;
   if (!user) return;
 
+  const btn = document.querySelector('.hp-rm-submit-btn') || document.getElementById('modal-submit-btn');
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = `<span class="loading-spinner"></span> Posting...`;
+  }
+
   try {
+    const imageURLs = [];
+    for (let i = 0; i < thumbs.length; i++) {
+      const thumb = thumbs[i];
+      imageURLs.push(thumb.src); // Already compressed base64 from fileInput listener
+    }
+
     const postData = {
       userId: user.uid,
       author: USER.name,
       photoURL: USER.photoSrc,
       title: title,
       body: content,
-      imageURLs: thumbs.map(t => t.src),
+      imageURL: imageURLs.length > 0 ? imageURLs[0] : "", // For legacy support
+      imageURLs: imageURLs,
       createdAt: serverTimestamp(),
       likes: [],
       comments: [],
@@ -342,16 +346,23 @@ window.submitPost = async function() {
       college: USER.college || null
     };
 
+    console.log("Saving post to Firestore...");
     await addDoc(collection(db, "announcements"), postData);
-    
+    console.log("Post saved successfully!");
+
     document.getElementById('postTitle').value = '';
     document.getElementById('postContent').value = '';
     attachWrap.innerHTML = '';
     closePostModal();
-    showToast('Post shared!');
+    showToast('Announcement posted!');
   } catch (err) {
-    console.error("Error submitting post:", err);
-    showToast("Failed to post.");
+    console.error("Post Error:", err);
+    alert("Error submitting post: " + err.message);
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = `<svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Post`;
+    }
   }
 };
 
@@ -376,18 +387,21 @@ if (modalAddPhotoBtn) {
 }
 
 if (fileInput) {
-  fileInput.addEventListener('change', function () {
-    Array.from(this.files).forEach(file => {
-      const reader = new FileReader();
-      reader.onload = ev => {
+  fileInput.addEventListener('change', async function () {
+    for (const file of this.files) {
+      try {
+        const compressedBase64 = await compressImage(file, 1200, 1200); // Higher quality for announcements
         const thumb = document.createElement('img');
-        thumb.src = ev.target.result;
+        thumb.src = compressedBase64;
         thumb.className = 'modal-attach-thumb';
+        thumb.style.cssText = 'width:80px; height:80px; object-fit:cover; border-radius:8px; cursor:pointer; flex-shrink:0;';
         thumb.addEventListener('click', () => thumb.remove());
         attachWrap.appendChild(thumb);
-      };
-      reader.readAsDataURL(file);
-    });
+      } catch (err) {
+        console.error("Compression error:", err);
+      }
+    }
+    fileInput.value = '';
   });
 }
 
@@ -401,8 +415,8 @@ function loadOrgPosts(userId) {
     if (!feed) return;
 
     const changes = snapshot.docChanges();
-    const isInitialLoad = !feed.querySelector('.post-card');
-    
+    const isInitialLoad = !feed.querySelector('.post-card') || feed.dataset.fromCache === 'true';
+
     if (!isInitialLoad && changes.length > 0 && !changes.some(c => c.type === 'added' || c.type === 'removed')) {
       changes.forEach(change => {
         if (change.type === 'modified') {
@@ -413,12 +427,19 @@ function loadOrgPosts(userId) {
     }
 
     feed.innerHTML = '';
+    feed.dataset.fromCache = 'false';
     allOrgPosts = [];
+    const postsToCache = [];
+
     snapshot.forEach(docSnap => {
       const p = { id: docSnap.id, ...docSnap.data() };
       allOrgPosts.push(p);
+      postsToCache.push(p);
       renderPost(p, docSnap.id);
     });
+
+    // Save to cache for next visit
+    localStorage.setItem('tup_admin_feed_cache', JSON.stringify(postsToCache.slice(0, 15)));
     wireLightboxTriggers();
   });
 }
@@ -453,11 +474,11 @@ function renderPost(data, postId) {
   postCard.className = 'post-card';
   postCard.dataset.id = postId;
 
-  const likeCount    = data.likes      ? data.likes.length      : 0;
-  const commentCount = data.comments   ? data.comments.length   : 0;
-  const repostCount  = data.reposts    ? data.reposts.length    : 0;
-  const isLikedByMe  = data.likes      && data.likes.includes(auth.currentUser?.uid);
-  const menuId       = 'menu-' + postId;
+  const likeCount = data.likes ? data.likes.length : 0;
+  const commentCount = data.comments ? data.comments.length : 0;
+  const repostCount = data.reposts ? data.reposts.length : 0;
+  const isLikedByMe = data.likes && data.likes.includes(auth.currentUser?.uid);
+  const menuId = 'menu-' + postId;
 
   const dateStr = data.createdAt ? formatRelativeTime(data.createdAt.toDate()) : 'Just now';
 
@@ -503,23 +524,24 @@ function renderPost(data, postId) {
         </div>
         <div class="post-time">${dateStr}</div>
       </div>
-      <button class="post-menu" onclick="toggleMenu(event, '${menuId}')">
-        <svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg>
-        <div class="dropdown-menu" id="${menuId}">
-          <div class="dropdown-item" onclick="editPost(event)">
-            <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Edit Post
+      <div class="post-header-actions">
+        <button class="pin-post-btn ${data.pinned ? 'pinned' : ''}" onclick="togglePinPost('${postId}', ${data.pinned || false})" title="${data.pinned ? 'Unpin' : 'Pin Announcement'}">
+          <svg viewBox="0 0 24 24" style="fill:${data.pinned ? '#6b1111' : 'none'}; stroke:${data.pinned ? 'none' : 'currentColor'}; stroke-width: 2;">
+            <path d="M16 12V4H17V2H7V4H8V12L6 14V16H11V22H13V16H18V14L16 12Z"/>
+          </svg>
+        </button>
+        <button class="post-menu" onclick="toggleMenu(event, '${menuId}')">
+          <svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg>
+          <div class="dropdown-menu" id="${menuId}">
+            <div class="dropdown-item" onclick="editPost(event)">
+              <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Edit Post
+            </div>
+            <div class="dropdown-item danger" onclick="deletePost('${postId}')">
+              <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg> Delete
+            </div>
           </div>
-          <div class="dropdown-item" onclick="togglePinPost('${postId}', ${data.pinned || false})">
-            <svg viewBox="0 0 24 24" style="fill:${data.pinned ? 'var(--accent)' : 'none'}; stroke:${data.pinned ? 'var(--accent)' : 'currentColor'};">
-              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
-            </svg> 
-            ${data.pinned ? 'Unpin' : 'Pin Announcement'}
-          </div>
-          <div class="dropdown-item danger" onclick="deletePost('${postId}')">
-            <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg> Delete
-          </div>
-        </div>
-      </button>
+        </button>
+      </div>
     </div>
     ${bodyHtml}
     <div class="comments-data" style="display:none;"></div>
@@ -533,7 +555,7 @@ function renderPost(data, postId) {
   feed.appendChild(postCard);
 }
 
-window.toggleMenu = function(e, id) {
+window.toggleMenu = function (e, id) {
   e.stopPropagation();
   document.querySelectorAll('.dropdown-menu').forEach(m => {
     if (m.id !== id) m.classList.remove('open');
@@ -542,7 +564,7 @@ window.toggleMenu = function(e, id) {
   if (menu) menu.classList.toggle('open');
 };
 
-window.deletePost = async function(postId) {
+window.deletePost = async function (postId) {
   if (confirm("Delete this post?")) {
     try {
       await deleteDoc(doc(db, "announcements", postId));
@@ -556,7 +578,7 @@ window.deletePost = async function(postId) {
   }
 };
 
-window.togglePinPost = async function(postId, currentlyPinned) {
+window.togglePinPost = async function (postId, currentlyPinned) {
   try {
     if (!currentlyPinned) {
       // 1. Unpin any currently pinned post first
@@ -566,7 +588,7 @@ window.togglePinPost = async function(postId, currentlyPinned) {
       snapshot.forEach(d => {
         batch.update(doc(db, "announcements", d.id), { pinned: false });
       });
-      
+
       // 2. Pin the new one
       batch.update(doc(db, "announcements", postId), { pinned: true });
       await batch.commit();
@@ -582,16 +604,16 @@ window.togglePinPost = async function(postId, currentlyPinned) {
   }
 };
 
-window.editPost = async function(e) {
-  const card   = e.target.closest('.post-card');
+window.editPost = async function (e) {
+  const card = e.target.closest('.post-card');
   const postId = card.dataset.id;
   const bodyEl = card.querySelector('.post-body');
   if (!bodyEl) return;
 
   const originalText = bodyEl.innerHTML
-    .replace(/<br>/g,  '\n')
-    .replace(/&lt;/g,  '<')
-    .replace(/&gt;/g,  '>')
+    .replace(/<br>/g, '\n')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
     .replace(/&amp;/g, '&')
     .replace(/&quot;/g, '"');
 
@@ -631,27 +653,27 @@ window.editPost = async function(e) {
 // ========================
 // LIKE LOGIC
 // ========================
-window.toggleLike = async function(postId, e) {
+window.toggleLike = async function (postId, e) {
   e.stopPropagation();
   const user = auth.currentUser;
   if (!user) { showToast('Sign in to react.'); return; }
 
   const btn = e.currentTarget;
   const isLiked = btn.classList.contains('heart-active');
-    const postRef = doc(db, "announcements", postId);
+  const postRef = doc(db, "announcements", postId);
 
-    try {
-      // Optimistic UI
-      btn.classList.toggle('heart-active', !isLiked);
-      const countEl = btn.querySelector('.likes-count');
-      if (countEl) {
-        let count = parseInt(countEl.textContent);
-        countEl.textContent = isLiked ? Math.max(0, count - 1) : count + 1;
-      }
+  try {
+    // Optimistic UI
+    btn.classList.toggle('heart-active', !isLiked);
+    const countEl = btn.querySelector('.likes-count');
+    if (countEl) {
+      let count = parseInt(countEl.textContent);
+      countEl.textContent = isLiked ? Math.max(0, count - 1) : count + 1;
+    }
 
-      await updateDoc(postRef, {
-        likes: isLiked ? arrayRemove(user.uid) : arrayUnion(user.uid)
-      });
+    await updateDoc(postRef, {
+      likes: isLiked ? arrayRemove(user.uid) : arrayUnion(user.uid)
+    });
   } catch (err) {
     console.error("Like error:", err);
     // Rollback
@@ -666,11 +688,11 @@ let activePostId = null;
 let _currentPostCard = null;
 let unsubscribeComments = null;
 
-window.openCommentModal = async function(postId) {
+window.openCommentModal = async function (postId) {
   activePostId = postId;
   _currentPostCard = document.querySelector(`.post-card[data-id="${postId}"]`);
   const modal = document.getElementById('commentModal');
-  
+
   // Update modal input avatar
   const inputAvatarImg = modal.querySelector('.comment-modal-avatar img');
   if (inputAvatarImg && USER && USER.photoSrc) {
@@ -681,7 +703,7 @@ window.openCommentModal = async function(postId) {
   loadComments(postId);
 };
 
-window.closeCommentModal = function() {
+window.closeCommentModal = function () {
   document.getElementById('commentModal').classList.remove('open');
   if (unsubscribeComments) {
     unsubscribeComments();
@@ -691,7 +713,7 @@ window.closeCommentModal = function() {
   _currentPostCard = null;
 };
 
-window.closeCommentModalOnOverlay = function(e) {
+window.closeCommentModalOnOverlay = function (e) {
   if (e.target.id === 'commentModal') closeCommentModal();
 };
 
@@ -713,11 +735,11 @@ async function loadComments(postId) {
         const c = docSnap.data();
         const isOwn = c.userId === auth.currentUser?.uid;
         list.appendChild(buildCommentModalItem(
-          c.author, 
+          c.author,
           c.photoURL || '../assets/images/anon_avatar.jpg',
-          c.text, 
-          c.createdAt ? c.createdAt.toDate().toISOString() : new Date().toISOString(), 
-          isOwn, 
+          c.text,
+          c.createdAt ? c.createdAt.toDate().toISOString() : new Date().toISOString(),
+          isOwn,
           docSnap.id,
           cIdx,
           c.userId
@@ -755,11 +777,11 @@ function buildCommentModalItem(author, avatar, text, time, isOwn, commentId, cId
       </div>
       <div class="comment-footer" style="display:flex; align-items:center; gap:12px; margin-top:4px;">
         <div class="comment-modal-item-time" style="margin:0;">${(() => {
-          const d = new Date(time);
-          const dateStr = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-          const timeStr = d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
-          return `${dateStr} at ${timeStr}`;
-        })()}</div>
+      const d = new Date(time);
+      const dateStr = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      const timeStr = d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+      return `${dateStr} at ${timeStr}`;
+    })()}</div>
         ${isOwn ? `
         <div class="comment-item-actions" style="display:flex; align-items:center; gap:8px;">
           <button class="comment-action-btn edit-btn" data-comment="${cIdx}" style="margin:0; padding:0; background:none;">
@@ -797,7 +819,7 @@ function bindCommentActions() {
 
   list.querySelectorAll('.comment-edit-save').forEach(btn => {
     btn.addEventListener('click', async function () {
-      const c       = this.dataset.comment;
+      const c = this.dataset.comment;
       const newText = document.getElementById(`comment-modal-edit-input-${c}`).value.trim();
       if (!newText) return;
 
@@ -821,7 +843,7 @@ function bindCommentActions() {
 
   list.querySelectorAll('.delete-btn').forEach(btn => {
     btn.addEventListener('click', async function () {
-      const c    = this.dataset.comment;
+      const c = this.dataset.comment;
       const item = document.getElementById(`comment-modal-item-${c}`);
       const commentId = item.dataset.commentId;
 
@@ -829,15 +851,15 @@ function bindCommentActions() {
         try {
           await deleteDoc(doc(db, "announcements", activePostId, "comments", commentId));
           await updateDoc(doc(db, "announcements", activePostId), { comments: arrayRemove(auth.currentUser.uid) });
-          
+
           item.style.transition = 'opacity 0.2s, transform 0.2s';
-          item.style.opacity    = '0';
-          item.style.transform  = 'translateX(12px)';
+          item.style.opacity = '0';
+          item.style.transform = 'translateX(12px)';
           setTimeout(() => item.remove(), 200);
-          
+
           const countEl = _currentPostCard?.querySelector('.comments-count');
           if (countEl) countEl.textContent = Math.max(0, parseInt(countEl.textContent) - 1);
-          
+
           showToast('Comment deleted.');
         } catch (error) {
           console.error('Delete comment error:', error);
@@ -848,7 +870,7 @@ function bindCommentActions() {
   });
 }
 
-window.submitModalComment = async function() {
+window.submitModalComment = async function () {
   const input = document.getElementById('commentModalInput');
   const text = input.value.trim();
   if (!text || !activePostId) return;
@@ -876,7 +898,7 @@ window.submitModalComment = async function() {
   }
 };
 
-window.handleModalCommentKey = function(e) {
+window.handleModalCommentKey = function (e) {
   if (e.key === 'Enter') submitModalComment();
 };
 
@@ -885,10 +907,10 @@ window.handleModalCommentKey = function(e) {
 // ========================
 let repostPostId = null;
 
-window.openRepostModal = async function(postId, e) {
+window.openRepostModal = async function (postId, e) {
   if (e) e.stopPropagation();
   repostPostId = postId;
-  
+
   const overlay = document.getElementById('hp-repost-modal-overlay');
   const modal = document.getElementById('hp-repost-modal');
   if (!overlay || !modal) return;
@@ -950,7 +972,7 @@ window.openRepostModal = async function(postId, e) {
   setTimeout(() => document.getElementById('repostContent').focus(), 150);
 };
 
-window.closeRepostModal = function() {
+window.closeRepostModal = function () {
   const overlay = document.getElementById('hp-repost-modal-overlay');
   if (overlay) {
     overlay.classList.remove('open');
@@ -960,11 +982,11 @@ window.closeRepostModal = function() {
   repostPostId = null;
 };
 
-window.closeRepostModalOnOverlay = function(e) {
+window.closeRepostModalOnOverlay = function (e) {
   if (e.target.id === 'hp-repost-modal-overlay') window.closeRepostModal();
 };
 
-window.submitRepost = async function(skipQuote = false) {
+window.submitRepost = async function (skipQuote = false) {
   const quote = skipQuote ? "" : document.getElementById('repostContent').value.trim();
   if (!repostPostId) return;
 
@@ -1040,16 +1062,17 @@ function updatePostInPlace(postId, data) {
     repostBtn.querySelector('.reposts-count').textContent = reposts.length;
   }
 
-  // Update Pin Status in Menu
-  const pinItem = Array.from(card.querySelectorAll('.dropdown-item')).find(el => el.textContent.includes('Pin') || el.textContent.includes('Unpin'));
-  if (pinItem) {
+  // Update Pin Status (Standalone button in header)
+  const pinBtn = card.querySelector('.pin-post-btn');
+  if (pinBtn) {
     const isPinned = data.pinned || false;
-    pinItem.setAttribute('onclick', `togglePinPost('${postId}', ${isPinned})`);
-    pinItem.innerHTML = `
-      <svg viewBox="0 0 24 24" style="fill:${isPinned ? 'var(--accent)' : 'none'}; stroke:${isPinned ? 'var(--accent)' : 'currentColor'};">
-        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
-      </svg> 
-      ${isPinned ? 'Unpin' : 'Pin Announcement'}
+    pinBtn.classList.toggle('pinned', isPinned);
+    pinBtn.setAttribute('onclick', `togglePinPost('${postId}', ${isPinned})`);
+    pinBtn.title = isPinned ? 'Unpin' : 'Pin Announcement';
+    pinBtn.innerHTML = `
+      <svg viewBox="0 0 24 24" style="fill:${isPinned ? '#6b1111' : 'none'}; stroke:${isPinned ? 'none' : 'currentColor'}; stroke-width: 2;">
+        <path d="M16 12V4H17V2H7V4H8V12L6 14V16H11V22H13V16H18V14L16 12Z"/>
+      </svg>
     `;
   }
 }
@@ -1086,11 +1109,11 @@ function formatRelativeTime(date) {
 }
 function fmt(n) {
   if (n >= 1000000) return (n / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
-  if (n >= 1000)    return (n / 1000).toFixed(1).replace(/\.0$/, '')    + 'K';
+  if (n >= 1000) return (n / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
   return String(n);
 }
 
-window.viewReposts = async function(postId, e) {
+window.viewReposts = async function (postId, e) {
   if (e) e.stopPropagation();
   const modal = document.getElementById('repostViewModal');
   const list = document.getElementById('repostViewModalList');
@@ -1103,7 +1126,7 @@ window.viewReposts = async function(postId, e) {
   try {
     const q = query(collection(db, "posts"), where("repostOf", "==", postId), orderBy("createdAt", "desc"));
     const snap = await getDocs(q);
-    
+
     if (snap.empty) {
       list.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted);">No reposts found.</div>';
       return;
@@ -1114,7 +1137,7 @@ window.viewReposts = async function(postId, e) {
       const data = docSnap.data();
       const item = document.createElement('div');
       item.className = 'comment-modal-item';
-      
+
       const avatar = data.photoURL || '../assets/images/anon_avatar.jpg';
       const author = data.author || 'TUPian';
       let time = 'Just now';
@@ -1125,7 +1148,7 @@ window.viewReposts = async function(postId, e) {
         time = `${dateStr} at ${timeStr}`;
       }
       const text = data.text || data.body || '';
-      
+
       item.innerHTML = `
         <div class="comment-modal-item-avatar">
           <img src="${avatar}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">
@@ -1148,7 +1171,7 @@ window.viewReposts = async function(postId, e) {
   }
 };
 
-window.closeRepostViewModal = function() {
+window.closeRepostViewModal = function () {
   const modal = document.getElementById('repostViewModal');
   if (modal) {
     modal.classList.remove('open');
@@ -1156,7 +1179,7 @@ window.closeRepostViewModal = function() {
   }
 };
 
-window.closeRepostViewModalOnOverlay = function(e) {
+window.closeRepostViewModalOnOverlay = function (e) {
   if (e.target.id === 'repostViewModal') window.closeRepostViewModal();
 };
 
@@ -1178,7 +1201,7 @@ function initLightbox() {
   const lb = document.getElementById('cn-lightbox');
   document.getElementById('cn-lightbox-close')?.addEventListener('click', () => lb.classList.remove('open'));
   lb?.addEventListener('click', e => { if (e.target === lb) lb.classList.remove('open'); });
-  
+
   document.getElementById('lb-prev')?.addEventListener('click', (e) => {
     e.stopPropagation();
     window.currentIndex = (window.currentIndex > 0) ? window.currentIndex - 1 : window.currentGallery.length - 1;
@@ -1214,7 +1237,7 @@ function wireLightboxTriggers() {
       const card = fresh.closest('.post-card');
       const pid = card?.dataset.id;
       const post = allOrgPosts.find(p => p.id === pid);
-      
+
       if (post && post.imageURLs && post.imageURLs.length > 0) {
         window.currentGallery = post.imageURLs;
         window.currentIndex = post.imageURLs.indexOf(src);
@@ -1238,7 +1261,7 @@ function renderPhotoGrid(imgs) {
 
   if (clampedCount === 1) {
     return `<div class="lightbox-trigger" data-src="${imgs[0]}" style="cursor:pointer; margin-top:12px; border-radius:${borderRadius}; overflow:hidden; display:block;">
-              <img src="${imgs[0]}" style="width:100%; display:block; object-fit:cover; max-height:500px;" />
+              <img src="${imgs[0]}" loading="lazy" style="width:100%; display:block; object-fit:cover; max-height:500px;" />
             </div>`;
   }
 
@@ -1255,13 +1278,13 @@ function renderPhotoGrid(imgs) {
     if (clampedCount === 3 && i === 0) cellStyle += " grid-row: 1 / 3 !important;";
     else if (clampedCount === 5 && i === 0) cellStyle += " grid-column: 1 / 2 !important; grid-row: 1 / 3 !important;";
 
-    const overlayHtml = (i === 4 && extra > 0) 
-      ? `<div class="photo-more-overlay" style="position: absolute !important; inset: 0 !important; background: rgba(0,0,0,0.5) !important; display: flex !important; align-items: center !important; justify-content: center !important; color: #fff !important; font-size: 24px !important; font-weight: 700 !important; z-index: 2 !important; pointer-events: none !important; font-family: 'Montserrat', sans-serif;">+${extra}</div>` 
+    const overlayHtml = (i === 4 && extra > 0)
+      ? `<div class="photo-more-overlay" style="position: absolute !important; inset: 0 !important; background: rgba(0,0,0,0.5) !important; display: flex !important; align-items: center !important; justify-content: center !important; color: #fff !important; font-size: 24px !important; font-weight: 700 !important; z-index: 2 !important; pointer-events: none !important; font-family: 'Montserrat', sans-serif;">+${extra}</div>`
       : '';
 
     return `
       <div class="collage-cell lightbox-trigger" data-src="${src}" style="${cellStyle}">
-        <img src="${src}" style="position: absolute !important; top: 0 !important; left: 0 !important; width: 100% !important; height: 100% !important; object-fit: cover !important; display: block !important;" />
+        <img src="${src}" loading="lazy" style="position: absolute !important; top: 0 !important; left: 0 !important; width: 100% !important; height: 100% !important; object-fit: cover !important; display: block !important;" />
         ${overlayHtml}
       </div>`;
   }).join('');

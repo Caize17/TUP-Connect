@@ -1,7 +1,6 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getFirestore, doc, getDoc, updateDoc, collection, query, where, getDocs, orderBy, addDoc, serverTimestamp, increment, onSnapshot, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-import { arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { auth, db } from "../firebaseConfig.js";
+import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { doc, getDoc, updateDoc, collection, query, where, getDocs, orderBy, addDoc, serverTimestamp, increment, onSnapshot, deleteDoc, arrayUnion, arrayRemove, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { CONFIG } from "./config.js";
 
@@ -72,7 +71,7 @@ const model = genAI.getGenerativeModel({
     },
     {
       "topic": "college of architecture and fine arts",
-      "content": "The College of Architecture and Fine Arts develops competitive architects, artist, designers, and draftsmen for industry and related sectors toward an improved quality of life.\nPrograms Offered: \n\nUndergraduate Programs:\n- Bachelor of Science in Architecture\n- Bachelor of Fine Arts\n- Bachelor in Graphics Technology major in Architecture Technology\n- Bachelor in Graphics Technology major in Industrial Design\n- Bachelor in Graphics Technology major in Mechanical Drafting Technology\n\nGraduate Programs:\n- Master in Architecture major in Construction Technology Management\n- Master in Graphics Technology"
+      "content": "The College of Architecture and Fine Arts develops competitive architects, artist, designers, and draftsmen for industry and related sectors toward an improved quality of life.\nPrograms Offered:\n\nUndergraduate Programs:\n- Bachelor of Science in Architecture\n- Bachelor of Fine Arts\n- Bachelor in Graphics Technology major in Architecture Technology\n- Bachelor in Graphics Technology major in Industrial Design\n- Bachelor in Graphics Technology major in Mechanical Drafting Technology\n\nGraduate Programs:\n- Master in Architecture major in Construction Technology Management\n- Master in Graphics Technology"
     },
     {
       "topic": "college of industrial education",
@@ -369,29 +368,8 @@ const model = genAI.getGenerativeModel({
   ])}`
 });
 
-const firebaseConfig = {
-  apiKey: "AIzaSyBpGOdMpx_Mws2EcCq6rbOWfZ-FFuhhfo0",
-  authDomain: "tup-connect-b162d.firebaseapp.com",
-  projectId: "tup-connect-b162d",
-  storageBucket: "tup-connect-b162d.firebasestorage.app",
-  messagingSenderId: "193141013544",
-  appId: "1:193141013544:web:72b403e84aa4d3313f091d"
-};
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db   = getFirestore(app);
-
-let USER = {
-  name:     "TUPian",
-  photoSrc: "../assets/images/anon_avatar.jpg"
-};
-let allPosts = [];
-
-// ========================
-// IMAGE COMPRESSION
-// ========================
-async function compressImage(file, maxWidth = 400, maxHeight = 400) {
+async function compressImage(file, maxWidth = 1200, maxHeight = 1200) {
   return new Promise((resolve) => {
     const reader = new FileReader();
     reader.readAsDataURL(file);
@@ -400,22 +378,29 @@ async function compressImage(file, maxWidth = 400, maxHeight = 400) {
       img.src = event.target.result;
       img.onload = () => {
         const canvas = document.createElement('canvas');
-        let width  = img.width;
+        let width = img.width;
         let height = img.height;
         if (width > height) {
-          if (width > maxWidth)  { height *= maxWidth / width;   width  = maxWidth;  }
+          if (width > maxWidth) { height *= maxWidth / width; width = maxWidth; }
         } else {
-          if (height > maxHeight){ width  *= maxHeight / height; height = maxHeight; }
+          if (height > maxHeight) { width *= maxHeight / height; height = maxHeight; }
         }
-        canvas.width  = width;
+        canvas.width = width;
         canvas.height = height;
         const ctx = canvas.getContext('2d');
         ctx.drawImage(img, 0, 0, width, height);
-        resolve(canvas.toDataURL('image/jpeg', 0.95));
+        resolve(canvas.toDataURL('image/jpeg', 0.7));
       };
     };
   });
 }
+
+
+let USER = {
+  name:     "TUPian",
+  photoSrc: "../assets/images/anon_avatar.jpg"
+};
+let allPosts = [];
 
 // ========================
 // INSTANT UI PRE-FILL (STALE-WHILE-REVALIDATE)
@@ -1195,20 +1180,23 @@ document.querySelector('.modal-add-photo-btn')?.addEventListener('click', e => {
   fileInput?.click();
 });
 
-fileInput?.addEventListener('change', function () {
-  Array.from(this.files).forEach(file => {
-    const reader = new FileReader();
-    reader.onload = ev => {
-      const thumb     = document.createElement('img');
-      thumb.src       = ev.target.result;
+fileInput?.addEventListener('change', async function () {
+  for (const file of this.files) {
+    try {
+      const compressedBase64 = await compressImage(file, 1000, 1000);
+      const thumb = document.createElement('img');
+      thumb.src = compressedBase64;
       thumb.className = 'modal-attach-thumb';
-      thumb.title     = 'Click to remove';
+      thumb.title = 'Click to remove';
+      thumb.style.cssText = 'width:80px; height:80px; object-fit:cover; border-radius:8px; cursor:pointer; flex-shrink:0;';
       thumb.addEventListener('click', () => { thumb.remove(); updateSubmitButton(); });
       attachWrap.appendChild(thumb);
-    };
-    reader.readAsDataURL(file);
-  });
-  updateSubmitButton();
+      updateSubmitButton();
+    } catch (err) {
+      console.error("Compression error:", err);
+    }
+  }
+  fileInput.value = '';
 });
 
 function openPostModal() {
@@ -1225,41 +1213,62 @@ function closeModalOnOverlay(e) {
   if (e.target === document.getElementById('postModal')) closePostModal();
 }
 
-async function submitPost() {
+window.submitPost = async function() {
   const content = document.getElementById('postContent').value.trim();
-  const thumbs  = Array.from(attachWrap.querySelectorAll('.modal-attach-thumb'));
+  const attachWrap = document.getElementById('modal-attachments');
+  const thumbs = Array.from(attachWrap.querySelectorAll('.modal-attach-thumb'));
+
   if (!content && thumbs.length === 0) { showToast('Write something first!'); return; }
 
   const user = auth.currentUser;
-  if (!user) { showToast('Login to post!'); return; }
+  if (!user) return;
 
-  const isAnon = document.getElementById('anonToggle').checked;
-  const author = isAnon ? 'Anonymous' : USER.name;
-  const avatar = isAnon ? '../assets/images/anon_avatar.jpg' : USER.photoSrc;
+  const btn = document.getElementById('modal-submit-btn');
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = `<span class="loading-spinner"></span> Posting...`;
+  }
 
   try {
-    await addDoc(collection(db, "posts"), {
+    const imageURLs = [];
+    for (let i = 0; i < thumbs.length; i++) {
+      const thumb = thumbs[i];
+      imageURLs.push(thumb.src); // Already compressed base64 from fileInput listener
+    }
+
+    const postData = {
       userId: user.uid,
-      author: author,
-      photoURL: avatar,
+      author: USER.fullName,
+      photoURL: USER.photoURL,
       text: content,
-      imageURLs: thumbs.map(t => t.src),
+      imageURL: imageURLs.length > 0 ? imageURLs[0] : "", // Legacy support
+      imageURLs: imageURLs,
       createdAt: serverTimestamp(),
       likedBy: [],
-      comments: 0
-    });
+      comments: 0,
+      repostedBy: [],
+      isOrg: false,
+      college: USER.college || null
+    };
 
-    showToast('Post created!');
-    closePostModal();
+    console.log("Saving user post to Firestore...");
+    await addDoc(collection(db, "posts"), postData);
+    console.log("User post saved successfully!");
+    
     document.getElementById('postContent').value = '';
-    document.getElementById('anonToggle').checked = false;
     attachWrap.innerHTML = '';
-    updateSubmitButton();
-  } catch (error) {
-    console.error('Post error:', error);
-    showToast('Failed to create post.');
+    closePostModal();
+    showToast('Post shared!');
+  } catch (err) {
+    console.error("Post Error:", err);
+    alert("Error submitting post: " + err.message);
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = `<svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Post`;
+    }
   }
-}
+};
 
 // ========================
 // COMMENT MODAL

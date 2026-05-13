@@ -30,7 +30,16 @@ const db   = getFirestore(app);
 
 function timeAgo(ts) {
   if (!ts) return '';
-  const date = ts.toDate ? ts.toDate() : new Date(ts);
+  let date;
+  if (ts.toDate) {
+    date = ts.toDate();
+  } else if (ts.seconds) {
+    // Handle Firestore objects from JSON cache
+    date = new Date(ts.seconds * 1000);
+  } else {
+    date = new Date(ts);
+  }
+
   if (isNaN(date.getTime())) return 'Just now';
   const diff = (Date.now() - date.getTime()) / 1000;
   if (diff < 60)        return 'JUST NOW';
@@ -240,7 +249,12 @@ function initHomepageReactions() {
     const repostBtn = e.target.closest('#btn-reposts');
     if (repostBtn) {
       if (window.openRepostModalHP) {
-        window.openRepostModalHP(currentPinnedPost, 'announcements');
+        // Ensure the repost modal has the correct original timestamp
+        const postToRepost = { 
+          ...currentPinnedPost, 
+          time: timeAgo(currentPinnedPost.createdAt) 
+        };
+        window.openRepostModalHP(postToRepost, 'announcements');
       }
       return;
     }

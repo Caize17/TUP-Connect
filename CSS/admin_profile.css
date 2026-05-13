@@ -152,9 +152,9 @@ body {
   width: 56px;
   height: 56px;
   border-radius: 50%;
-  border: 2.5px solid rgba(255,255,255,0.75);
+  border: 2.5px solid rgba(255,255,255,0.25);
   overflow: hidden;
-  background: rgba(255,255,255,0.15);
+  background: transparent;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -233,9 +233,9 @@ body {
   width: 91%;
   height: 400px;
   overflow: hidden;
-  background: var(--maroon);
+  background: transparent;
   border-radius: 20px;
-  outline: 4px solid #dec2c6;
+  outline: none;
 }
 
 .banner-img {
@@ -357,9 +357,9 @@ body {
   width: 190px;
   height: 190px;
   border-radius: 50%;
-  border: 4px solid #dec2c6;
-  background: linear-gradient(135deg, #d4a0a0, #8B2A2A);
-  box-shadow: 0 4px 18px rgba(107,26,26,0.15);
+  border: none;
+  background: transparent;
+  box-shadow: none;
   overflow: hidden;
   cursor: pointer;
   display: flex;
@@ -441,7 +441,7 @@ body {
 
 .post-input-img {
   width: 58px; height: 58px; border-radius: 50%;
-  background: var(--maroon);
+  background: transparent;
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0; margin-right: -6px; overflow: hidden; pointer-events: none;
 }
@@ -526,8 +526,8 @@ body {
 .post-header {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 10px;
+  gap: 12px;
+  margin-bottom: 12px;
 }
 
 .post-avatar {
@@ -574,11 +574,19 @@ body {
   color: var(--text-dark);
   font-size: 20px;
   cursor: pointer;
-  padding: 4px 8px;
-  border-radius: 8px;
-  transition: background 0.15s;
+  padding: 8px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, color 0.15s;
   position: relative;
   user-select: none;
+}
+
+.post-menu svg {
+  width: 18px;
+  height: 18px;
 }
 
 .post-menu:hover {
@@ -2342,3 +2350,54 @@ body {
 #lb-prev { left: 24px; }
 #lb-next { right: 24px; }
 #lb-counter { position: absolute; bottom: 22px; left: 50%; transform: translateX(-50%); background: rgba(0, 0, 0, 0.55); border: 1px solid rgba(255, 255, 255, 0.15); color: rgba(255, 255, 255, 0.9); font-family: 'Montserrat', sans-serif; font-size: 13px; font-weight: 700; padding: 6px 18px; border-radius: 99px; backdrop-filter: blur(4px); }
+/* ========================
+   HEADER PIN BUTTON
+======================== */
+.post-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.pin-post-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  color: #8a7a6a;
+}
+
+.pin-post-btn:hover {
+  background: rgba(107, 17, 17, 0.08);
+  color: #6b1111;
+}
+
+.pin-post-btn.pinned {
+  color: #6b1111;
+  background: rgba(107, 17, 17, 0.08);
+}
+
+.pin-post-btn.pinned svg {
+  fill: #6b1111 !important;
+  stroke: none !important;
+}
+
+.pin-post-btn.pinned:hover {
+  background: rgba(107, 17, 17, 0.12);
+}
+
+.pin-post-btn svg {
+  width: 19px;
+  height: 19px;
+  transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.pin-post-btn:active svg {
+  transform: scale(0.85);
+}

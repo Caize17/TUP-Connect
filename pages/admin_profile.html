@@ -1,19 +1,23 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TUP Konek - Admin Profile</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TUP Konek - Admin Profile</title>
 
-<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap"
+    rel="stylesheet">
 
-<link rel="stylesheet" href="../CSS/admin_profile.css">
-<link rel="stylesheet" href="../CSS/navbar.css">
+  <link rel="stylesheet" href="../CSS/admin_profile.css">
+  <link rel="stylesheet" href="../CSS/navbar.css">
 </head>
 
 <body>
+  <!-- Inline pre-fill script removed from here to be placed after elements for zero-delay execution -->
 
-    <!-- SIDEBAR -->
+  <!-- SIDEBAR -->
   <aside class="sidebar">
 
     <div class="sidebar-logo">
@@ -25,21 +29,31 @@
 
       <button class="nav-btn" data-index="0" data-route="settings" title="Settings" id="btn-settings">
         <div class="nav-icon-wrap">
-          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          <svg viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="3" />
+            <path
+              d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+          </svg>
         </div>
       </button>
 
       <div class="nav-spacer"></div>
 
-      <button class="nav-btn-profile active" data-index="1" data-route="profile" title="My Profile" id="sidebar-avatar-wrap">
+      <button class="nav-btn-profile active" data-index="1" data-route="profile" title="My Profile"
+        id="sidebar-avatar-wrap">
         <div class="nav-profile-avatar" id="nav-profile-avatar">
-          <img src="../assets/images/anon_avatar.jpg" class="sidebar-avatar-img">
+          <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+            class="sidebar-avatar-img">
         </div>
       </button>
 
       <button class="nav-btn" id="btn-logout" data-index="2" title="Logout">
         <div class="nav-icon-wrap">
-          <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          <svg viewBox="0 0 24 24">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+            <polyline points="16 17 21 12 16 7" />
+            <line x1="21" y1="12" x2="9" y2="12" />
+          </svg>
         </div>
       </button>
     </div>
@@ -51,7 +65,8 @@
 
     <!-- BANNER -->
     <div class="banner">
-      <img src="../assets/images/cover_photo.jpg" class="banner-img" id="banner-img">
+      <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" class="banner-img"
+        id="banner-img">
       <div class="change-photo-wrap">
         <button class="change-photo-btn" onclick="toggleChangePhotoMenu(event)">
           <img src="../assets/images/change_photo.png" class="change-photo-img">
@@ -76,23 +91,55 @@
     <div class="profile-section">
       <div class="profile-avatar-wrap">
         <div class="profile-avatar">
-          <img src="../assets/images/anon_avatar.jpg" class="profile-avatar-inner" id="profile-avatar-inner">
+          <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+            class="profile-avatar-inner" id="profile-avatar-inner">
         </div>
       </div>
       <div class="profile-info">
-        <div class="profile-name" id="profile-name">Admin</div>
-        <div class="profile-college" id="profile-college">Loading...</div>
-        <div class="profile-email-logo">✉ <span class="profile-email" id="profile-email">admin@tup.edu.ph</span></div>
+        <div class="profile-name" id="profile-name">&nbsp;</div>
+        <div class="profile-college" id="profile-college">&nbsp;</div>
+        <div class="profile-email-logo" id="profile-email-row" style="display:none;">✉ <span class="profile-email"
+            id="profile-email">&nbsp;</span></div>
       </div>
     </div>
 
+    <!-- SCRIPT RUNS IMMEDIATELY AFTER ELEMENTS -->
+    <script>
+      (function () {
+        const cache = localStorage.getItem('tup_user_meta');
+        if (cache) {
+          try {
+            const data = JSON.parse(cache);
+            if (data.fullName) document.getElementById('profile-name').textContent = data.fullName;
+            if (data.position || data.role) document.getElementById('profile-college').textContent = data.position || data.role;
+            if (data.email) {
+              document.getElementById('profile-email').textContent = data.email;
+              document.getElementById('profile-email-row').style.display = 'flex';
+            }
+            if (data.photoURL) {
+              const av = document.getElementById('profile-avatar-inner');
+              av.src = data.photoURL;
+              av.parentElement.style.border = '4px solid #dec2c6';
+              av.parentElement.style.boxShadow = '0 4px 18px rgba(107,26,26,0.15)';
+
+              document.querySelector('.sidebar-avatar-img').src = data.photoURL;
+              document.getElementById('post-input-img').src = data.photoURL;
+            }
+            if (data.coverURL) {
+              const banner = document.getElementById('banner-img');
+              banner.src = data.coverURL;
+              banner.parentElement.style.outline = '4px solid #dec2c6';
+            }
+          } catch (e) { }
+        }
+      })();
+    </script>
+
     <!-- POST INPUT -->
     <div class="post-input-wrap">
-      <img src="../assets/images/anon_avatar.jpg" class="post-input-img" id="post-input-img">
-      <input class="post-input-field"
-        placeholder="Post an announcement..."
-        onclick="openPostModal()"
-        readonly>
+      <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" class="post-input-img"
+        id="post-input-img">
+      <input class="post-input-field" placeholder="Post an announcement..." onclick="openPostModal()" readonly>
       <button type="button" class="post-input-icon" id="btn-add-photo" title="Add Photo">
         <img src="../assets/images/add photo.png" alt="Add Photo">
       </button>
@@ -106,15 +153,25 @@
   <template id="post-template">
     <div class="feed-reactions">
       <button class="feed-reaction-btn" data-type="like">
-        <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+        <svg viewBox="0 0 24 24">
+          <path
+            d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+        </svg>
         <span class="reaction-likes-count">0</span> Heart
       </button>
       <button class="feed-reaction-btn" data-type="comment">
-        <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <svg viewBox="0 0 24 24">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+        </svg>
         <span class="reaction-comments-count">0</span> Comment
       </button>
       <button class="feed-reaction-btn" data-type="repost">
-        <svg viewBox="0 0 24 24"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+        <svg viewBox="0 0 24 24">
+          <polyline points="17 1 21 5 17 9" />
+          <path d="M3 11V9a4 4 0 0 1 4-4h14" />
+          <polyline points="7 23 3 19 7 15" />
+          <path d="M21 13v2a4 4 0 0 1-4 4H3" />
+        </svg>
         <span class="reaction-reposts-count">0</span> Repost
       </button>
     </div>
@@ -123,10 +180,19 @@
   <!-- POST MENU TEMPLATE (edit menu items here) -->
   <template id="menu-template">
     <div class="dropdown-item" onclick="editPost(event)">
-        <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Edit Post
+      <svg viewBox="0 0 24 24">
+        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+      </svg> Edit Post
     </div>
     <div class="dropdown-item danger" onclick="deletePost(event)">
-        <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg> Delete
+      <svg viewBox="0 0 24 24">
+        <polyline points="3 6 5 6 21 6" />
+        <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+        <path d="M10 11v6" />
+        <path d="M14 11v6" />
+        <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+      </svg> Delete
     </div>
   </template>
 
@@ -143,25 +209,30 @@
         <div class="modal-user-row">
 
           <div id="modal-avatar" class="modal-user-avatar">
-            <img src="../assets/images/anon_avatar.jpg" alt="Me" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">
+            <img src="../assets/images/anon_avatar.jpg" alt="Me"
+              style="width:100%;height:100%;object-fit:cover;border-radius:50%;">
           </div>
 
           <div class="modal-user-info">
-            <div class="modal-user-name" id="modal-user-name">Admin</div>
+            <div class="modal-user-name" id="modal-user-name">&nbsp;</div>
           </div>
         </div>
 
-        <input class="modal-title-input" id="postTitle" placeholder="Announcement Title..."/>
+        <input class="modal-title-input" id="postTitle" placeholder="Announcement Title..." />
         <textarea class="modal-textarea" id="postContent" placeholder="Post an announcement..."></textarea>
         <div class="modal-attachments" id="modal-attachments"></div>
         <div class="modal-footer">
           <button class="modal-add-photo-btn">
-            <img src="../assets/images/add_photo.png" alt="Add Photo" style="width:68px;height:52px;object-fit:contain;margin-right:-18px;"/>
+            <img src="../assets/images/add_photo.png" alt="Add Photo"
+              style="width:68px;height:52px;object-fit:contain;margin-right:-18px;" />
             Add Photo
           </button>
-          <input type="file" id="modal-file-input" accept="image/*" multiple/>
-          <button class="modal-submit-btn" id="modal-submit-btn" onclick="submitPost()" disabled aria-label="Post">
-              <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          <input type="file" id="modal-file-input" accept="image/*" multiple />
+          <button class="modal-submit-btn" id="modal-submit-btn" onclick="submitPost()" aria-label="Post">
+            <svg viewBox="0 0 24 24">
+              <line x1="22" y1="2" x2="11" y2="13" />
+              <polygon points="22 2 15 22 11 13 2 9 22 2" />
+            </svg>
           </button>
         </div>
       </div>
@@ -169,34 +240,34 @@
     </div>
   </div>
 
-    <!-- COMMENT MODAL -->
-    <div class="comment-modal-overlay" id="commentModal" onclick="closeCommentModalOnOverlay(event)">
-        <div class="comment-modal">
-            <div class="comment-modal-header">
-                <div class="comment-modal-title">Comments</div>
-                <button class="comment-modal-close" onclick="closeCommentModal()">✕</button>
-            </div>
+  <!-- COMMENT MODAL -->
+  <div class="comment-modal-overlay" id="commentModal" onclick="closeCommentModalOnOverlay(event)">
+    <div class="comment-modal">
+      <div class="comment-modal-header">
+        <div class="comment-modal-title">Comments</div>
+        <button class="comment-modal-close" onclick="closeCommentModal()">✕</button>
+      </div>
 
-            <div class="comment-modal-list" id="commentModalList"></div>
+      <div class="comment-modal-list" id="commentModalList"></div>
 
-            <div class="comment-modal-input-row">
-                <div class="comment-modal-avatar">
-                    <img src="../assets/images/anon_avatar.jpg" alt="You"
-                        onerror="this.style.display='none'; this.parentElement.innerHTML='👩';">
-                </div>
-                <div class="comment-modal-bubble-input">
-                    <input
-                        class="comment-modal-input"
-                        id="commentModalInput"
-                        placeholder="Share your thoughts..."
-                        onkeydown="handleModalCommentKey(event)">
-                    <button class="comment-modal-submit" onclick="submitModalComment()">
-                        <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-                    </button>
-                </div>
-            </div>
+      <div class="comment-modal-input-row">
+        <div class="comment-modal-avatar">
+          <img src="../assets/images/anon_avatar.jpg" alt="You"
+            onerror="this.style.display='none'; this.parentElement.innerHTML='👩';">
         </div>
+        <div class="comment-modal-bubble-input">
+          <input class="comment-modal-input" id="commentModalInput" placeholder="Share your thoughts..."
+            onkeydown="handleModalCommentKey(event)">
+          <button class="comment-modal-submit" onclick="submitModalComment()">
+            <svg viewBox="0 0 24 24">
+              <line x1="22" y1="2" x2="11" y2="13" />
+              <polygon points="22 2 15 22 11 13 2 9 22 2" />
+            </svg>
+          </button>
+        </div>
+      </div>
     </div>
+  </div>
 
   <!-- REPOST MODAL -->
   <div id="hp-repost-modal-overlay" onclick="closeRepostModalOnOverlay(event)">
@@ -208,12 +279,15 @@
       <div class="hp-rm-body">
         <div class="hp-rm-user-row">
           <div class="hp-rm-avatar" id="repost-user-avatar">
-            <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <svg viewBox="0 0 24 24">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+              <circle cx="12" cy="7" r="4" />
+            </svg>
           </div>
           <div class="hp-rm-user-name" id="repost-user-name">User Name</div>
         </div>
         <textarea class="hp-rm-textarea" id="repostContent" placeholder="Add a quote (optional)..."></textarea>
-        
+
         <!-- Original Post Preview -->
         <div class="hp-rm-quote-card" id="repost-quote-preview">
           <div class="hp-rm-quote-header">
@@ -228,7 +302,10 @@
         <div class="hp-rm-actions">
           <button class="hp-rm-skip-btn" onclick="submitRepost(true)">Repost only</button>
           <button class="hp-rm-submit-btn" id="repost-submit-btn" onclick="submitRepost(false)">
-            <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            <svg viewBox="0 0 24 24">
+              <line x1="22" y1="2" x2="11" y2="13" />
+              <polygon points="22 2 15 22 11 13 2 9 22 2" />
+            </svg>
             Post
           </button>
         </div>
@@ -257,4 +334,5 @@
   <script type="module" src="../JS/admin_profile.js"></script>
 
 </body>
+
 </html>

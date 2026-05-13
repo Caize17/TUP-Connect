@@ -1,33 +1,9 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import {
-  getFirestore,
-  collection, onSnapshot,
-  serverTimestamp,
-  query, orderBy, increment, where,
-  doc, getDoc, addDoc, deleteDoc, updateDoc,
-  arrayUnion, arrayRemove
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-import {
-  getStorage, ref, uploadBytes, getDownloadURL
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyBpGOdMpx_Mws2EcCq6rbOWfZ-FFuhhfo0",
-  authDomain: "tup-connect-b162d.firebaseapp.com",
-  projectId: "tup-connect-b162d",
-  storageBucket: "tup-connect-b162d.firebasestorage.app",
-  messagingSenderId: "193141013544",
-  appId: "1:193141013544:web:72b403e84aa4d3313f091d"
-};
+import { auth, db } from "../firebaseConfig.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { collection, onSnapshot, serverTimestamp, query, orderBy, increment, where, doc, getDoc, addDoc, deleteDoc, updateDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 let currentProfile = { name: "TUPian", photo: null };
 let updatePostBox = null;
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const auth = getAuth(app);
-const storage = getStorage(app);
 
 const imageInput = document.getElementById('modal-file-input');
 const imagePreview = document.getElementById('post-image-preview');
@@ -35,53 +11,65 @@ const addImageBtn = document.getElementById('modal-photo-btn');
 const closeBtn = document.getElementById('modal-close-btn');
 
 if (addImageBtn && imageInput) {
-  imageInput.addEventListener('change', function () {
-    const file = this.files[0];
+  addImageBtn.addEventListener('click', () => imageInput.click());
+  
+  imageInput.addEventListener('change', async function () {
     const attachments = document.getElementById('modal-attachments');
-    const preview = document.getElementById('post-image-preview');
+    if (!attachments) return;
 
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        if (preview) {
-          preview.src = e.target.result;
-          preview.style.display = 'block';
-        }
-        if (attachments) {
-          attachments.style.display = 'block';
-        }
-      };
-      reader.readAsDataURL(file);
+    attachments.style.display = 'flex';
+
+    for (const file of this.files) {
+      try {
+        const compressedBase64 = await compressImage(file);
+        const thumb = document.createElement('div');
+        thumb.className = 'modal-attach-thumb-wrapper';
+        thumb.style.cssText = 'position:relative; width:80px; height:80px; flex-shrink:0;';
+        
+        thumb.innerHTML = `
+          <img src="${compressedBase64}" class="modal-attach-thumb" style="width:100%; height:100%; object-fit:cover; border-radius:8px;">
+          <button class="modal-attach-remove" style="position:absolute; top:-5px; right:-5px; background:rgba(0,0,0,0.6); color:white; border:none; border-radius:50%; width:20px; height:20px; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:12px;">✕</button>
+        `;
+
+        thumb.querySelector('.modal-attach-remove').addEventListener('click', () => {
+          thumb.remove();
+          if (attachments.querySelectorAll('.modal-attach-thumb-wrapper').length === 0) {
+            attachments.style.display = 'none';
+          }
+        });
+
+        attachments.appendChild(thumb);
+      } catch (err) {
+        console.error("Compression error:", err);
+      }
     }
+    imageInput.value = ''; // Reset for same-file re-upload
   });
 }
 
-async function compressImage(file) {
+async function compressImage(file, maxWidth = 1200, maxHeight = 1200) {
   return new Promise((resolve) => {
     const reader = new FileReader();
-    reader.onload = (e) => {
+    reader.readAsDataURL(file);
+    reader.onload = (event) => {
       const img = new Image();
+      img.src = event.target.result;
       img.onload = () => {
         const canvas = document.createElement('canvas');
         let width = img.width;
         let height = img.height;
-
-        const MAX_WIDTH = 1600;
-        if (width > MAX_WIDTH) {
-          height *= MAX_WIDTH / width;
-          width = MAX_WIDTH;
+        if (width > height) {
+          if (width > maxWidth) { height *= maxWidth / width; width = maxWidth; }
+        } else {
+          if (height > maxHeight) { width *= maxHeight / height; height = maxHeight; }
         }
-
         canvas.width = width;
         canvas.height = height;
         const ctx = canvas.getContext('2d');
         ctx.drawImage(img, 0, 0, width, height);
-
-        resolve(canvas.toDataURL('image/jpeg', 0.88));
+        resolve(canvas.toDataURL('image/jpeg', 0.7));
       };
-      img.src = e.target.result;
     };
-    reader.readAsDataURL(file);
   });
 }
 
@@ -114,6 +102,7 @@ async function getCompressedImageData(file) {
     reader.readAsDataURL(file);
   });
 }
+
 
 const submitBtn = document.getElementById('modal-submit-btn');
 const anonToggle = document.getElementById('modal-anon-toggle');
@@ -161,6 +150,7 @@ async function uploadPostToFirestore(text, imageURLs, isAnonymous) {
   if (isAdmin) {
     return await addDoc(collection(db, "announcements"), {
       body: text,
+      imageURL: imageURLs.length > 0 ? imageURLs[0] : "", // Legacy support
       imageURLs: imageURLs || [],
       userId: user?.uid || "unknown",
       author: name,
@@ -175,6 +165,7 @@ async function uploadPostToFirestore(text, imageURLs, isAnonymous) {
 
   return await addDoc(collection(db, "posts"), {
     text: text,
+    imageURL: imageURLs.length > 0 ? imageURLs[0] : "", // Legacy support
     imageURLs: imageURLs || [],
     userId: user?.uid || "unknown",
     author: name,
@@ -220,7 +211,12 @@ if (submitBtn) {
       submitBtn.disabled = true;
       submitBtn.innerHTML = `<span class="loading-spinner"></span> Posting...`;
 
-      const imageURLs = thumbs.map(t => t.src);
+      const imageURLs = [];
+      for (let i = 0; i < thumbs.length; i++) {
+        const thumb = thumbs[i];
+        imageURLs.push(thumb.src); // Already compressed base64 from fileInput listener
+      }
+
       await uploadPostToFirestore(text, imageURLs, isAnon);
 
       setModalSelection(false);
@@ -662,6 +658,7 @@ feedContainer.addEventListener('click', async (e) => {
   }
 });
 
+window.openRepostModalHP = openRepostModalHP;
 function openRepostModalHP(postData, collectionName = 'posts') {
   const overlay = document.getElementById('hp-repost-modal-overlay');
   const modal = document.getElementById('hp-repost-modal');

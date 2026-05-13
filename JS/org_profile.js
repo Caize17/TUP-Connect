@@ -1,31 +1,18 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getFirestore, doc, getDoc, updateDoc, collection, query, where, getDocs, orderBy, addDoc, serverTimestamp, increment, onSnapshot, deleteDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-import { CONFIG } from "./config.js";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyBpGOdMpx_Mws2EcCq6rbOWfZ-FFuhhfo0",
-  authDomain: "tup-connect-b162d.firebaseapp.com",
-  projectId: "tup-connect-b162d",
-  storageBucket: "tup-connect-b162d.firebasestorage.app",
-  messagingSenderId: "193141013544",
-  appId: "1:193141013544:web:72b403e84aa4d3313f091d"
-};
-
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
+import { auth, db } from "../firebaseConfig.js";
+import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { doc, getDoc, updateDoc, collection, query, where, getDocs, orderBy, addDoc, serverTimestamp, increment, onSnapshot, deleteDoc, arrayUnion, arrayRemove, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 let USER = {
   name: "Organization",
   photoSrc: "../assets/images/anon_avatar.jpg"
 };
+
 let allOrgPosts = [];
 
 // ========================
 // IMAGE COMPRESSION
 // ========================
-async function compressImage(file, maxWidth = 400, maxHeight = 400) {
+async function compressImage(file, maxWidth = 1200, maxHeight = 1200) {
   return new Promise((resolve) => {
     const reader = new FileReader();
     reader.readAsDataURL(file);
@@ -45,7 +32,7 @@ async function compressImage(file, maxWidth = 400, maxHeight = 400) {
         canvas.height = height;
         const ctx = canvas.getContext('2d');
         ctx.drawImage(img, 0, 0, width, height);
-        resolve(canvas.toDataURL('image/jpeg', 0.95));
+        resolve(canvas.toDataURL('image/jpeg', 0.7));
       };
     };
   });
@@ -332,42 +319,57 @@ window.closeModalOnOverlay = function(e) {
 };
 
 window.submitPost = async function() {
-  const title = document.getElementById('postTitle').value.trim();
   const content = document.getElementById('postContent').value.trim();
   const attachWrap = document.getElementById('modal-attachments');
   const thumbs = Array.from(attachWrap.querySelectorAll('.modal-attach-thumb'));
-  
-  if (!title && !content && thumbs.length === 0) { showToast('Write something first!'); return; }
+
+  if (!content && thumbs.length === 0) { showToast('Write something first!'); return; }
 
   const user = auth.currentUser;
   if (!user) return;
 
+  const btn = document.getElementById('modal-submit-btn');
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = `<span class="loading-spinner"></span> Posting...`;
+  }
+
   try {
+    const imageURLs = [];
+    for (let i = 0; i < thumbs.length; i++) {
+      const thumb = thumbs[i];
+      imageURLs.push(thumb.src); // Already compressed base64 from fileInput listener
+    }
+
     const postData = {
       userId: user.uid,
       author: USER.name,
       photoURL: USER.photoSrc,
-      title: title,
       text: content,
-      imageURLs: thumbs.map(t => t.src),
+      imageURL: imageURLs.length > 0 ? imageURLs[0] : "", // Legacy support
+      imageURLs: imageURLs,
       createdAt: serverTimestamp(),
-      likedBy: [],
-      comments: 0,
-      repostedBy: [],
+      likes: 0,
       isOrg: true,
       college: USER.college || null
     };
 
-    await addDoc(collection(db, "posts"), postData);
+    console.log("Saving org post to Firestore...");
+    await addDoc(collection(db, "org_posts"), postData);
+    console.log("Org post saved successfully!");
     
-    document.getElementById('postTitle').value = '';
     document.getElementById('postContent').value = '';
     attachWrap.innerHTML = '';
     closePostModal();
     showToast('Post shared!');
   } catch (err) {
-    console.error("Error submitting post:", err);
-    showToast("Failed to post.");
+    console.error("Post Error:", err);
+    alert("Error submitting post: " + err.message);
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = `<svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Post`;
+    }
   }
 };
 
@@ -392,18 +394,21 @@ if (modalAddPhotoBtn) {
 }
 
 if (fileInput) {
-  fileInput.addEventListener('change', function () {
-    Array.from(this.files).forEach(file => {
-      const reader = new FileReader();
-      reader.onload = ev => {
+  fileInput.addEventListener('change', async function () {
+    for (const file of this.files) {
+      try {
+        const compressedBase64 = await compressImage(file, 1000, 1000);
         const thumb = document.createElement('img');
-        thumb.src = ev.target.result;
+        thumb.src = compressedBase64;
         thumb.className = 'modal-attach-thumb';
+        thumb.style.cssText = 'width:80px; height:80px; object-fit:cover; border-radius:8px; cursor:pointer; flex-shrink:0;';
         thumb.addEventListener('click', () => thumb.remove());
         attachWrap.appendChild(thumb);
-      };
-      reader.readAsDataURL(file);
-    });
+      } catch (err) {
+        console.error("Compression error:", err);
+      }
+    }
+    fileInput.value = '';
   });
 }
 
