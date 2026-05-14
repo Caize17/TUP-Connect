@@ -551,8 +551,7 @@ let FEED_POSTS = [];
           try {
             const results = await Promise.allSettled([
               getDoc(doc(db, "posts", fp.repostIdRef)),
-              getDoc(doc(db, "announcements", fp.repostIdRef)),
-              getDoc(doc(db, "org_posts", fp.repostIdRef))
+              getDoc(doc(db, "announcements", fp.repostIdRef))
             ]);
             const exists = results.some(r => r.status === 'fulfilled' && r.value.exists());
             if (!exists) {

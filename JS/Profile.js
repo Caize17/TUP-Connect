@@ -717,8 +717,7 @@ function renderPost(data, postId) {
         try {
           const results = await Promise.allSettled([
             getDoc(doc(db, "posts", data.repostOf)),
-            getDoc(doc(db, "announcements", data.repostOf)),
-            getDoc(doc(db, "org_posts", data.repostOf))
+            getDoc(doc(db, "announcements", data.repostOf))
           ]);
 
           // If all checks that succeeded say the document doesn't exist,

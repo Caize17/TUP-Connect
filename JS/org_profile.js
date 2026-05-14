@@ -368,7 +368,7 @@ window.submitPost = async function() {
     };
 
     console.log("Saving org post to Firestore...");
-    await addDoc(collection(db, "org_posts"), postData);
+    await addDoc(collection(db, "posts"), postData);
     console.log("Org post saved successfully!");
     
     document.getElementById('postContent').value = '';
@@ -545,8 +545,7 @@ function renderPost(data, postId) {
         try {
           const results = await Promise.allSettled([
             getDoc(doc(db, "posts", data.repostOf)),
-            getDoc(doc(db, "announcements", data.repostOf)),
-            getDoc(doc(db, "org_posts", data.repostOf))
+            getDoc(doc(db, "announcements", data.repostOf))
           ]);
           
           const exists = results.some(r => r.status === 'fulfilled' && r.value.exists());

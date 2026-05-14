@@ -250,10 +250,6 @@ window.viewReport = async function(reportId, postId) {
         postSnap = await getDoc(doc(db, "announcements", postId));
         collectionName = "announcements";
     }
-    if (!postSnap.exists()) {
-        postSnap = await getDoc(doc(db, "org_posts", postId));
-        collectionName = "org_posts";
-    }
 
     if (postSnap.exists()) {
         const data = postSnap.data();
