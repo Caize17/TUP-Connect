@@ -17,6 +17,42 @@
   --shadow: 0 4px 24px rgba(107, 26, 26, 0.10);
 }
 
+@keyframes shimmer {
+  0% { background-position: -468px 0 }
+  100% { background-position: 468px 0 }
+}
+
+.skeleton {
+  background: #cccccc;
+  background-image: linear-gradient(to right, #cccccc 0%, #dddddd 20%, #cccccc 40%, #cccccc 100%);
+  background-repeat: no-repeat;
+  background-size: 800px 100%;
+  position: relative;
+  animation: shimmer 1.2s linear infinite;
+  border-radius: 4px;
+  color: transparent !important;
+  pointer-events: none;
+  user-select: none;
+  width: fit-content;
+  min-width: 140px;
+}
+
+.skeleton img {
+  opacity: 0;
+}
+
+.banner.skeleton {
+  width: 91% !important;
+  display: block;
+}
+
+.profile-avatar.skeleton {
+  width: 180px !important;
+  height: 180px !important;
+  border-radius: 50%;
+  display: block;
+}
+
 * {
   margin: 0;
   padding: 0;

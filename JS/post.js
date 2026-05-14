@@ -598,6 +598,9 @@ window.editPost = function (postId, e) {
   const bodyEl = card.querySelector('.feed-body');
   if (!bodyEl) return;
 
+  const titleEl = card.querySelector('.post-title');
+  const originalTitle = titleEl ? titleEl.textContent : '';
+
   const originalText = bodyEl.innerHTML
     .replace(/<br>/g, '\n')
     .replace(/&lt;/g, '<')
@@ -606,9 +609,12 @@ window.editPost = function (postId, e) {
     .replace(/&quot;/g, '"');
 
   bodyEl.style.display = 'none';
+  if (titleEl) titleEl.style.display = 'none';
+
   const editWrap = document.createElement('div');
   editWrap.className = 'post-edit-wrap';
   editWrap.innerHTML = `
+      ${(titleEl || originalTitle) ? `<input type="text" class="post-edit-title" placeholder="Title..." value="${originalTitle}" style="width: 100%; margin-bottom: 8px; font-weight: 700; border: none; outline: none; border-bottom: 1px solid #eee; padding-bottom: 4px;">` : ''}
       <textarea class="post-edit-textarea">${originalText}</textarea>
       <div class="post-edit-buttons">
         <button class="post-edit-save" data-id="${postId}">Save</button>
@@ -631,16 +637,28 @@ feedContainer.addEventListener('click', async (e) => {
     const card = btn.closest('.feed-post');
     const wrap = card.querySelector('.post-edit-wrap');
     const bodyEl = card.querySelector('.feed-body');
+    const titleEl = card.querySelector('.post-title');
+    const titleInput = wrap.querySelector('.post-edit-title');
+    
+    const newTitle = titleInput ? titleInput.value.trim() : null;
     const newText = wrap.querySelector('textarea').value.trim();
 
-    if (newText) {
+    if (newText || newTitle) {
       btn.disabled = true;
       btn.textContent = 'Saving...';
       try {
-        await updateDoc(doc(db, "posts", postId), {
+        const updateData = {
           text: newText,
           updatedAt: serverTimestamp()
-        });
+        };
+        if (newTitle !== null) updateData.title = newTitle;
+
+        await updateDoc(doc(db, "posts", postId), { ...updateData });
+
+        if (titleEl && newTitle !== null) {
+          titleEl.textContent = newTitle;
+          titleEl.style.display = newTitle ? '' : 'none';
+        }
         bodyEl.innerHTML = newText.replace(/\n/g, '<br>');
         wrap.remove();
         bodyEl.style.display = '';
@@ -656,8 +674,10 @@ feedContainer.addEventListener('click', async (e) => {
     const card = e.target.closest('.feed-post');
     const wrap = card.querySelector('.post-edit-wrap');
     const bodyEl = card.querySelector('.feed-body');
+    const titleEl = card.querySelector('.post-title');
     if (wrap) wrap.remove();
     if (bodyEl) bodyEl.style.display = '';
+    if (titleEl) titleEl.style.display = '';
   }
 });
 

@@ -491,6 +491,9 @@ function updateProfileUI(userData, email) {
   if (idEl) idEl.textContent = userData.studentID || "TUPM-XX-XXXX";
   if (emailEl) emailEl.textContent = email || userData.email || '';
 
+  // Remove skeletons
+  document.querySelectorAll('.skeleton').forEach(el => el.classList.remove('skeleton'));
+
   // 3. Sidebar
   const sidebarImg = document.querySelector('.sidebar-avatar-img');
   if (sidebarImg) sidebarImg.src = photoURL;

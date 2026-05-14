@@ -708,6 +708,9 @@ window.editPost = async function (e) {
   const bodyEl = card.querySelector('.post-body');
   if (!bodyEl) return;
 
+  const titleEl = card.querySelector('.post-title');
+  const originalTitle = titleEl ? titleEl.textContent : '';
+
   const originalText = bodyEl.innerHTML
     .replace(/<br>/g, '\n')
     .replace(/&lt;/g, '<')
@@ -716,9 +719,12 @@ window.editPost = async function (e) {
     .replace(/&quot;/g, '"');
 
   bodyEl.style.display = 'none';
+  if (titleEl) titleEl.style.display = 'none';
+
   const editWrap = document.createElement('div');
   editWrap.className = 'post-edit-wrap';
   editWrap.innerHTML = `
+    <input type="text" class="post-edit-title" placeholder="Title..." value="${escapeHTML(originalTitle)}" style="width: 100%; margin-bottom: 8px; font-weight: 700; border: none; outline: none; border-bottom: 1px solid #eee; padding-bottom: 4px;">
     <textarea class="post-edit-textarea">${originalText}</textarea>
     <div class="post-edit-buttons">
       <button class="post-edit-save">Save</button>
@@ -728,10 +734,21 @@ window.editPost = async function (e) {
   editWrap.querySelector('.post-edit-textarea').focus();
 
   editWrap.querySelector('.post-edit-save').addEventListener('click', async () => {
+    const newTitle = editWrap.querySelector('.post-edit-title').value.trim();
     const newText = editWrap.querySelector('.post-edit-textarea').value.trim();
-    if (!newText) return;
+    if (!newText && !newTitle) return;
     try {
-      await updateDoc(doc(db, "announcements", postId), { body: newText });
+      await updateDoc(doc(db, "announcements", postId), { 
+        title: newTitle,
+        body: newText 
+      });
+      if (titleEl) {
+        titleEl.textContent = newTitle;
+        titleEl.style.display = newTitle ? '' : 'none';
+      } else if (newTitle) {
+        window.location.reload();
+        return;
+      }
       bodyEl.innerHTML = escapeHTML(newText).replace(/\n/g, '<br>');
       editWrap.remove();
       bodyEl.style.display = '';
@@ -745,6 +762,7 @@ window.editPost = async function (e) {
   editWrap.querySelector('.post-edit-cancel').addEventListener('click', () => {
     editWrap.remove();
     bodyEl.style.display = '';
+    if (titleEl) titleEl.style.display = '';
   });
 };
 

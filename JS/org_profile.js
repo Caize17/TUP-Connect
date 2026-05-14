@@ -140,6 +140,9 @@ function updateProfileUI(userData, email) {
 
   const commentModalAv = document.querySelector('.comment-modal-avatar img');
   if (commentModalAv && userData.photoURL) commentModalAv.src = userData.photoURL;
+  
+  // Remove skeletons
+  document.querySelectorAll('.skeleton').forEach(el => el.classList.remove('skeleton'));
 
   // Update all "Write a comment" avatars in the feed
   document.querySelectorAll('.comment-input-row .comment-avatar img').forEach(img => {
@@ -332,11 +335,12 @@ window.closeModalOnOverlay = function(e) {
 };
 
 window.submitPost = async function() {
+  const title = document.getElementById('postTitle').value.trim();
   const content = document.getElementById('postContent').value.trim();
   const attachWrap = document.getElementById('modal-attachments');
   const thumbs = Array.from(attachWrap.querySelectorAll('.modal-attach-thumb'));
 
-  if (!content && thumbs.length === 0) { window.showToast('Write something first!', 'warning'); return; }
+  if (!title && !content && thumbs.length === 0) { window.showToast('Write something first!', 'warning'); return; }
 
   const user = auth.currentUser;
   if (!user) return;
@@ -358,6 +362,7 @@ window.submitPost = async function() {
       userId: user.uid,
       author: USER.name,
       photoURL: USER.photoSrc,
+      title: title,
       text: content,
       imageURL: imageURLs.length > 0 ? imageURLs[0] : "", // Legacy support
       imageURLs: imageURLs,
@@ -371,6 +376,7 @@ window.submitPost = async function() {
     await addDoc(collection(db, "posts"), postData);
     console.log("Org post saved successfully!");
     
+    document.getElementById('postTitle').value = '';
     document.getElementById('postContent').value = '';
     attachWrap.innerHTML = '';
     closePostModal();
@@ -675,6 +681,9 @@ window.editPost = async function(e) {
   const bodyEl = card.querySelector('.post-body');
   if (!bodyEl) return;
 
+  const titleEl = card.querySelector('.post-title');
+  const originalTitle = titleEl ? titleEl.textContent : '';
+
   const originalText = bodyEl.innerHTML
     .replace(/<br>/g,  '\n')
     .replace(/&lt;/g,  '<')
@@ -683,9 +692,12 @@ window.editPost = async function(e) {
     .replace(/&quot;/g, '"');
 
   bodyEl.style.display = 'none';
+  if (titleEl) titleEl.style.display = 'none';
+
   const editWrap = document.createElement('div');
   editWrap.className = 'post-edit-wrap';
   editWrap.innerHTML = `
+    <input type="text" class="post-edit-title" placeholder="Title..." value="${escapeHTML(originalTitle)}" style="width: 100%; margin-bottom: 8px; font-weight: 700; border: none; outline: none; border-bottom: 1px solid #eee; padding-bottom: 4px;">
     <textarea class="post-edit-textarea">${originalText}</textarea>
     <div class="post-edit-buttons">
       <button class="post-edit-save">Save</button>
@@ -695,10 +707,23 @@ window.editPost = async function(e) {
   editWrap.querySelector('.post-edit-textarea').focus();
 
   editWrap.querySelector('.post-edit-save').addEventListener('click', async () => {
+    const newTitle = editWrap.querySelector('.post-edit-title').value.trim();
     const newText = editWrap.querySelector('.post-edit-textarea').value.trim();
-    if (!newText) return;
+    if (!newText && !newTitle) return;
     try {
-      await updateDoc(doc(db, "posts", postId), { text: newText });
+      await updateDoc(doc(db, "posts", postId), { 
+        title: newTitle,
+        text: newText 
+      });
+      if (titleEl) {
+        titleEl.textContent = newTitle;
+        titleEl.style.display = newTitle ? '' : 'none';
+      } else if (newTitle) {
+        // If there was no title before but now there is, we might need to inject it or just refresh.
+        // For simplicity, let's just refresh if a new title was added where none existed.
+        window.location.reload(); 
+        return;
+      }
       bodyEl.innerHTML = escapeHTML(newText).replace(/\n/g, '<br>');
       editWrap.remove();
       bodyEl.style.display = '';
@@ -712,6 +737,7 @@ window.editPost = async function(e) {
   editWrap.querySelector('.post-edit-cancel').addEventListener('click', () => {
     editWrap.remove();
     bodyEl.style.display = '';
+    if (titleEl) titleEl.style.display = '';
   });
 };
 

@@ -6,7 +6,7 @@ async function handleHomepage() {
   const emailField = document.getElementById('login-email');
   const passwordField = document.getElementById('login-password');
   const errorEl = document.getElementById('login-error-msg');
-  const btn = document.getElementById('btn-sign-in'); 
+  const btn = document.getElementById('btn-sign-in');
 
   const email = emailField.value.trim();
   const password = passwordField.value;
@@ -35,7 +35,7 @@ async function handleHomepage() {
     if (!user.emailVerified) {
       const msg = document.createElement('span');
       msg.textContent = "Your email is not verified yet. ";
-      
+
       const resendLink = document.createElement('a');
       resendLink.href = "#";
       resendLink.textContent = "Resend verification email?";
@@ -43,7 +43,7 @@ async function handleHomepage() {
       resendLink.style.textDecoration = "underline";
       resendLink.style.fontWeight = "600";
       resendLink.style.marginLeft = "5px";
-      
+
       resendLink.onclick = async (e) => {
         e.preventDefault();
         try {
@@ -66,7 +66,7 @@ async function handleHomepage() {
         errorEl.style.display = 'block';
       }
 
-      await signOut(auth); 
+      await signOut(auth);
       if (btn) {
         btn.disabled = false;
         btn.textContent = "Sign In";
@@ -86,7 +86,7 @@ async function handleHomepage() {
 
       // 1. Check Verification Status
       if (status === 'pending') {
-        showError("Your account is currently under review by the USG. Please check back later.");
+        showError("Your account is currently under review by the Admin. Please check back later.");
         await signOut(auth);
         if (btn) {
           btn.disabled = false;
@@ -94,9 +94,9 @@ async function handleHomepage() {
         }
         return;
       }
-      
+
       if (status === 'rejected') {
-        showError("Your account request was declined. Contact USG for inquiries.");
+        showError("Your account request was declined. Contact Admin using this email (aizacamillealvarez@gmail.com) for inquiries.");
         await signOut(auth);
         if (btn) {
           btn.disabled = false;
@@ -135,7 +135,7 @@ async function handleHomepage() {
       btn.disabled = false;
       btn.textContent = "Sign In";
     }
-    
+
     switch (error.code) {
       case 'auth/user-not-found':
       case 'auth/invalid-credential':
