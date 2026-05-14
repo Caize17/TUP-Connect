@@ -28,7 +28,7 @@ body {
   background: var(--cream);
   color: var(--text);
   display: flex;
-  min-height: 100vh
+  min-height: 100vh;
 }
 
 /* ========================
@@ -538,11 +538,12 @@ body {
 .post-card {
   background: var(--white);
   border-radius: 18px;
-  padding: 14px 18px 14px;
+  padding: 14px 18px 0;
   box-shadow: 0 2px 10px rgba(0, 0, 0, .06);
   animation: fadeUp 0.4s ease both;
   border: 1.5px solid var(--cream-md);
   overflow: hidden;
+  font-family: 'Montserrat', sans-serif;
 }
 
 @keyframes fadeUp {
@@ -1644,6 +1645,7 @@ body {
 }
 
 .comment-modal-item-author {
+  font-family: 'Montserrat', sans-serif;
   font-size: 15px;
   font-weight: 800;
   color: var(--text);
@@ -1651,6 +1653,7 @@ body {
 }
 
 .comment-modal-item-text {
+  font-family: 'Montserrat', sans-serif;
   font-size: 15px;
   font-weight: 500;
   color: var(--text);
@@ -2875,4 +2878,55 @@ body {
 
 .pin-post-btn:active svg {
   transform: scale(0.85);
+}
+
+/* ========================
+   EMPTY STATE
+======================== */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 64px 24px;
+  text-align: center;
+  animation: fadeUp 0.6s ease both;
+}
+
+.empty-state-icon {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: var(--cream-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 8px;
+}
+
+.empty-state-icon svg {
+  width: 32px;
+  height: 32px;
+  stroke: var(--muted);
+  fill: none;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.empty-state-title {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--text-dark);
+  font-family: 'Montserrat', sans-serif;
+}
+
+.empty-state-sub {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--muted);
+  line-height: 1.6;
+  max-width: 280px;
+  font-family: 'Montserrat', sans-serif;
 }

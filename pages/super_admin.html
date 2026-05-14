@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Super Admin Command Center | TUP Connect</title>
+    <link rel="stylesheet" href="../CSS/homepage.css">
+    <link rel="stylesheet" href="../CSS/navbar.css">
+    <link rel="stylesheet" href="../CSS/super_admin.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- MAIN DASHBOARD -->
+    <main class="main">
+        <header class="dash-header">
+            <div class="dash-title-group">
+                <h1 class="dash-title">Command Center</h1>
+                <p class="dash-subtitle">System Administration & Oversight</p>
+            </div>
+            <div class="dash-tabs">
+                <button class="dash-tab active" data-tab="analytics">Analytics</button>
+                <button class="dash-tab" data-tab="verification">Verification</button>
+                <button class="dash-tab" data-tab="moderation">Moderation</button>
+            </div>
+            <div class="dash-header-actions">
+                <button class="btn btn-secondary" id="btn-logout">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                    Sign Out
+                </button>
+            </div>
+        </header>
+
+        <!-- ANALYTICS TAB -->
+        <section class="dash-section active" id="tab-analytics">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon users">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="stat-total-users">0</h3>
+                        <p>Total TUPians</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon posts">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="stat-total-posts">0</h3>
+                        <p>Platform Posts</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon orgs">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="stat-total-orgs">0</h3>
+                        <p>Active Organizations</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dash-row">
+                <div class="dash-card college-stats">
+                    <div class="card-header">
+                        <h2>College Activity</h2>
+                        <span class="badge">Live Breakdown</span>
+                    </div>
+                    <div class="college-list" id="college-breakdown">
+                        <!-- Dynamic list of colleges and their user counts -->
+                        <div class="loading-shimmer"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- VERIFICATION TAB -->
+        <section class="dash-section" id="tab-verification">
+            <div class="section-meta">
+                <h2>Pending Approvals</h2>
+                <p>New Organizations and USG accounts awaiting verification.</p>
+            </div>
+            <div class="verification-list" id="pending-users-list">
+                <!-- Dynamic cards for pending users -->
+                <div class="empty-dashboard-state">
+                    <p>Queue is clear! No pending requests.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- MODERATION TAB -->
+        <section class="dash-section" id="tab-moderation">
+            <div class="section-meta">
+                <h2>Reported Content</h2>
+                <p>Manage community reports and enforce platform guidelines.</p>
+            </div>
+            <div class="reports-list" id="reports-queue">
+                <!-- Dynamic cards for reports -->
+                <div class="empty-dashboard-state">
+                    <p>All reports resolved. Community is safe!</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Modal for report details/post preview -->
+    <div class="dash-modal" id="report-modal">
+        <div class="dash-modal-content">
+            <header class="dash-modal-header">
+                <h3>Report Details</h3>
+                <button class="close-modal">✕</button>
+            </header>
+            <div class="dash-modal-body" id="report-details-body"></div>
+            <footer class="dash-modal-actions">
+                <button class="btn btn-secondary" id="btn-dismiss-report">Dismiss Report</button>
+                <button class="btn btn-danger" id="btn-delete-reported">Delete Content</button>
+            </footer>
+        </div>
+    </div>
+
+    <script src="../JS/navbar.js"></script>
+    <script type="module" src="../JS/super_admin.js"></script>
+</body>
+</html>

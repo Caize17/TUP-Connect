@@ -135,6 +135,7 @@ window.handleRegister = async function () {
         fullName: fullName,
         email: email,
         role: roleLabel,
+        status: (selectedRole === 'org' || selectedRole === 'admin') ? 'pending' : 'approved',
         isSetupComplete: false,
         createdAt: serverTimestamp()
       });

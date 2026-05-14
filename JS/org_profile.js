@@ -140,6 +140,19 @@ function updateProfileUI(userData, email) {
 
   const commentModalAv = document.querySelector('.comment-modal-avatar img');
   if (commentModalAv && userData.photoURL) commentModalAv.src = userData.photoURL;
+
+  // Update all "Write a comment" avatars in the feed
+  document.querySelectorAll('.comment-input-row .comment-avatar img').forEach(img => {
+      if (userData.photoURL) img.src = userData.photoURL;
+  });
+
+  // Update my own posts' avatars in the feed
+  document.querySelectorAll('.post-card').forEach(card => {
+    if (card.dataset.userId === auth.currentUser?.uid) {
+      const av = card.querySelector('.post-avatar img');
+      if (av) av.src = userData.photoURL;
+    }
+  });
 }
 
 // ========================
@@ -393,9 +406,9 @@ if (modalAddPhotoBtn) {
   });
 }
 
-if (fileInput) {
   fileInput.addEventListener('change', async function () {
-    for (const file of this.files) {
+    const files = Array.from(this.files);
+    const compressionPromises = files.map(async (file) => {
       try {
         const compressedBase64 = await compressImage(file, 1000, 1000);
         const thumb = document.createElement('img');
@@ -403,14 +416,19 @@ if (fileInput) {
         thumb.className = 'modal-attach-thumb';
         thumb.style.cssText = 'width:80px; height:80px; object-fit:cover; border-radius:8px; cursor:pointer; flex-shrink:0;';
         thumb.addEventListener('click', () => thumb.remove());
-        attachWrap.appendChild(thumb);
+        return thumb;
       } catch (err) {
         console.error("Compression error:", err);
+        return null;
       }
-    }
+    });
+
+    const thumbs = await Promise.all(compressionPromises);
+    thumbs.forEach(thumb => {
+      if (thumb) attachWrap.appendChild(thumb);
+    });
     fileInput.value = '';
   });
-}
 
 // ========================
 // FEED LOGIC
@@ -419,7 +437,18 @@ function loadOrgPosts(userId) {
   const q = query(collection(db, "posts"), where("userId", "==", userId), orderBy("createdAt", "desc"));
   onSnapshot(q, (snapshot) => {
     const feed = document.getElementById('feed');
-    if (!feed) return;
+    if (snapshot.empty) {
+      feed.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-state-icon">
+            <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          </div>
+          <div class="empty-state-title">No posts yet</div>
+          <div class="empty-state-sub">Start sharing updates and announcements with your college community!</div>
+        </div>
+      `;
+      return;
+    }
 
     const changes = snapshot.docChanges();
     const isInitialLoad = !feed.querySelector('.post-card');

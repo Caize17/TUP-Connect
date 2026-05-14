@@ -29,6 +29,22 @@
 /* ════════════════════════════════════════
    CARD — mirrors .pinned-post-card exactly
 ════════════════════════════════════════ */
+@keyframes shimmer {
+  0% { background-position: -468px 0 }
+  100% { background-position: 468px 0 }
+}
+
+.skeleton {
+  background: #f6f7f8;
+  background-image: linear-gradient(to right, #f6f7f8 0%, #edeef1 20%, #f6f7f8 40%, #f6f7f8 100%);
+  background-repeat: no-repeat;
+  background-size: 800px 104px;
+  display: inline-block;
+  position: relative;
+  animation: shimmer 1.2s linear infinite;
+  border-radius: 4px;
+}
+
 #ann-card {
   position: relative;
   background: var(--white);
@@ -41,13 +57,18 @@
 }
 
 #ann-card .pushpin {
+  display: none; /* Hidden by default */
   position: absolute;
   top: 15px;
-  right: 15px; /* Moved to upper right */
+  right: 15px;
   width: 32px;
   height: 32px;
   z-index: 110;
 }
+#ann-card.has-announcement .pushpin {
+  display: block; /* Shown only when card has content */
+}
+
 #ann-card .pushpin .pin-head {
   width: 22px;
   height: 22px;
@@ -57,6 +78,15 @@
   position: absolute;
   top: 0;
   left: 5px;
+}
+.p-deco {
+  display: none; /* Hidden by default */
+  height: 18px;
+  background: repeating-linear-gradient(45deg, #c8a84b 0, #c8a84b 7px, #8b1a1a 7px, #8b1a1a 14px);
+  opacity: .85;
+}
+#ann-card.has-announcement .p-deco {
+  display: block;
 }
 #ann-card .pushpin .pin-shaft {
   width: 2.5px;
@@ -74,7 +104,7 @@
    Mirrors .social-bar-wrap / .social-bar-outer / .social-bar exactly
 ════════════════════════════════════════ */
 #ann-card .social-bar-wrap {
-  display: flex;
+  display: none; /* Hidden by default */
   justify-content: center;
   position: absolute;
   top: 0;
@@ -83,6 +113,9 @@
   margin-top: -22px;
   z-index: 9999 !important;
   pointer-events: auto !important;
+}
+#ann-card.has-announcement .social-bar-wrap {
+  display: flex; /* Shown when active */
 }
 
 #ann-card .social-bar-outer {
@@ -148,6 +181,14 @@
   flex-direction: column;
   align-items: center;
   width: 100%;
+}
+
+/* ── VISIBILITY CONTROL ── */
+#ann-card .pinned-content-wrap {
+  display: none;
+}
+#ann-card.has-announcement .pinned-content-wrap {
+  display: block;
 }
 
 /* Centered timestamp above columns */

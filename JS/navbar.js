@@ -14,6 +14,7 @@
     'campus news': '../pages/campus_news.html',
     'campus':      '../pages/campus_directory.html',
     'profile':     '../pages/profile.html',
+    'dashboard':   '../pages/super_admin.html',
   };
 
   // Override profile for Admin
@@ -58,6 +59,29 @@
     var teardrop = document.getElementById('nav-teardrop');
     if (!navWrap || !teardrop) return;
 
+    /* ── Dynamically add Dashboard link for SuperAdmin ── */
+    try {
+      var cache = JSON.parse(localStorage.getItem('tup_user_meta') || '{}');
+      if (cache.role === 'SuperAdmin') {
+        var existingDash = navWrap.querySelector('[data-route="dashboard"]');
+        if (!existingDash) {
+          var dashBtn = document.createElement('button');
+          dashBtn.className = 'nav-btn';
+          dashBtn.dataset.route = 'dashboard';
+          dashBtn.title = 'Command Center';
+          dashBtn.innerHTML = `
+            <div class="nav-icon-wrap">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:22px;height:22px;color:var(--text);"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+            </div>
+          `;
+          // Insert before the profile button/spacer
+          var spacer = navWrap.querySelector('.nav-spacer');
+          if (spacer) navWrap.insertBefore(dashBtn, spacer);
+          else navWrap.appendChild(dashBtn);
+        }
+      }
+    } catch(e) {}
+
     /* Skip full init if we're in the shell — sidebar is hidden anyway */
     if (inShell) return;
 
@@ -83,7 +107,7 @@
       requestAnimationFrame(function () {
         moveTo(btn);
         requestAnimationFrame(function () {
-          teardrop.style.visibility = '';
+          teardrop.style.visibility = 'visible';
           setTimeout(function () {
             teardrop.style.transition = '';
           }, 20);

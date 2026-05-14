@@ -397,7 +397,7 @@ async function compressImage(file, maxWidth = 1200, maxHeight = 1200) {
 
 
 let USER = {
-  name:     "TUPian",
+  name: "TUPian",
   photoSrc: "../assets/images/anon_avatar.jpg"
 };
 let allPosts = [];
@@ -405,21 +405,21 @@ let allPosts = [];
 // ========================
 // INSTANT UI PRE-FILL (STALE-WHILE-REVALIDATE)
 // ========================
-(function() {
-    const cache = localStorage.getItem('tup_user_meta');
-    if (cache) {
-        try {
-            const data = JSON.parse(cache);
-            // Sync global USER object so subsequent renders (posts) use it
-            USER.name = data.fullName || USER.name;
-            USER.photoSrc = data.photoURL || USER.photoSrc;
+(function () {
+  const cache = localStorage.getItem('tup_user_meta');
+  if (cache) {
+    try {
+      const data = JSON.parse(cache);
+      // Sync global USER object so subsequent renders (posts) use it
+      USER.name = data.fullName || USER.name;
+      USER.photoSrc = data.photoURL || USER.photoSrc;
 
-            // Pre-fill UI so it's instant
-            document.addEventListener('DOMContentLoaded', () => {
-              updateProfileUI(data, data.email || '');
-            });
-        } catch(e) {}
-    }
+      // Pre-fill UI so it's instant
+      document.addEventListener('DOMContentLoaded', () => {
+        updateProfileUI(data, data.email || '');
+      });
+    } catch (e) { }
+  }
 })();
 
 // ========================
@@ -442,11 +442,11 @@ onAuthStateChanged(auth, async (user) => {
           window.location.href = '../pages/admin_profile.html';
           return;
         }
-        
+
         // Sync global USER object
-        USER.name     = userData.fullName || user.displayName || "TUPian";
-        USER.photoSrc = userData.photoURL || user.photoURL   || "../assets/images/anon_avatar.jpg";
-        
+        USER.name = userData.fullName || user.displayName || "TUPian";
+        USER.photoSrc = userData.photoURL || user.photoURL || "../assets/images/anon_avatar.jpg";
+
         // Update Cache
         const cache = {
           ...userData,
@@ -458,7 +458,7 @@ onAuthStateChanged(auth, async (user) => {
         // Update UI with fresh data
         updateProfileUI(userData, user.email);
       }
-    } catch(err) {
+    } catch (err) {
       console.error("Profile fetch error:", err);
     }
   } else {
@@ -470,59 +470,58 @@ onAuthStateChanged(auth, async (user) => {
 // PROFILE UI UPDATE
 // ========================
 function updateProfileUI(userData, email) {
+  const photoURL = userData.photoURL || userData.photoSrc || USER.photoSrc;
+  const fullName = userData.fullName || userData.name || USER.name;
+
+  // 1. Update Global USER object for Firestore consistency
+  USER.name = fullName;
+  USER.photoSrc = photoURL;
+
+  // 2. Profile & Banner
   const profileImg = document.querySelector('.profile-avatar-inner');
-  if (profileImg && userData.photoURL) profileImg.src = userData.photoURL;
+  if (profileImg) profileImg.src = photoURL;
 
   const bannerImg = document.querySelector('.banner-img');
   if (bannerImg && userData.coverURL) bannerImg.src = userData.coverURL;
 
-  const nameEl  = document.querySelector('.profile-name');
-  const idEl    = document.querySelector('.profile-id');
+  const nameEl = document.querySelector('.profile-name');
+  const idEl = document.querySelector('.profile-id');
   const emailEl = document.querySelector('.profile-email');
-  if (nameEl)  nameEl.textContent  = userData.fullName  || "TUPian";
-  if (idEl)    idEl.textContent    = userData.studentID || "TUPM-XX-XXXX";
-  if (emailEl) emailEl.textContent = email;
+  if (nameEl) nameEl.textContent = fullName;
+  if (idEl) idEl.textContent = userData.studentID || "TUPM-XX-XXXX";
+  if (emailEl) emailEl.textContent = email || userData.email || '';
 
-  const commentModalInputAv = document.querySelector('.comment-modal-avatar img');
-  if (commentModalInputAv && userData.photoURL) commentModalInputAv.src = userData.photoURL;
-
+  // 3. Sidebar
   const sidebarImg = document.querySelector('.sidebar-avatar-img');
-  if (sidebarImg && userData.photoURL) sidebarImg.src = userData.photoURL;
+  if (sidebarImg) sidebarImg.src = photoURL;
 
+  // 4. Create Post Input & Modal
   const postInputImg = document.querySelector('.post-input-img');
-  if (postInputImg && userData.photoURL) postInputImg.src = userData.photoURL;
+  if (postInputImg) postInputImg.src = photoURL;
 
   const modalAvatarEl = document.getElementById('modal-avatar');
-  if (modalAvatarEl && userData.photoURL) {
-    modalAvatarEl.innerHTML = `<img src="${userData.photoURL}" alt="Me" style="width:100%;height:100%;object-fit:cover;border-radius:50%;image-rendering:high-quality;">`;
+  if (modalAvatarEl) {
+    modalAvatarEl.innerHTML = `<img src="${photoURL}" alt="Me" style="width:100%;height:100%;object-fit:cover;border-radius:50%;image-rendering:high-quality;">`;
   }
-
-  // Update all "Write a comment" avatars in the feed
-  document.querySelectorAll('.comment-input-row .comment-avatar img').forEach(img => {
-      if (userData.photoURL) img.src = userData.photoURL;
-  });
-
-  // Also ensure sidebar avatar is updated if present
-  const sidebarAvatarWrap = document.getElementById('sidebar-avatar-wrap');
-  if (sidebarAvatarWrap) {
-    const sideAv = sidebarAvatarWrap.querySelector('img') || sidebarAvatarWrap.querySelector('.nav-profile-avatar');
-    if (sideAv) {
-       if (sideAv.tagName === 'IMG') sideAv.src = userData.photoURL;
-       else sideAv.innerHTML = `<img src="${userData.photoURL}" style="width:100%; height:100%; object-fit:cover; border-radius:50%; image-rendering:high-quality;">`;
-    }
-  }
-
   const modalNameEl = document.getElementById('modal-user-name');
-  if (modalNameEl) modalNameEl.textContent = userData.fullName || "TUPian";
-  
-  const commentModalAv = document.querySelector('.comment-modal-avatar img');
-  if (commentModalAv && userData.photoURL) commentModalAv.src = userData.photoURL;
+  if (modalNameEl) modalNameEl.textContent = fullName;
 
-  document.querySelectorAll('.comment-data').forEach(cd => {
-    if (cd.dataset.author === (userData.fullName || "TUPian")) cd.dataset.avatar = userData.photoURL;
+  // 5. Comment Section (Modal & Input)
+  const commentModalInputAv = document.querySelector('.comment-modal-avatar img');
+  if (commentModalInputAv) commentModalInputAv.src = photoURL;
+
+  document.querySelectorAll('.comment-input-row .comment-avatar img').forEach(img => {
+    img.src = photoURL;
   });
 
+  // 6. Existing Feed Items
   document.querySelectorAll('.post-card').forEach(card => {
+    const postData = card.dataset;
+    // Update my own posts' avatars if they are in the current feed
+    if (postData.userId === auth.currentUser?.uid) {
+      const av = card.querySelector('.post-avatar img');
+      if (av) av.src = photoURL;
+    }
     updateFeedCommentPreview(card);
   });
 }
@@ -533,15 +532,15 @@ function updateProfileUI(userData, email) {
 function toggleChangePhotoMenu(e) {
   e.stopPropagation();
   const dropdown = document.getElementById('changePhotoDropdown');
-  const btn      = e.currentTarget;
-  const rect     = btn.getBoundingClientRect();
-  dropdown.style.top   = (rect.bottom + 8) + 'px';
+  const btn = e.currentTarget;
+  const rect = btn.getBoundingClientRect();
+  dropdown.style.top = (rect.bottom + 8) + 'px';
   dropdown.style.right = (window.innerWidth - rect.right) + 'px';
   dropdown.classList.toggle('open');
 }
 
 document.addEventListener('click', (e) => {
-  const wrap     = document.querySelector('.change-photo-wrap');
+  const wrap = document.querySelector('.change-photo-wrap');
   const dropdown = document.getElementById('changePhotoDropdown');
   if (dropdown && wrap && !wrap.contains(e.target)) dropdown.classList.remove('open');
 });
@@ -572,69 +571,18 @@ async function updateUserPhotosInFirebase(field, base64String) {
     window.showToast("Photo updated successfully!", "success");
 
     if (field === 'photoURL') {
-      const imgSrc = base64String;
-      USER.photoSrc = imgSrc;
+      updateProfileUI({ photoURL: base64String }, user.email);
 
-      // Update past posts in Firebase
+      // Sync past posts in Firebase (Background)
       const postsQuery = query(collection(db, "posts"), where("userId", "==", user.uid));
-      const postsSnapshot = await getDocs(postsQuery);
-      postsSnapshot.forEach(async (postDoc) => {
-        await updateDoc(doc(db, "posts", postDoc.id), { photoURL: imgSrc });
-      });
-
-      const profileImg = document.querySelector('.profile-avatar-inner');
-      if (profileImg) profileImg.src = imgSrc;
-
-      const sidebarImg = document.querySelector('.sidebar-avatar-img');
-      if (sidebarImg) sidebarImg.src = imgSrc;
-
-      const navImg = document.querySelector('#nav-profile-avatar img');
-      if (navImg) navImg.src = imgSrc;
-
-      const postInputImg = document.querySelector('.post-input-img');
-      if (postInputImg) postInputImg.src = imgSrc;
-
-      const anonToggle = document.getElementById('anonToggle');
-      if (anonToggle && !anonToggle.checked) {
-        const modalAvatarEl = document.getElementById('modal-avatar');
-        if (modalAvatarEl) modalAvatarEl.innerHTML = `<img src="${imgSrc}" alt="Me" style="width:100%;height:100%;object-fit:cover;border-radius:50%;image-rendering:high-quality;">`;
-      }
-
-      document.querySelectorAll('.post-card').forEach(card => {
-        const postData = card.dataset;
-        if (postData.userId === user.uid || postData.uid === user.uid || postData.authorId === user.uid) {
-          const av = card.querySelector('.post-avatar img');
-          if (av) av.src = imgSrc;
-        }
-      });
-
-      document.querySelectorAll('.comment-input-row .comment-avatar img').forEach(av => { av.src = imgSrc; });
-
-      const commentModalAv = document.querySelector('.comment-modal-avatar img');
-      if (commentModalAv) commentModalAv.src = imgSrc;
-
-      document.querySelectorAll('.comment-data').forEach(cd => {
-        if (cd.dataset.userId === user.uid) cd.dataset.avatar = imgSrc;
-      });
-
-      document.querySelectorAll('.post-card').forEach(card => {
-        updateFeedCommentPreview(card);
-      });
-
-      document.querySelectorAll('.comment-modal-item').forEach(item => {
-        if (item.dataset.userId === user.uid) {
-          const img = item.querySelector('.comment-modal-item-avatar img');
-          if (img) img.src = imgSrc;
-        }
-      });
-
-      document.querySelectorAll('.feed-comment-preview .comment-modal-item').forEach(item => {
-        if (item.dataset.userId === user.uid) {
-          const img = item.querySelector('.comment-modal-item-avatar img');
-          if (img) img.src = imgSrc;
-        }
-      });
-
+      getDocs(postsQuery).then(snapshot => {
+        if (snapshot.empty) return;
+        const batch = writeBatch(db);
+        snapshot.forEach(postDoc => {
+          batch.update(doc(db, "posts", postDoc.id), { photoURL: base64String });
+        });
+        return batch.commit();
+      }).catch(err => console.error("Error syncing past posts:", err));
     } else if (field === 'coverURL') {
       const bannerImg = document.querySelector('.banner-img');
       if (bannerImg) bannerImg.src = base64String;
@@ -686,15 +634,15 @@ function formatRelativeTime(val) {
 
 function escapeHTML(str) {
   return str
-    .replace(/&/g,  '&amp;')
-    .replace(/</g,  '&lt;')
-    .replace(/>/g,  '&gt;')
-    .replace(/"/g,  '&quot;');
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
 }
 
 function fmt(n) {
   if (n >= 1000000) return (n / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
-  if (n >= 1000)    return (n / 1000).toFixed(1).replace(/\.0$/, '')    + 'K';
+  if (n >= 1000) return (n / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
   return String(n);
 }
 
@@ -723,17 +671,17 @@ function buildReactions(postId, likes = 0, comments = 0, reposts = 0, isLikedByM
 // RENDER POST (from Firebase)
 // ========================
 function renderPost(data, postId) {
-  const feed     = document.getElementById('feed');
+  const feed = document.getElementById('feed');
   const postCard = document.createElement('div');
-  postCard.className  = 'post-card';
+  postCard.className = 'post-card';
   postCard.dataset.id = postId;
   postCard.dataset.userId = data.userId || data.uid || data.authorId;
 
-  const likeCount    = data.likedBy    ? data.likedBy.length    : 0;
-  const commentCount = data.comments   || 0;
-  const repostCount  = data.repostedBy ? data.repostedBy.length : 0;
-  const isLikedByMe  = data.likedBy && data.likedBy.includes(auth.currentUser?.uid);
-  const menuId       = 'menu-' + postId;
+  const likeCount = data.likedBy ? data.likedBy.length : 0;
+  const commentCount = data.comments || 0;
+  const repostCount = data.repostedBy ? data.repostedBy.length : 0;
+  const isLikedByMe = data.likedBy && data.likedBy.includes(auth.currentUser?.uid);
+  const menuId = 'menu-' + postId;
 
   let bodyHtml = '';
   if (data.repostOf) {
@@ -772,31 +720,31 @@ function renderPost(data, postId) {
             getDoc(doc(db, "announcements", data.repostOf)),
             getDoc(doc(db, "org_posts", data.repostOf))
           ]);
-          
+
           // If all checks that succeeded say the document doesn't exist,
           // and we didn't get any successes, then it's deleted.
           const exists = results.some(r => r.status === 'fulfilled' && r.value.exists());
-          
+
           if (!exists) {
-             const card = postCard.querySelector(`#repost-card-${postId}`);
-             if (card) {
-                card.classList.add('original-deleted');
-                const authorEl = card.querySelector('.repost-quote-author');
-                if (authorEl) authorEl.textContent = 'Original post deleted';
-                const timeEl = card.querySelector('.repost-quote-time');
-                if (timeEl) timeEl.textContent = '';
-                const titleEl = card.querySelector('.repost-quote-title');
-                if (titleEl) titleEl.remove();
-                const bodyEl = card.querySelector('.repost-quote-body');
-                if (bodyEl) {
-                  bodyEl.innerHTML = 'This content is no longer available.';
-                  bodyEl.classList.remove('clamped');
-                }
-                const btnVm = card.querySelector('.view-more-btn');
-                if (btnVm) btnVm.remove();
-                const imgEl = card.querySelector('.post-images');
-                if (imgEl) imgEl.remove();
-             }
+            const card = postCard.querySelector(`#repost-card-${postId}`);
+            if (card) {
+              card.classList.add('original-deleted');
+              const authorEl = card.querySelector('.repost-quote-author');
+              if (authorEl) authorEl.textContent = 'Original post deleted';
+              const timeEl = card.querySelector('.repost-quote-time');
+              if (timeEl) timeEl.textContent = '';
+              const titleEl = card.querySelector('.repost-quote-title');
+              if (titleEl) titleEl.remove();
+              const bodyEl = card.querySelector('.repost-quote-body');
+              if (bodyEl) {
+                bodyEl.innerHTML = 'This content is no longer available.';
+                bodyEl.classList.remove('clamped');
+              }
+              const btnVm = card.querySelector('.view-more-btn');
+              if (btnVm) btnVm.remove();
+              const imgEl = card.querySelector('.post-images');
+              if (imgEl) imgEl.remove();
+            }
           }
         } catch (err) {
           console.warn("Original post check failed:", err);
@@ -914,11 +862,11 @@ async function loadRepostsForPost(postId, postCard) {
       const rd = document.createElement('div');
       rd.className = 'repost-data';
       rd.dataset.repostDocId = docSnap.id;
-      rd.dataset.author   = data.author || 'Unknown';
-      rd.dataset.avatar   = data.photoURL || '../assets/images/anon_avatar.jpg';
-      rd.dataset.quote    = data.text || '';
+      rd.dataset.author = data.author || 'Unknown';
+      rd.dataset.avatar = data.photoURL || '../assets/images/anon_avatar.jpg';
+      rd.dataset.quote = data.text || '';
       rd.dataset.hasQuote = data.text ? 'true' : 'false';
-      rd.dataset.time     = data.createdAt ? (data.createdAt.toDate ? data.createdAt.toDate().toISOString() : new Date(data.createdAt.seconds * 1000 || data.createdAt).toISOString()) : new Date().toISOString();
+      rd.dataset.time = data.createdAt ? (data.createdAt.toDate ? data.createdAt.toDate().toISOString() : new Date(data.createdAt.seconds * 1000 || data.createdAt).toISOString()) : new Date().toISOString();
       repostsStore.appendChild(rd);
     });
 
@@ -953,7 +901,15 @@ function loadUserPosts(userId) {
   );
   onSnapshot(q, (snapshot) => {
     if (snapshot.empty) {
-      feedContainer.innerHTML = '<p class="no-posts">No posts found yet.</p>';
+      feedContainer.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-state-icon">
+            <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          </div>
+          <div class="empty-state-title">No posts yet</div>
+          <div class="empty-state-sub">Your posts will show up here.</div>
+        </div>
+      `;
       return;
     }
 
@@ -992,7 +948,7 @@ function loadUserPosts(userId) {
         wireLightboxTriggers();
       }
     }, 500);
-    
+
   }, (error) => {
     console.error("Feed Error:", error);
   });
@@ -1045,7 +1001,7 @@ function updatePostInPlace(postId, data) {
     const countSpan = repostBtn.querySelector('.reposts-count');
     if (countSpan) countSpan.textContent = fmt(reposts.length);
   }
-  
+
   // 4. Update specific data attributes and preview
   updateFeedCommentPreview(card);
 }
@@ -1148,8 +1104,8 @@ async function deletePost(e) {
         // Always attempt to delete the actual document regardless of sync results
         await deleteDoc(postRef);
         card.style.transition = 'opacity 0.28s, transform 0.28s';
-        card.style.opacity    = '0';
-        card.style.transform  = 'scale(0.93)';
+        card.style.opacity = '0';
+        card.style.transform = 'scale(0.93)';
         setTimeout(() => card.remove(), 300);
         window.showToast('Post deleted', 'success');
       } catch (error) {
@@ -1163,15 +1119,15 @@ async function deletePost(e) {
 // EDIT POST
 // ========================
 async function editPost(e) {
-  const card   = e.target.closest('.post-card');
+  const card = e.target.closest('.post-card');
   const postId = card.dataset.id;
   const bodyEl = card.querySelector('.post-body');
   if (!bodyEl) return;
 
   const originalText = bodyEl.innerHTML
-    .replace(/<br>/g,  '\n')
-    .replace(/&lt;/g,  '<')
-    .replace(/&gt;/g,  '>')
+    .replace(/<br>/g, '\n')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
     .replace(/&amp;/g, '&')
     .replace(/&quot;/g, '"');
 
@@ -1211,14 +1167,14 @@ async function editPost(e) {
 // ========================
 // POST MODAL
 // ========================
-const fileInput  = document.getElementById('modal-file-input');
+const fileInput = document.getElementById('modal-file-input');
 const attachWrap = document.getElementById('modal-attachments');
-const submitBtn  = document.getElementById('modal-submit-btn');
-const textarea   = document.getElementById('postContent') || document.getElementById('post-textarea');
+const submitBtn = document.getElementById('modal-submit-btn');
+const textarea = document.getElementById('postContent') || document.getElementById('post-textarea');
 
 function updateSubmitButton() {
   const hasContent = textarea && textarea.value.trim().length > 0;
-  const hasImages  = attachWrap && attachWrap.querySelectorAll('.modal-attach-thumb').length > 0;
+  const hasImages = attachWrap && attachWrap.querySelectorAll('.modal-attach-thumb').length > 0;
   if (submitBtn) submitBtn.disabled = !hasContent && !hasImages;
 }
 
@@ -1236,21 +1192,28 @@ document.querySelector('.modal-add-photo-btn')?.addEventListener('click', e => {
 });
 
 fileInput?.addEventListener('change', async function () {
-  for (const file of this.files) {
+  const files = Array.from(this.files);
+  const compressionPromises = files.map(async (file) => {
     try {
       const compressedBase64 = await compressImage(file, 1000, 1000);
       const thumb = document.createElement('img');
       thumb.src = compressedBase64;
       thumb.className = 'modal-attach-thumb';
-      thumb.title = 'Click to remove';
       thumb.style.cssText = 'width:80px; height:80px; object-fit:cover; border-radius:8px; cursor:pointer; flex-shrink:0;';
       thumb.addEventListener('click', () => { thumb.remove(); updateSubmitButton(); });
-      attachWrap.appendChild(thumb);
-      updateSubmitButton();
+      return thumb;
     } catch (err) {
       console.error("Compression error:", err);
+      return null;
     }
-  }
+  });
+
+  const thumbs = await Promise.all(compressionPromises);
+  thumbs.forEach(thumb => {
+    if (thumb) attachWrap.appendChild(thumb);
+  });
+
+  updateSubmitButton();
   fileInput.value = '';
 });
 
@@ -1268,7 +1231,7 @@ function closeModalOnOverlay(e) {
   if (e.target === document.getElementById('postModal')) closePostModal();
 }
 
-window.submitPost = async function() {
+window.submitPost = async function () {
   const content = document.getElementById('postContent').value.trim();
   const attachWrap = document.getElementById('modal-attachments');
   const thumbs = Array.from(attachWrap.querySelectorAll('.modal-attach-thumb'));
@@ -1293,8 +1256,8 @@ window.submitPost = async function() {
 
     const postData = {
       userId: user.uid,
-      author: USER.fullName,
-      photoURL: USER.photoURL,
+      author: USER.name,
+      photoURL: USER.photoSrc,
       text: content,
       imageURL: imageURLs.length > 0 ? imageURLs[0] : "", // Legacy support
       imageURLs: imageURLs,
@@ -1309,7 +1272,7 @@ window.submitPost = async function() {
     console.log("Saving user post to Firestore...");
     await addDoc(collection(db, "posts"), postData);
     console.log("User post saved successfully!");
-    
+
     document.getElementById('postContent').value = '';
     attachWrap.innerHTML = '';
     closePostModal();
@@ -1348,7 +1311,7 @@ async function openCommentModal(el) {
   card.querySelectorAll('.comment-data').forEach((cd, cIdx) => {
     list.appendChild(buildCommentModalItem(
       cd.dataset.author, cd.dataset.avatar,
-      cd.dataset.text,   cd.dataset.time,
+      cd.dataset.text, cd.dataset.time,
       cd.dataset.isOwn === 'true', cIdx,
       cd.dataset.userId
     ));
@@ -1418,13 +1381,13 @@ function bindCommentActions() {
 
   list.querySelectorAll('.comment-edit-save').forEach(btn => {
     btn.addEventListener('click', async function () {
-      const c       = this.dataset.comment;
+      const c = this.dataset.comment;
       const newText = document.getElementById(`comment-modal-edit-input-${c}`).value.trim();
       if (!newText) return;
 
       if (_currentPostCard) {
         const postId = _currentPostCard.dataset.id;
-        const cds    = _currentPostCard.querySelectorAll('.comment-data');
+        const cds = _currentPostCard.querySelectorAll('.comment-data');
         const commentId = cds[c]?.dataset.commentId;
 
         try {
@@ -1447,12 +1410,12 @@ function bindCommentActions() {
 
   list.querySelectorAll('.delete-btn').forEach(btn => {
     btn.addEventListener('click', async function () {
-      const c    = this.dataset.comment;
+      const c = this.dataset.comment;
       const item = document.getElementById(`comment-modal-item-${c}`);
 
       if (_currentPostCard) {
         const postId = _currentPostCard.dataset.id;
-        const cds    = _currentPostCard.querySelectorAll('.comment-data');
+        const cds = _currentPostCard.querySelectorAll('.comment-data');
         const commentId = cds[c]?.dataset.commentId;
 
         try {
@@ -1461,8 +1424,8 @@ function bindCommentActions() {
             await updateDoc(doc(db, "posts", postId), { comments: increment(-1) });
           }
           item.style.transition = 'opacity 0.2s, transform 0.2s';
-          item.style.opacity    = '0';
-          item.style.transform  = 'translateX(12px)';
+          item.style.opacity = '0';
+          item.style.transform = 'translateX(12px)';
           setTimeout(() => item.remove(), 200);
           if (cds[c]) cds[c].remove();
           const countEl = _currentPostCard.querySelector('.comments-count');
@@ -1495,10 +1458,10 @@ function handleModalCommentKey(e) {
 
 async function submitModalComment() {
   const input = document.getElementById('commentModalInput');
-  const text  = input.value.trim();
+  const text = input.value.trim();
   if (!text) return;
 
-  const now  = new Date();
+  const now = new Date();
   const list = document.getElementById('commentModalList');
   const cIdx = list.querySelectorAll('.comment-modal-item').length;
 
@@ -1516,15 +1479,15 @@ async function submitModalComment() {
   const postId = _currentPostCard.dataset.id;
   if (!postId) { input.value = ''; return; }
 
-  const store      = _currentPostCard.querySelector('.comments-data');
-  const cd         = document.createElement('div');
-  cd.className     = 'comment-data';
+  const store = _currentPostCard.querySelector('.comments-data');
+  const cd = document.createElement('div');
+  cd.className = 'comment-data';
   cd.dataset.commentId = '';
   cd.dataset.userId = auth.currentUser?.uid || '';
   cd.dataset.author = USER.name;
   cd.dataset.avatar = USER.photoSrc || '../assets/images/anon_avatar.jpg';
-  cd.dataset.text  = text;
-  cd.dataset.time  = now.toISOString();
+  cd.dataset.text = text;
+  cd.dataset.time = now.toISOString();
   cd.dataset.isOwn = 'true';
   if (store) store.appendChild(cd);
 
@@ -1560,9 +1523,9 @@ function updateFeedCommentPreview(card) {
 
 function updateFeedCommentPreview_OLD(card) {
   const allComments = card.querySelectorAll('.comment-data');
-  const count       = allComments.length;
-  const viewMore    = card.querySelector('.view-comments');
-  let   preview     = card.querySelector('.feed-comment-preview');
+  const count = allComments.length;
+  const viewMore = card.querySelector('.view-comments');
+  let preview = card.querySelector('.feed-comment-preview');
 
   if (viewMore) viewMore.style.display = count > 1 ? 'block' : 'none';
 
@@ -1574,7 +1537,7 @@ function updateFeedCommentPreview_OLD(card) {
       const ref = card.querySelector('.view-comments') || card.querySelector('.comment-input-row');
       card.insertBefore(preview, ref);
     }
-    
+
     // Live override for current user's comments
     const currentUID = auth.currentUser?.uid;
     const isOwn = latest.dataset.userId === currentUID;
@@ -1751,11 +1714,11 @@ async function createRepost(btn, quote = '') {
       const rd = document.createElement('div');
       rd.className = 'repost-data';
       rd.dataset.repostDocId = repostRef.id; // store doc ID
-      rd.dataset.author   = USER.name;
-      rd.dataset.avatar   = USER.photoSrc;
-      rd.dataset.quote    = quote;
+      rd.dataset.author = USER.name;
+      rd.dataset.avatar = USER.photoSrc;
+      rd.dataset.quote = quote;
       rd.dataset.hasQuote = quote ? 'true' : 'false';
-      rd.dataset.time     = new Date().toISOString();
+      rd.dataset.time = new Date().toISOString();
       repostsStore.appendChild(rd);
     }
 
@@ -1859,7 +1822,7 @@ document.getElementById('btn-logout')?.addEventListener('click', () => {
 // ========================
 document.addEventListener('DOMContentLoaded', () => {
 
-  const commentInput  = document.getElementById('commentModalInput');
+  const commentInput = document.getElementById('commentModalInput');
   const commentSubmit = document.querySelector('.comment-modal-submit');
   if (commentInput && commentSubmit) {
     commentInput.addEventListener('input', () => {
@@ -1870,13 +1833,13 @@ document.addEventListener('DOMContentLoaded', () => {
   const anonToggle = document.getElementById('anonToggle');
   if (anonToggle) {
     anonToggle.addEventListener('change', function () {
-      const nameEl   = document.getElementById('modal-user-name');
+      const nameEl = document.getElementById('modal-user-name');
       const avatarEl = document.getElementById('modal-avatar');
       if (this.checked) {
-        if (nameEl)   nameEl.textContent = 'Anonymous';
+        if (nameEl) nameEl.textContent = 'Anonymous';
         if (avatarEl) avatarEl.innerHTML = `<img src="../assets/images/anon_avatar.jpg" alt="Anonymous" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
       } else {
-        if (nameEl)   nameEl.textContent = USER.name;
+        if (nameEl) nameEl.textContent = USER.name;
         if (avatarEl) avatarEl.innerHTML = USER.photoSrc
           ? `<img src="${USER.photoSrc}" alt="Me" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`
           : `<svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`;
@@ -1897,7 +1860,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Sidebar navigation
   (function () {
-    const navWrap  = document.getElementById('sidebar-nav');
+    const navWrap = document.getElementById('sidebar-nav');
     const teardrop = document.getElementById('nav-teardrop');
     if (!navWrap || !teardrop) return;
 
@@ -1918,9 +1881,9 @@ document.addEventListener('DOMContentLoaded', () => {
         this.classList.add('active');
         moveTo(this);
         const route = this.dataset.route;
-        if (route === 'home')        window.location.href = '../pages/homepage.html';
+        if (route === 'home') window.location.href = '../pages/homepage.html';
         if (route === 'campus news') window.location.href = '../pages/campus_news.html';
-        if (route === 'campus')      window.location.href = '../pages/campus_directory.html';
+        if (route === 'campus') window.location.href = '../pages/campus_directory.html';
       });
     });
 
@@ -1947,21 +1910,21 @@ document.addEventListener('DOMContentLoaded', () => {
 // ========================
 // EXPOSE TO HTML onclick
 // ========================
-window.toggleChangePhotoMenu         = toggleChangePhotoMenu;
-window.toggleMenu                    = toggleMenu;
-window.deletePost                    = deletePost;
-window.editPost                      = editPost;
-window.openPostModal                 = openPostModal;
-window.closePostModal                = closePostModal;
-window.closeModalOnOverlay           = closeModalOnOverlay;
-window.submitPost                    = submitPost;
-window.openCommentModal              = openCommentModal;
-window.closeCommentModal             = closeCommentModal;
-window.closeCommentModalOnOverlay    = closeCommentModalOnOverlay;
-window.handleModalCommentKey         = handleModalCommentKey;
-window.submitModalComment            = submitModalComment;
-window.openRepostModal               = openRepostModal;
-window.closeRepostModal              = closeRepostModal;
+window.toggleChangePhotoMenu = toggleChangePhotoMenu;
+window.toggleMenu = toggleMenu;
+window.deletePost = deletePost;
+window.editPost = editPost;
+window.openPostModal = openPostModal;
+window.closePostModal = closePostModal;
+window.closeModalOnOverlay = closeModalOnOverlay;
+window.submitPost = submitPost;
+window.openCommentModal = openCommentModal;
+window.closeCommentModal = closeCommentModal;
+window.closeCommentModalOnOverlay = closeCommentModalOnOverlay;
+window.handleModalCommentKey = handleModalCommentKey;
+window.submitModalComment = submitModalComment;
+window.openRepostModal = openRepostModal;
+window.closeRepostModal = closeRepostModal;
 window.closeRepostModalOnOverlay = closeRepostModalOnOverlay;
 window.submitRepost = submitRepost;
 
@@ -1983,7 +1946,7 @@ function initLightbox() {
   const lb = document.getElementById('cn-lightbox');
   document.getElementById('cn-lightbox-close')?.addEventListener('click', () => lb.classList.remove('open'));
   lb?.addEventListener('click', e => { if (e.target === lb) lb.classList.remove('open'); });
-  
+
   document.getElementById('lb-prev')?.addEventListener('click', (e) => {
     e.stopPropagation();
     window.currentIndex = (window.currentIndex > 0) ? window.currentIndex - 1 : window.currentGallery.length - 1;
@@ -2019,7 +1982,7 @@ function wireLightboxTriggers() {
       const card = fresh.closest('.post-card');
       const pid = card?.dataset.id;
       const post = allPosts.find(p => p.id === pid);
-      
+
       if (post && post.imageURLs && post.imageURLs.length > 0) {
         window.currentGallery = post.imageURLs;
         window.currentIndex = post.imageURLs.indexOf(src);
@@ -2060,8 +2023,8 @@ function renderPhotoGrid(imgs) {
     if (clampedCount === 3 && i === 0) cellStyle += " grid-row: 1 / 3 !important;";
     else if (clampedCount === 5 && i === 0) cellStyle += " grid-column: 1 / 2 !important; grid-row: 1 / 3 !important;";
 
-    const overlayHtml = (i === 4 && extra > 0) 
-      ? `<div class="photo-more-overlay" style="position: absolute !important; inset: 0 !important; background: rgba(0,0,0,0.5) !important; display: flex !important; align-items: center !important; justify-content: center !important; color: #fff !important; font-size: 24px !important; font-weight: 700 !important; z-index: 2 !important; pointer-events: none !important; font-family: 'Montserrat', sans-serif;">+${extra}</div>` 
+    const overlayHtml = (i === 4 && extra > 0)
+      ? `<div class="photo-more-overlay" style="position: absolute !important; inset: 0 !important; background: rgba(0,0,0,0.5) !important; display: flex !important; align-items: center !important; justify-content: center !important; color: #fff !important; font-size: 24px !important; font-weight: 700 !important; z-index: 2 !important; pointer-events: none !important; font-family: 'Montserrat', sans-serif;">+${extra}</div>`
       : '';
 
     return `
@@ -2076,12 +2039,12 @@ function renderPhotoGrid(imgs) {
 
 // Boot lightbox
 initLightbox();
-window.viewReposts                   = viewReposts;
-window.closeRepostViewModal          = closeRepostViewModal;
+window.viewReposts = viewReposts;
+window.closeRepostViewModal = closeRepostViewModal;
 window.closeRepostViewModalOnOverlay = closeRepostViewModalOnOverlay;
-window.askSuggestion                 = askSuggestion;
-window.toggleChat                    = toggleChat;
-window.sendMessage                   = sendMessage;  
+window.askSuggestion = askSuggestion;
+window.toggleChat = toggleChat;
+window.sendMessage = sendMessage;
 
 // ========================
 // FEED CLICK HANDLER
@@ -2091,8 +2054,8 @@ document.getElementById('feed').addEventListener('click', async (e) => {
   if (!btn) return;
 
   const postId = btn.dataset.id;
-  const type   = btn.dataset.type;
-  const user   = auth.currentUser;
+  const type = btn.dataset.type;
+  const user = auth.currentUser;
   if (!user) { window.showToast('Login to interact!', 'warning'); return; }
 
   const postRef = doc(db, "posts", postId);
@@ -2118,67 +2081,67 @@ document.getElementById('feed').addEventListener('click', async (e) => {
   }
 });
 
-  // ========================
-  // CHATBOT
-  // ========================
+// ========================
+// CHATBOT
+// ========================
 
-  window.askSuggestion = askSuggestion;
-  window.toggleChat = toggleChat;
-  window.sendMessage = sendMessage;
+window.askSuggestion = askSuggestion;
+window.toggleChat = toggleChat;
+window.sendMessage = sendMessage;
 
-  function toggleChat() {
-    const modal = document.getElementById('chatModal');
-    if (modal) modal.classList.toggle('active');
+function toggleChat() {
+  const modal = document.getElementById('chatModal');
+  if (modal) modal.classList.toggle('active');
+}
+
+function askSuggestion(text) {
+  const input = document.getElementById('userInput');
+  if (input) {
+    input.value = text;
+    sendMessage();
   }
+}
 
-  function askSuggestion(text) {
-    const input = document.getElementById('userInput');
-    if (input) {
-      input.value = text;
-      sendMessage();
-    }
-  }
+window.toggleChat = toggleChat;
 
-  window.toggleChat = toggleChat;
+async function sendMessage() {
+  const input = document.getElementById('userInput');
+  const body = document.getElementById('chatBody');
+  const text = input.value.trim();
+  if (!text) return;
 
-  async function sendMessage() {
-    const input = document.getElementById('userInput');
-    const body = document.getElementById('chatBody');
-    const text = input.value.trim();
-    if (!text) return;
+  // 1. Show User Message
+  const userMsg = document.createElement('div');
+  userMsg.className = 'user-message';
+  userMsg.textContent = text;
+  body.appendChild(userMsg);
+  input.value = '';
+  body.scrollTop = body.scrollHeight;
 
-    // 1. Show User Message
-    const userMsg = document.createElement('div');
-    userMsg.className = 'user-message';
-    userMsg.textContent = text;
-    body.appendChild(userMsg);
-    input.value = '';
-    body.scrollTop = body.scrollHeight;
+  try {
+    // 2. Get Response from Gemini
+    const result = await model.generateContent(text);
+    const response = await result.response;
+    const botText = response.text();
 
-    try {
-      // 2. Get Response from Gemini
-      const result = await model.generateContent(text);
-      const response = await result.response;
-      const botText = response.text();
+    // ════════════════════════════════════════
+    // 3. FORMATTING LOGIC (Dito ilalagay)
+    // ════════════════════════════════════════
+    let formattedResponse = botText
+      .replace(/\*\*(.*?)\*\*/g, '<b>$1</b>')
+      .replace(/^\* /gm, '• ')
+      .replace(/\n/g, '<br>');
 
-      // ════════════════════════════════════════
-      // 3. FORMATTING LOGIC (Dito ilalagay)
-      // ════════════════════════════════════════
-      let formattedResponse = botText
-        .replace(/\*\*(.*?)\*\*/g, '<b>$1</b>')
-        .replace(/^\* /gm, '• ')
-        .replace(/\n/g, '<br>');
-
-      const botRow = document.createElement('div');
-      botRow.className = 'bot-row';
-      botRow.innerHTML = `
+    const botRow = document.createElement('div');
+    botRow.className = 'bot-row';
+    botRow.innerHTML = `
       <img src="../assets/images/Tupee_logo.png" class="bot-row-avatar">
       <div class="bot-message">${formattedResponse}</div>
     `;
-      body.appendChild(botRow);
-      body.scrollTop = body.scrollHeight;
+    body.appendChild(botRow);
+    body.scrollTop = body.scrollHeight;
 
-    } catch (error) {
-      console.error("Gemini Error:", error);
-    }
+  } catch (error) {
+    console.error("Gemini Error:", error);
   }
+}

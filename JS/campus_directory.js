@@ -707,8 +707,6 @@ function hideDetail() {
 // ========================
 document.addEventListener('DOMContentLoaded', () => {
 
-  // Load Organizations
-  loadOrganizations();
 
   // ========================
   // SEARCH BAR
@@ -962,49 +960,6 @@ document.addEventListener('DOMContentLoaded', () => {
   // ========================
   // ORGANIZATION LOGIC
   // ========================
-  async function loadOrganizations() {
-    const orgList = document.getElementById('org-list');
-    if (!orgList) return;
-
-    try {
-      const q = query(collection(db, "users"), where("role", "==", "organization"));
-      const querySnapshot = await getDocs(q);
-      
-      orgList.innerHTML = '';
-      
-      if (querySnapshot.empty) {
-        orgList.innerHTML = '<li class="directory-item">No organizations found</li>';
-        return;
-      }
-
-      querySnapshot.forEach((docSnap) => {
-        const orgData = docSnap.data();
-        const li = document.createElement('li');
-        li.className = 'directory-item';
-        li.innerHTML = `
-          <svg class="directory-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-          </svg>
-          ${orgData.fullName || "Unnamed Org"}
-        `;
-        li.addEventListener('click', () => {
-          // Temporarily add to directoryData if not exists to allow showDetail to work
-          if (!directoryData[orgData.fullName]) {
-            directoryData[orgData.fullName] = {
-              img: orgData.coverURL || '../assets/images/TUP_bg.png',
-              desc: orgData.description || `${orgData.fullName} is a student organization at TUP.`,
-              courses: {} // Or maybe list their college affiliation here
-            };
-          }
-          showDetail(orgData.fullName, true, docSnap.id);
-        });
-        orgList.appendChild(li);
-      });
-    } catch (error) {
-      console.error("Error loading organizations:", error);
-      orgList.innerHTML = '<li class="directory-item danger">Failed to load organizations</li>';
-    }
-  }
 
   async function loadOrgPosts(orgUid) {
     const container = document.getElementById('org-posts-container');

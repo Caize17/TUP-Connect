@@ -1,15 +1,58 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Cleanup Admin Posts</title>
+    <meta charset="UTF-8">
+    <title>Database Reset Tool | TUP Connect</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 40px; background: #f4f4f9; color: #333; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        h1 { color: #6b1111; margin-top: 0; }
+        .warning { background: #fff3f3; border-left: 5px solid #ff4d4d; padding: 15px; margin-bottom: 25px; color: #a30000; font-weight: bold; }
+        .control-panel { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        button { padding: 12px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; transition: opacity 0.2s; }
+        .btn-wipe { background: #e74c3c; color: white; }
+        .btn-wipe:hover { opacity: 0.8; }
+        .btn-nuke { background: #000; color: #ff3e3e; grid-column: span 2; font-size: 18px; margin-top: 20px; border: 2px solid #ff3e3e; }
+        .btn-nuke:hover { background: #ff3e3e; color: white; }
+        #log { margin-top: 30px; padding: 15px; background: #222; color: #0f0; font-family: monospace; border-radius: 6px; height: 300px; overflow-y: auto; font-size: 13px; line-height: 1.5; }
+        .auth-panel { margin-bottom: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 8px; display: flex; gap: 10px; align-items: center; }
+        input { padding: 8px; border: 1px solid #ccc; border-radius: 4px; flex: 1; }
+    </style>
 </head>
 <body>
-    <h1>Cleaning up Admin posts...</h1>
-    <div id="status">Starting...</div>
+    <div class="container">
+        <h1>Database Reset Tool</h1>
+        
+        <div class="auth-panel" id="auth-panel">
+            <input type="email" id="email" placeholder="Admin Email">
+            <input type="password" id="password" placeholder="Password">
+            <button class="btn-wipe" style="background:#2ecc71" onclick="login()">Login to Proceed</button>
+        </div>
+
+        <div class="warning">
+            ⚠️ CRITICAL WARNING: Deletions require an authenticated SuperAdmin session. Ensure your Security Rules allow this.
+        </div>
+
+        <div class="control-panel">
+            <button class="btn-wipe" onclick="wipeCollection('posts')">Wipe Posts</button>
+            <button class="btn-wipe" onclick="wipeCollection('announcements')">Wipe Announcements</button>
+            <button class="btn-wipe" onclick="wipeCollection('org_posts')">Wipe Org Posts</button>
+            <button class="btn-wipe" onclick="wipeCollection('reports')">Wipe Reports</button>
+            <button class="btn-wipe" onclick="wipeCollection('notifications')">Wipe Notifications</button>
+            <button class="btn-wipe" onclick="wipeCollection('users')" style="background:#f39c12">Wipe Users (Firestore Only)</button>
+            
+            <button class="btn-nuke" onclick="nukeEverything()">🔥 NUKE ENTIRE DATABASE</button>
+        </div>
+
+        <div id="log">Ready. Waiting for command...</div>
+    </div>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, query, where, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, collection, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+        // Hardcoded config for scratch tool convenience
         const firebaseConfig = {
             apiKey: "AIzaSyBpGOdMpx_Mws2EcCq6rbOWfZ-FFuhhfo0",
             authDomain: "tup-connect-b162d.firebaseapp.com",
@@ -21,39 +64,99 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+        const auth = getAuth(app);
+        const logEl = document.getElementById('log');
 
-        async function cleanup() {
-            const status = document.getElementById('status');
+        async function login() {
+            const email = document.getElementById('email').value;
+            const pass = document.getElementById('password').value;
+            log("Attempting login...", "#3498db");
             try {
-                // 1. Find all posts in 'posts' collection where author is 'Admin'
-                const q1 = query(collection(db, "posts"), where("author", "==", "Admin"));
-                const snap1 = await getDocs(q1);
-                
-                status.innerHTML += `<br>Found ${snap1.size} posts with author "Admin"`;
-                
-                for (const d of snap1.docs) {
-                    await deleteDoc(doc(db, "posts", d.id));
-                    status.innerHTML += `<br>Deleted post ${d.id}`;
-                }
-
-                // 2. Find all posts in 'posts' collection where author is 'USG' (just in case)
-                const q2 = query(collection(db, "posts"), where("author", "==", "USG"));
-                const snap2 = await getDocs(q2);
-                
-                status.innerHTML += `<br>Found ${snap2.size} posts with author "USG"`;
-                
-                for (const d of snap2.docs) {
-                    await deleteDoc(doc(db, "posts", d.id));
-                    status.innerHTML += `<br>Deleted post ${d.id}`;
-                }
-
-                status.innerHTML += "<br><b>Cleanup complete!</b>";
+                await signInWithEmailAndPassword(auth, email, pass);
+                log("LOGIN SUCCESS: Permissions unlocked.", "#2ecc71");
+                document.getElementById('auth-panel').style.display = 'none';
             } catch (err) {
-                status.innerHTML += `<br><span style="color:red">Error: ${err.message}</span>`;
+                log(`LOGIN FAILED: ${err.message}`, "#ff4d4d");
+            }
+        }
+        window.login = login;
+
+        function log(msg, color = '#0f0') {
+            const time = new Date().toLocaleTimeString();
+            logEl.innerHTML += `<div style="color:${color}">[${time}] ${msg}</div>`;
+            logEl.scrollTop = logEl.scrollHeight;
+        }
+
+        async function wipeCollection(colName) {
+            if (!confirm(`Are you absolutely sure you want to delete ALL documents in the "${colName}" collection AND all their sub-collections (comments, reactions)?`)) return;
+            
+            log(`Starting deep wipe of "${colName}"...`, '#e67e22');
+            try {
+                const snap = await getDocs(collection(db, colName));
+                log(`Found ${snap.size} top-level documents.`, '#3498db');
+                
+                let count = 0;
+                for (const d of snap.docs) {
+                    try {
+                        // 1. Wipe common sub-collections
+                        await wipeSubCollection(colName, d.id, 'comments');
+                        await wipeSubCollection(colName, d.id, 'reactions');
+                        await wipeSubCollection(colName, d.id, 'hearts');
+                        
+                        // 2. Wipe parent
+                        await deleteDoc(doc(db, colName, d.id));
+                        count++;
+                        if (count % 2 === 0) log(`Progress: Cleared parent ${count}/${snap.size}...`);
+                    } catch (e) {
+                        log(`   [FAIL] Could not delete ${d.id}: ${e.message}`, '#ff4d4d');
+                    }
+                }
+                
+                log(`SUCCESS: Deep-deleted ${count} hierarchies from ${colName}.`, '#2ecc71');
+            } catch (err) {
+                log(`ERROR: ${err.message}`, '#ff4d4d');
             }
         }
 
-        cleanup();
+        async function wipeSubCollection(parentCol, parentId, subColName) {
+            try {
+                const subSnap = await getDocs(collection(db, parentCol, parentId, subColName));
+                if (subSnap.empty) return;
+                
+                for (const sd of subSnap.docs) {
+                    await deleteDoc(doc(db, parentCol, parentId, subColName, sd.id));
+                }
+                log(`   - Cleared ${subSnap.size} items from "${subColName}" sub-collection.`, '#9b59b6');
+            } catch (e) {
+                // Ignore errors for subcollections that don't exist
+            }
+        }
+
+        async function nukeEverything() {
+            const pass = prompt("DANGER ZONE: Type 'NUKE' to confirm total deletion of ALL collections:");
+            if (pass !== 'NUKE') {
+                log("Nuke aborted. Safety first!", "#f1c40f");
+                return;
+            }
+
+            const collections = ['posts', 'announcements', 'org_posts', 'reports', 'notifications', 'users'];
+            log("INITIATING TOTAL DATABASE WIPE...", "#ff3e3e");
+            
+            for (const col of collections) {
+                log(`--- Target: ${col} ---`);
+                const snap = await getDocs(collection(db, col));
+                for (const d of snap.docs) {
+                    await deleteDoc(doc(db, col, d.id));
+                }
+                log(`Done: ${col} is now empty.`, "#2ecc71");
+            }
+            
+            log("☢️ DATABASE NUKE COMPLETE. All specified collections are empty.", "#ff3e3e");
+        }
+
+        // Expose to window for button clicks
+        window.wipeCollection = wipeCollection;
+        window.nukeEverything = nukeEverything;
     </script>
 </body>
 </html>

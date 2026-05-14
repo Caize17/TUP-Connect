@@ -82,11 +82,35 @@ async function handleHomepage() {
       const userData = userDoc.data();
       const role = userData.role;
       const isSetupComplete = userData.isSetupComplete;
+      const status = userData.status || 'approved'; // Default for legacy users
 
-      // --- REDIRECT LOGIC ---
+      // 1. Check Verification Status
+      if (status === 'pending') {
+        showError("Your account is currently under review by the USG. Please check back later.");
+        await signOut(auth);
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = "Sign In";
+        }
+        return;
+      }
+      
+      if (status === 'rejected') {
+        showError("Your account request was declined. Contact USG for inquiries.");
+        await signOut(auth);
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = "Sign In";
+        }
+        return;
+      }
+
+      // 2. REDIRECT LOGIC
       if (isSetupComplete === true) {
         if (role === 'Organization' || role === 'USG') {
           window.location.href = 'pages/org_profile.html';
+        } else if (role === 'SuperAdmin') {
+          window.location.href = 'pages/super_admin.html';
         } else {
           window.location.href = 'pages/homepage.html';
         }

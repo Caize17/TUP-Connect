@@ -195,6 +195,7 @@
   position: absolute;
   left: 10px;
   top: 0;
+  visibility: hidden;
   width: 116px;
   height: 66px;
   background: #FFF4E7;

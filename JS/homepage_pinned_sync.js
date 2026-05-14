@@ -58,6 +58,14 @@ function fmt(n) {
 // ─────────────────────────────────────────────
 
 function populatePinnedCard(post) {
+  const annCard = document.getElementById('ann-card');
+  const emptyState = document.getElementById('pinned-empty-state');
+  const loadingState = document.getElementById('pinned-loading-state');
+  
+  if (annCard) annCard.classList.add('has-announcement');
+  if (emptyState) emptyState.style.display = 'none';
+  if (loadingState) loadingState.style.display = 'none';
+
   // Title
   const titleEl = document.getElementById('post-title');
   if (titleEl) titleEl.textContent = post.title || '';
@@ -196,15 +204,13 @@ function populatePinnedCard(post) {
 
 function showEmptyPinnedCard() {
   const annCard = document.getElementById('ann-card');
+  const emptyState = document.getElementById('pinned-empty-state');
+  const loadingState = document.getElementById('pinned-loading-state');
+
   if (annCard) {
-    annCard.innerHTML = `
-      <div class="pinned-empty" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:40px 20px;color:#9b7070;">
-        <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
-          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
-          <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
-        </svg>
-        <div style="font-size:13px;font-weight:600;">No pinned announcement yet</div>
-      </div>`;
+    annCard.classList.remove('has-announcement');
+    if (emptyState) emptyState.style.display = 'block';
+    if (loadingState) loadingState.style.display = 'none';
   }
 }
 
@@ -319,6 +325,9 @@ function initHomepageReactions() {
 // ─────────────────────────────────────────────
 
 function listenForPinnedAnnouncement() {
+  const loadingState = document.getElementById('pinned-loading-state');
+  if (loadingState) loadingState.style.display = 'block';
+
   const q = query(
     collection(db, 'announcements'),
     where('pinned', '==', true)

@@ -727,7 +727,51 @@ function initLightbox() {
 
 function initFilterUI() {
   const btn = document.getElementById('cn-filter-btn');
-  btn?.addEventListener('click', () => { /* Filter logic already handled by portal/delegate in turn 31 */ });
+  const portal = document.getElementById('cn-filter-portal');
+  if (!btn || !portal) return;
+
+  btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const isOpen = portal.classList.contains('open');
+    if (isOpen) {
+      portal.classList.remove('open');
+    } else {
+      // Position portal below the button
+      const rect = btn.getBoundingClientRect();
+      portal.style.top = `${rect.bottom + 8}px`;
+      portal.style.left = `${rect.right - 320}px`; // Align to right of button (min-width is 320px)
+      portal.classList.add('open');
+    }
+  });
+
+  // Close portal when clicking outside
+  document.addEventListener('click', (e) => {
+    if (!portal.contains(e.target) && !btn.contains(e.target)) {
+      portal.classList.remove('open');
+    }
+  });
+
+  // Handle option clicks
+  const opts = portal.querySelectorAll('.cn-filter-opt');
+  opts.forEach(opt => {
+    opt.addEventListener('click', () => {
+      opts.forEach(o => o.classList.remove('active'));
+      opt.classList.add('active');
+      activeFilter = opt.dataset.filter;
+      
+      // Update button label to show active filter
+      const label = btn.querySelector('.cn-filter-label');
+      if (label) {
+        if (activeFilter === 'all') label.textContent = 'Filter Posts';
+        else label.textContent = opt.textContent;
+      }
+      
+      btn.classList.toggle('active', activeFilter !== 'all');
+      
+      portal.classList.remove('open');
+      renderBulletinPage(getFilteredPosts());
+    });
+  });
 }
 
 function initSearch() {
@@ -1101,6 +1145,21 @@ window.submitRepost = async function(skipQuote = false) {
 };
 
 function initRightPanel() {
+  // Immediate cache load to prevent flicker
+  const cache = localStorage.getItem('tup_user_meta');
+  if (cache) {
+    try {
+      const userData = JSON.parse(cache);
+      updateRightPanel({
+        name: userData.fullName || userData.name,
+        email: userData.email,
+        photoSrc: userData.photoURL || userData.photoSrc,
+        id: userData.studentID || userData.id
+      });
+    } catch (e) {
+      console.error("Right panel cache error:", e);
+    }
+  }
 
   document.getElementById('cn-btn-logout')?.addEventListener('click', async () => {
     try {
@@ -1178,7 +1237,7 @@ function updateRightPanel(userData) {
   if (emailEl) emailEl.textContent = userData.email || '—';
   if (idEl) idEl.textContent = userData.id || '—';
   if (photoWrap && userData.photoSrc) {
-    photoWrap.innerHTML = `<img src="${userData.photoSrc}" alt="Profile" style="width:100%;height:100%;object-fit:cover;border-radius:12px;image-rendering:high-quality;">`;
+    photoWrap.innerHTML = `<img src="${userData.photoSrc}" class="profile-photo" alt="Profile" style="width:100%; height:100%; object-fit:cover; border-radius:12px; image-rendering:high-quality;">`;
   }
   
   // Comment modal avatar sync
@@ -1260,7 +1319,7 @@ function updateAnnouncementUI(id, data) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  initAuth(); initSideTabs(); initOrgTabs(); initCommentModal(); initLightbox(); initRightPanel(); initSearch(); listenToAnnouncements();
+  initAuth(); initSideTabs(); initOrgTabs(); initCommentModal(); initLightbox(); initRightPanel(); initSearch(); initFilterUI(); listenToAnnouncements();
   window.renderBulletinPage = renderBulletinPage;
   window.renderOrgFeed = renderOrgFeed;
 });
