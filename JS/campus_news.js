@@ -1101,10 +1101,7 @@ window.submitRepost = async function(skipQuote = false) {
 };
 
 function initRightPanel() {
-  document.getElementById('cn-btn-settings')?.addEventListener('click', () => {
-    const route = currentUserRole === 'Organization' ? '../pages/setup_org.html' : '../pages/setup_student.html';
-    window.location.href = route;
-  });
+
   document.getElementById('cn-btn-logout')?.addEventListener('click', async () => {
     try {
       const { getAuth, signOut } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js");

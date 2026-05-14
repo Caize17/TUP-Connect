@@ -660,42 +660,29 @@ function getTemplate(id) {
   return div.innerHTML;
 }
 
-function formatRelativeTime(dateObj) {
-  if (!dateObj) return 'Just now';
-  
+function formatRelativeTime(val) {
+  if (!val) return 'Just now';
+  let date;
+  if (val && typeof val.toDate === 'function') date = val.toDate();
+  else if (val instanceof Date) date = val;
+  else if (val && val.seconds) date = new Date(val.seconds * 1000);
+  else date = new Date(val);
+
+  if (!date || isNaN(date.getTime())) return 'Just now';
+
   const now = new Date();
-  const diffMs = now - dateObj;
-  const diffSecs = Math.floor(diffMs / 1000);
-  const diffMins = Math.floor(diffSecs / 60);
-  const diffHours = Math.floor(diffMins / 60);
+  const diffMs = now - date;
+  const diffSec = Math.floor(diffMs / 1000);
+  const diffMin = Math.floor(diffSec / 60);
+  const diffHour = Math.floor(diffMin / 60);
 
-  const isToday = now.toDateString() === dateObj.toDateString();
-  const yesterday = new Date(now);
-  yesterday.setDate(yesterday.getDate() - 1);
-  const isYesterday = yesterday.toDateString() === dateObj.toDateString();
-
-  if (isToday) {
-    if (diffMins < 1) return 'Just now';
-    if (diffMins < 60) return `${diffMins} min${diffMins > 1 ? 's' : ''} ago`;
-    return `${diffHours} hr${diffHours > 1 ? 's' : ''} ago`;
-  }
-
-  const timeOptions = { hour: 'numeric', minute: '2-digit', hour12: true };
-  const timeString = dateObj.toLocaleTimeString('en-US', timeOptions);
-
-  if (isYesterday) {
-    return `Yesterday at ${timeString}`;
-  }
-
-  const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-  const month = monthNames[dateObj.getMonth()];
-  const day = dateObj.getDate();
-
-  if (now.getFullYear() === dateObj.getFullYear()) {
-    return `${month} ${day} at ${timeString}`;
-  }
-  return `${month} ${day}, ${dateObj.getFullYear()} at ${timeString}`;
+  if (diffSec < 60) return 'Just now';
+  if (diffMin < 60) return `${diffMin}m ago`;
+  if (diffHour < 24) return `${diffHour}h ago`;
+  return date.toLocaleDateString();
 }
+
+
 
 function escapeHTML(str) {
   return str
@@ -750,30 +737,78 @@ function renderPost(data, postId) {
 
   let bodyHtml = '';
   if (data.repostOf) {
-    // Repost
+    const repostText = data.repostText || '';
+    const repostHTML = escapeHTML(repostText).replace(/\n/g, '<br>');
+    const isDeleted = data.originalDeleted || false;
+
     bodyHtml = `
-      ${data.text ? `<div class="repost-quote-text">${data.text}</div>` : ''}
-      <div class="repost-quote-card">
+      ${data.text ? `<div class="repost-quote-text">${escapeHTML(data.text).replace(/\n/g, '<br>')}</div>` : ''}
+      <div class="repost-quote-card ${isDeleted ? 'original-deleted' : ''}" id="repost-card-${postId}">
         <div class="repost-quote-header">
           <div class="repost-quote-avatar">
-            <img src="${data.repostAuthorPhoto || '../assets/images/anon_avatar.jpg'}" alt="${data.repostAuthor}" style="image-rendering: high-quality;">
+            <img src="${isDeleted ? '../assets/images/anon_avatar.jpg' : (data.repostAuthorPhoto || '../assets/images/anon_avatar.jpg')}" alt="${data.repostAuthor}" style="image-rendering: high-quality;">
           </div>
           <div class="repost-quote-meta">
-            <div class="repost-quote-author">${data.repostAuthor}</div>
-            <div class="repost-quote-time" style="font-size:11px; color:var(--muted);">${data.repostTime || ''}</div>
+            <div class="repost-quote-author">${isDeleted ? 'Original post deleted' : data.repostAuthor}</div>
+            <div class="repost-quote-time" style="font-size:11px; color:var(--muted);">${isDeleted ? '' : (data.repostTime || '')}</div>
           </div>
         </div>
         <div class="repost-quote-content">
-          ${data.repostTitle ? `<div class="repost-quote-title" style="font-weight: 800; font-size: 14px; margin-bottom: 4px; color: var(--text);">${data.repostTitle}</div>` : ''}
-          <div class="repost-quote-body">
-            ${data.repostText || ''}
+          ${!isDeleted && data.repostTitle ? `<div class="repost-quote-title" style="font-weight: 800; font-size: 14px; margin-bottom: 4px; color: var(--text);">${escapeHTML(data.repostTitle)}</div>` : ''}
+          <div class="repost-quote-body clamped" id="body-${postId}">
+            ${isDeleted ? 'This content is no longer available.' : repostHTML}
           </div>
+          ${isDeleted ? '' : `<button class="view-more-btn" id="btn-vm-${postId}">View more ▾</button>`}
         </div>
-        ${data.repostImage ? `<div class="post-images lightbox-trigger" data-src="${data.repostImage}" style="display:flex; justify-content:center; align-items:center; text-align: center; cursor:pointer;"><img src="${data.repostImage}" class="post-image" style="image-rendering: high-quality;"></div>` : ''}
+        ${!isDeleted && data.repostImage ? `<div class="post-images lightbox-trigger" data-src="${data.repostImage}" style="display:flex; justify-content:center; align-items:center; text-align: center; cursor:pointer;"><img src="${data.repostImage}" class="post-image" style="image-rendering: high-quality;"></div>` : ''}
       </div>`;
+
+    // Async check for original post existence
+    if (!isDeleted && data.repostOf) {
+      setTimeout(async () => {
+        try {
+          const results = await Promise.allSettled([
+            getDoc(doc(db, "posts", data.repostOf)),
+            getDoc(doc(db, "announcements", data.repostOf)),
+            getDoc(doc(db, "org_posts", data.repostOf))
+          ]);
+          
+          // If all checks that succeeded say the document doesn't exist,
+          // and we didn't get any successes, then it's deleted.
+          const exists = results.some(r => r.status === 'fulfilled' && r.value.exists());
+          
+          if (!exists) {
+             const card = postCard.querySelector(`#repost-card-${postId}`);
+             if (card) {
+                card.classList.add('original-deleted');
+                const authorEl = card.querySelector('.repost-quote-author');
+                if (authorEl) authorEl.textContent = 'Original post deleted';
+                const timeEl = card.querySelector('.repost-quote-time');
+                if (timeEl) timeEl.textContent = '';
+                const titleEl = card.querySelector('.repost-quote-title');
+                if (titleEl) titleEl.remove();
+                const bodyEl = card.querySelector('.repost-quote-body');
+                if (bodyEl) {
+                  bodyEl.innerHTML = 'This content is no longer available.';
+                  bodyEl.classList.remove('clamped');
+                }
+                const btnVm = card.querySelector('.view-more-btn');
+                if (btnVm) btnVm.remove();
+                const imgEl = card.querySelector('.post-images');
+                if (imgEl) imgEl.remove();
+             }
+          }
+        } catch (err) {
+          console.warn("Original post check failed:", err);
+        }
+      }, 1000);
+    }
   } else {
+    const postText = data.text || '';
+    const postHTML = escapeHTML(postText).replace(/\n/g, '<br>');
     bodyHtml = `
-      ${data.text ? `<div class="post-body">${data.text}</div>` : ''}
+      <div class="post-body clamped" id="body-${postId}">${postHTML}</div>
+      <button class="view-more-btn" id="btn-vm-${postId}">View more ▾</button>
       ${data.imageURLs && data.imageURLs.length > 0 ? renderPhotoGrid(data.imageURLs) : ''}
     `;
   }
@@ -789,7 +824,7 @@ function renderPost(data, postId) {
           ${data.author || "TUPian"}
           ${data.repostOf ? `<span style="font-weight:600; color:var(--muted); font-size: 13px; margin-left: 4px;">reposted</span>` : ''}
         </div>
-        <div class="post-time">${formatRelativeTime(data.createdAt.toDate())}</div>
+        <div class="post-time">${formatRelativeTime(data.createdAt)}</div>
       </div>
       <button class="post-menu" onclick="toggleMenu(event, '${menuId}')">
         <svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg>
@@ -806,12 +841,26 @@ function renderPost(data, postId) {
     </div>`;
 
   feed.appendChild(postCard);
-  // if (data.comments && data.comments > 0) {
-  //   loadCommentsForPost(postId, postCard);
-  // }
-  // Always load repost documents for this post so the "View repost(s)" line appears
-  // even when the repost metadata field is missing or out of sync.
+  wireViewMore(`body-${postId}`, `btn-vm-${postId}`);
   loadRepostsForPost(postId, postCard);
+}
+
+function wireViewMore(bodyId, btnId) {
+  const body = document.getElementById(bodyId);
+  const btn = document.getElementById(btnId);
+  if (!body || !btn) return;
+  requestAnimationFrame(() => {
+    // Check if content overflows (clamped height is exceeded)
+    if (body.scrollHeight > body.clientHeight + 5) {
+      btn.classList.add('visible');
+    }
+  });
+  let expanded = false;
+  btn.addEventListener('click', () => {
+    expanded = !expanded;
+    body.classList.toggle('clamped', !expanded);
+    btn.textContent = expanded ? 'Show less ▴' : 'View more ▾';
+  });
 }
 
 async function loadCommentsForPost(postId, postCard) {
@@ -855,8 +904,8 @@ async function loadRepostsForPost(postId, postCard) {
     );
     const snapshot = await getDocs(repostsQuery);
     const sortedDocs = snapshot.docs.sort((a, b) => {
-      const aTime = a.data().createdAt ? a.data().createdAt.toDate().getTime() : 0;
-      const bTime = b.data().createdAt ? b.data().createdAt.toDate().getTime() : 0;
+      const aTime = (a.data().createdAt && a.data().createdAt.toDate) ? a.data().createdAt.toDate().getTime() : (a.data().createdAt?.seconds * 1000 || 0);
+      const bTime = (b.data().createdAt && b.data().createdAt.toDate) ? b.data().createdAt.toDate().getTime() : (b.data().createdAt?.seconds * 1000 || 0);
       return aTime - bTime;
     });
 
@@ -869,7 +918,7 @@ async function loadRepostsForPost(postId, postCard) {
       rd.dataset.avatar   = data.photoURL || '../assets/images/anon_avatar.jpg';
       rd.dataset.quote    = data.text || '';
       rd.dataset.hasQuote = data.text ? 'true' : 'false';
-      rd.dataset.time     = data.createdAt ? data.createdAt.toDate().toISOString() : new Date().toISOString();
+      rd.dataset.time     = data.createdAt ? (data.createdAt.toDate ? data.createdAt.toDate().toISOString() : new Date(data.createdAt.seconds * 1000 || data.createdAt).toISOString()) : new Date().toISOString();
       repostsStore.appendChild(rd);
     });
 
@@ -1600,7 +1649,7 @@ async function openRepostModal(btn) {
       previewAuthor.textContent = data.author || 'TUPian';
       previewBody.textContent = data.text || '';
       previewTitle.textContent = data.title || '';
-      previewTime.textContent = data.createdAt ? formatRelativeTime(data.createdAt.toDate()) : 'Just now';
+      previewTime.textContent = formatRelativeTime(data.createdAt);
 
       if (data.photoURL) {
         previewAvatar.innerHTML = `<img src="${data.photoURL}" style="width:100%; height:100%; object-fit:cover; border-radius:50%; image-rendering:high-quality;">`;

@@ -1,5 +1,7 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { CONFIG } from "./config.js";
+import { db, auth } from "../firebaseConfig.js";
+import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const genAI = new GoogleGenerativeAI(CONFIG.GEMINI_API_KEY);
 
@@ -456,7 +458,7 @@ let FEED_POSTS = [];
 
       // Safety Check for Quote
       const quoteHtml = (fp.quote && (fp.quote.body || fp.quote.repostImage || fp.quote.repostTitle)) ? `
-        <div class="repost-quote-card">
+        <div class="repost-quote-card" id="repost-card-${fp.id}">
           <div class="repost-quote-header">
             <div class="repost-quote-avatar">
               ${fp.quote.photoSrc ? `<img src="${fp.quote.photoSrc}" style="image-rendering: high-quality;"/>` : `<svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`}
@@ -468,7 +470,7 @@ let FEED_POSTS = [];
           </div>
           <div class="repost-quote-content">
             ${fp.quote.repostTitle ? `<div class="repost-quote-title" style="font-weight: 800; font-size: 14px; margin-bottom: 4px; color: var(--text);">${fp.quote.repostTitle}</div>` : ''}
-            ${fp.quote.body ? `<div class="repost-quote-body">${fp.quote.body.replace(/\n/g, '<br>')}</div>` : ''}
+            <div class="repost-quote-body clamped">${fp.quote.body ? fp.quote.body.replace(/\n/g, '<br>') : ''}</div>
           </div>
           ${fp.quote.repostImage ? `<div class="lightbox-trigger" data-src="${fp.quote.repostImage}" style="cursor:pointer;"><img src="${fp.quote.repostImage}" class="feed-post-img" style="width:100%; border-radius:8px; margin-top:10px; display:block; image-rendering: high-quality;"></div>` : ''}
         </div>` : '';
@@ -527,18 +529,54 @@ let FEED_POSTS = [];
     }).join('');
 
     posts.forEach((fp, idx) => {
-      if (!fp.body) return;
-      const bodyEl = document.getElementById(`feed-body-${idx}`);
-      const vmBtn = document.getElementById(`feed-vm-${idx}`);
-      if (!bodyEl || !vmBtn) return;
-      bodyEl.classList.add('is-clamped');
-      if (bodyEl.scrollHeight > bodyEl.clientHeight) {
-        vmBtn.classList.add('visible');
+      // Clamping logic for the main post body (if it exists)
+      if (fp.body) {
+        const bodyEl = document.getElementById(`feed-body-${idx}`);
+        const vmBtn = document.getElementById(`feed-vm-${idx}`);
+        if (bodyEl && vmBtn) {
+          bodyEl.classList.add('clamped');
+          if (bodyEl.scrollHeight > bodyEl.clientHeight) {
+            vmBtn.classList.add('visible');
+          }
+          vmBtn.onclick = () => {
+            const isExpanded = bodyEl.classList.toggle('clamped');
+            vmBtn.textContent = isExpanded ? 'View more ▾' : 'View less ▴';
+          };
+        }
       }
-      vmBtn.onclick = () => {
-        const isExpanded = bodyEl.classList.toggle('is-clamped');
-        vmBtn.textContent = isExpanded ? 'View more ▾' : 'View less ▴';
-      };
+
+      // Async check for original post existence (for reposts)
+      if (fp.repost && fp.repostIdRef) {
+        setTimeout(async () => {
+          try {
+            const results = await Promise.allSettled([
+              getDoc(doc(db, "posts", fp.repostIdRef)),
+              getDoc(doc(db, "announcements", fp.repostIdRef)),
+              getDoc(doc(db, "org_posts", fp.repostIdRef))
+            ]);
+            const exists = results.some(r => r.status === 'fulfilled' && r.value.exists());
+            if (!exists) {
+               const card = document.getElementById(`repost-card-${fp.id}`);
+               if (card) {
+                  card.classList.add('original-deleted');
+                  const authorEl = card.querySelector('.repost-quote-author');
+                  if (authorEl) authorEl.textContent = 'Original post deleted';
+                  const timeEl = card.querySelector('.repost-quote-time');
+                  if (timeEl) timeEl.textContent = '';
+                  const titleEl = card.querySelector('.repost-quote-title');
+                  if (titleEl) titleEl.remove();
+                  const bodyEl = card.querySelector('.repost-quote-body');
+                  if (bodyEl) {
+                    bodyEl.innerHTML = 'This content is no longer available.';
+                    bodyEl.classList.remove('clamped');
+                  }
+                  const imgEl = card.querySelector('.feed-post-img');
+                  if (imgEl) imgEl.remove();
+               }
+            }
+          } catch (err) { console.warn("Original check failed:", err); }
+        }, 1000);
+      }
     });
     wireLightboxTriggers();
   }
@@ -1032,7 +1070,7 @@ let FEED_POSTS = [];
   ════════════════════════════════════════ */
 
   // BACKEND TEAM: wire these
-  document.getElementById('btn-settings').addEventListener('click', () => { console.log('Settings'); });
+
   document.getElementById('btn-likes')?.addEventListener('click', () => { });
   document.getElementById('btn-thumbsup')?.addEventListener('click', () => { });
   document.getElementById('btn-reposts')?.addEventListener('click', () => { });

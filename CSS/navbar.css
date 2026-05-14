@@ -356,4 +356,64 @@ html.in-shell .sidebar-logo {
 
 .confirm-toast-btn.cancel:hover {
   background: rgba(255, 255, 255, 0.25);
-}
+}
+
+/* ── POST BODY & CLAMPING ── */
+.post-body,
+.repost-quote-body {
+  font-size: 14.5px;
+  color: #2a2a2a;
+  font-weight: 500;
+  line-height: 1.65;
+  text-align: justify;
+  margin-bottom: 8px;
+  word-wrap: break-word;
+}
+
+.post-body.clamped,
+.repost-quote-body.clamped {
+  display: -webkit-box;
+  -webkit-line-clamp: 6;
+  line-clamp: 6;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.view-more-btn {
+  display: none;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  color: #6b1111;
+  padding: 4px 0 10px;
+  transition: opacity .15s;
+  letter-spacing: .02em;
+}
+
+.view-more-btn.visible {
+  display: inline-flex;
+}
+
+.view-more-btn:hover {
+  opacity: .7;
+}
+/* Deleted Content Styles */
+.repost-quote-card.original-deleted {
+  background: var(--bg-secondary);
+  border-color: var(--border-color);
+  opacity: 0.85;
+}
+.repost-quote-card.original-deleted .repost-quote-author {
+  color: var(--muted);
+  font-style: italic;
+}
+.repost-quote-card.original-deleted .repost-quote-body {
+  color: var(--muted);
+  font-size: 13px;
+}
