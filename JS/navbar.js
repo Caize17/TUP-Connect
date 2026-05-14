@@ -136,3 +136,93 @@
     }
   });
 })();
+
+/**
+ * window.showToast(message, type, duration)
+ * Centralized toast system
+ */
+window.showToast = function(msg, type = 'success', dur = 3000) {
+  let t = document.querySelector('.global-toast');
+  if (!t) {
+    t = document.createElement('div');
+    t.className = 'global-toast';
+    t.innerHTML = `
+      <div class="global-toast-icon"></div>
+      <div class="global-toast-message"></div>
+    `;
+    document.body.appendChild(t);
+  }
+
+  const iconWrap = t.querySelector('.global-toast-icon');
+  const msgWrap = t.querySelector('.global-toast-message');
+
+  // Reset classes
+  iconWrap.className = 'global-toast-icon';
+  if (type === 'heart' || type === 'likes') iconWrap.classList.add('heart');
+  if (type === 'comment' || type === 'comments') iconWrap.classList.add('comment');
+  if (type === 'error' || type === 'warning') iconWrap.classList.add('error');
+
+  // Set SVG based on type
+  let svg = '';
+  if (type === 'reposts' || type === 'repost') {
+    svg = `<svg viewBox="0 0 24 24"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>`;
+  } else if (type === 'heart' || type === 'likes') {
+    svg = `<svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>`;
+  } else if (type === 'comment' || type === 'comments') {
+    svg = `<svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>`;
+  } else if (type === 'error' || type === 'warning') {
+    svg = `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`;
+  } else {
+    // Success / default
+    svg = `<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>`;
+  }
+
+  iconWrap.innerHTML = svg;
+  msgWrap.textContent = msg;
+
+  t.classList.add('show');
+  clearTimeout(t._tid);
+  t._tid = setTimeout(() => t.classList.remove('show'), dur);
+};
+
+/**
+ * window.showConfirm({ title, confirmText, cancelText, onConfirm })
+ * Modern replacement for native confirm()
+ */
+window.showConfirm = function({ title, confirmText = 'Delete', cancelText = 'Cancel', onConfirm }) {
+  let overlay = document.getElementById('global-confirm-overlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'global-confirm-overlay';
+    overlay.className = 'confirm-toast-overlay';
+    document.body.appendChild(overlay);
+  }
+
+  overlay.innerHTML = `
+    <div class="confirm-toast-pill">
+      <span class="confirm-toast-text">${title}</span>
+      <div class="confirm-toast-actions">
+        <button class="confirm-toast-btn delete" id="global-confirm-go">${confirmText}</button>
+        <button class="confirm-toast-btn cancel" id="global-confirm-cancel">${cancelText}</button>
+      </div>
+    </div>
+  `;
+
+  overlay.classList.add('show');
+
+  const handleGo = () => {
+    overlay.classList.remove('show');
+    if (onConfirm) onConfirm();
+  };
+  const handleCancel = () => {
+    overlay.classList.remove('show');
+  };
+
+  document.getElementById('global-confirm-go').onclick = handleGo;
+  document.getElementById('global-confirm-cancel').onclick = handleCancel;
+  
+  // Close on backdrop click
+  overlay.onclick = (e) => {
+    if (e.target === overlay) handleCancel();
+  };
+};

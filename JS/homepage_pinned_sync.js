@@ -2,8 +2,8 @@ import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.7.
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
   getFirestore,
-  collection, query, where,
-  onSnapshot, doc, updateDoc,
+  collection, query, where, getDocs,
+  onSnapshot, doc, updateDoc, deleteDoc,
   arrayUnion, arrayRemove
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
@@ -12,17 +12,17 @@ import {
 // ─────────────────────────────────────────────
 
 const firebaseConfig = {
-  apiKey:            "AIzaSyBpGOdMpx_Mws2EcCq6rbOWfZ-FFuhhfo0",
-  authDomain:        "tup-connect-b162d.firebaseapp.com",
-  projectId:         "tup-connect-b162d",
-  storageBucket:     "tup-connect-b162d.firebasestorage.app",
+  apiKey: "AIzaSyBpGOdMpx_Mws2EcCq6rbOWfZ-FFuhhfo0",
+  authDomain: "tup-connect-b162d.firebaseapp.com",
+  projectId: "tup-connect-b162d",
+  storageBucket: "tup-connect-b162d.firebasestorage.app",
   messagingSenderId: "193141013544",
-  appId:             "1:193141013544:web:72b403e84aa4d3313f091d"
+  appId: "1:193141013544:web:72b403e84aa4d3313f091d"
 };
 
-const app  = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
+const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
 const auth = getAuth(app);
-const db   = getFirestore(app);
+const db = getFirestore(app);
 
 // ─────────────────────────────────────────────
 // HELPERS
@@ -42,9 +42,9 @@ function timeAgo(ts) {
 
   if (isNaN(date.getTime())) return 'Just now';
   const diff = (Date.now() - date.getTime()) / 1000;
-  if (diff < 60)        return 'JUST NOW';
-  if (diff < 3600)      return `${Math.floor(diff / 60)}m ago`.toUpperCase();
-  if (diff < 86400)     return `${Math.floor(diff / 3600)}h ago`.toUpperCase();
+  if (diff < 60) return 'JUST NOW';
+  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`.toUpperCase();
+  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`.toUpperCase();
   if (diff < 7 * 86400) return `${Math.floor(diff / 86400)}d ago`.toUpperCase();
   return date.toLocaleDateString('en-PH', { month: 'short', day: 'numeric' }).toUpperCase();
 }
@@ -74,43 +74,49 @@ function populatePinnedCard(post) {
   if (tsEl) tsEl.textContent = timeAgo(post.createdAt);
 
   // Reaction counts
-  const likes    = (post.likes    || []).length;
+  const likes = (post.likes || []).length;
   const comments = (post.comments || []).length;
-  const reposts  = (post.reposts  || []).length;
+  const reposts = (post.reposts || []).length;
 
   const lEl = document.getElementById('count-likes');
   const cEl = document.getElementById('count-comments');
   const rEl = document.getElementById('count-reposts');
 
   const likesArr = post.likes || [];
-  const iLiked   = auth.currentUser && likesArr.includes(auth.currentUser.uid);
+  const iLiked = auth.currentUser && likesArr.includes(auth.currentUser.uid);
 
   if (lEl) {
     lEl.textContent = fmt(likesArr.length);
     const likeBtn = document.getElementById('btn-likes');
-    if (likeBtn) {
-        likeBtn.classList.toggle('reacted', iLiked);
-    }
+    if (likeBtn) likeBtn.classList.toggle('reacted', iLiked);
   }
+
+  const repostsArr = post.reposts || [];
+  const iReposted = auth.currentUser && repostsArr.includes(auth.currentUser.uid);
+
   if (cEl) cEl.textContent = fmt(comments);
-  if (rEl) rEl.textContent = fmt(reposts);
+  if (rEl) {
+    rEl.textContent = fmt(repostsArr.length);
+    const repostBtn = document.getElementById('btn-reposts');
+    if (repostBtn) repostBtn.classList.toggle('reacted', iReposted);
+  }
 
   // Poster card fields
-  const posterOrg      = document.getElementById('poster-org');
+  const posterOrg = document.getElementById('poster-org');
   const posterHeadline = document.getElementById('poster-headline');
-  const posterSubtext  = document.getElementById('poster-subtext');
-  const posterHandle   = document.getElementById('poster-handle');
+  const posterSubtext = document.getElementById('poster-subtext');
+  const posterHandle = document.getElementById('poster-handle');
 
-  if (posterOrg)      posterOrg.textContent      = post.author      || 'TUP USG MANILA';
-  if (posterHeadline) posterHeadline.textContent  = post.title       || '';
-  if (posterSubtext)  posterSubtext.textContent   = 'OFFICIAL ANNOUNCEMENT';
-  if (posterHandle)   posterHandle.textContent    = '@TUPKonek ✉';
+  if (posterOrg) posterOrg.textContent = post.author || 'TUP USG MANILA';
+  if (posterHeadline) posterHeadline.textContent = post.title || '';
+  if (posterSubtext) posterSubtext.textContent = 'OFFICIAL ANNOUNCEMENT';
+  if (posterHandle) posterHandle.textContent = '@TUPKonek ✉';
 
   // ── IMAGE COLLAGE — mirrors campus_news.js collage system exactly ──
   // ── IMAGE COLLAGE (ABSOLUTE POSITIONING FIX) ──
-  const mediaGrid   = document.getElementById('media-grid');
+  const mediaGrid = document.getElementById('media-grid');
   const posterInner = document.getElementById('poster-card-inner');
-  const imgs        = post.imageURLs || [];
+  const imgs = post.imageURLs || [];
 
   if (mediaGrid) mediaGrid.innerHTML = '';
 
@@ -133,17 +139,17 @@ function populatePinnedCard(post) {
     const cellsHtml = imgs.slice(0, 5).map((src, i) => {
       // min-height: 0 stops the grid from expanding past its bounds
       let cellStyle = "position: relative !important; overflow: hidden !important; min-width: 0 !important; min-height: 0 !important; width: 100% !important; height: 100% !important;";
-      
+
       // Span the first column for 5-layout
       if (clampedCount >= 5 && i === 0) {
-          cellStyle += " grid-column: 1 / 2 !important; grid-row: 1 / 3 !important;";
+        cellStyle += " grid-column: 1 / 2 !important; grid-row: 1 / 3 !important;";
       } else if (clampedCount === 3 && i === 0) {
-          cellStyle += " grid-row: 1 / 3 !important;";
+        cellStyle += " grid-row: 1 / 3 !important;";
       }
 
       const isLastVisible = i === 4 && extra > 0;
-      const overlayHtml = isLastVisible 
-        ? `<div class="photo-more-overlay" style="position: absolute !important; inset: 0 !important; background: rgba(0,0,0,0.6) !important; display: flex !important; align-items: center !important; justify-content: center !important; color: #fff !important; font-size: 17px !important; font-weight: 600 !important; z-index: 2 !important; pointer-events: none !important;">+${extra}</div>` 
+      const overlayHtml = isLastVisible
+        ? `<div class="photo-more-overlay" style="position: absolute !important; inset: 0 !important; background: rgba(0,0,0,0.6) !important; display: flex !important; align-items: center !important; justify-content: center !important; color: #fff !important; font-size: 17px !important; font-weight: 600 !important; z-index: 2 !important; pointer-events: none !important;">+${extra}</div>`
         : '';
 
       // CRITICAL: The img uses absolute positioning so it perfectly covers the cell without dictating its height
@@ -219,14 +225,11 @@ function initHomepageReactions() {
     // 1. Heart (Like) Reaction
     const likeBtn = e.target.closest('#btn-likes');
     if (likeBtn) {
-      if (!user) { showToast('Sign in to react.'); return; }
+      if (!user) { window.showToast('Sign in to react.', 'warning'); return; }
       const postId = currentPinnedPost.id;
       const likes = currentPinnedPost.likes || [];
       const already = likes.includes(user.uid);
       const postRef = doc(db, 'announcements', postId);
-
-      if (!already) showReactionPop('❤️ Loved it!');
-      else showReactionPop('💔 Heart removed');
 
       try {
         await updateDoc(postRef, {
@@ -248,13 +251,49 @@ function initHomepageReactions() {
     // 3. Repost Trigger
     const repostBtn = e.target.closest('#btn-reposts');
     if (repostBtn) {
-      if (window.openRepostModalHP) {
-        // Ensure the repost modal has the correct original timestamp
-        const postToRepost = { 
-          ...currentPinnedPost, 
-          time: timeAgo(currentPinnedPost.createdAt) 
-        };
-        window.openRepostModalHP(postToRepost, 'announcements');
+      if (!user) { window.showToast('Sign in to repost.', 'warning'); return; }
+      
+      const postId = currentPinnedPost.id;
+      const repostsArr = currentPinnedPost.reposts || [];
+      const already = repostsArr.includes(user.uid);
+
+      if (!already) {
+        if (window.openRepostModalHP) {
+          const postToRepost = {
+            ...currentPinnedPost,
+            time: timeAgo(currentPinnedPost.createdAt)
+          };
+          window.openRepostModalHP(postToRepost, 'announcements');
+        }
+      } else {
+        // UN-REPOST Logic
+        window.showConfirm({
+          title: "🗑️ Remove this repost?",
+          confirmText: "Remove",
+          onConfirm: async () => {
+            try {
+              // 1. Delete the post document
+              const q = query(collection(db, 'posts'), where('repostOf', '==', postId), where('userId', '==', user.uid));
+              const snap = await getDocs(q);
+              const delPromises = snap.docs.map(d => deleteDoc(doc(db, 'posts', d.id)));
+              await Promise.all(delPromises);
+
+              // 2. Update the announcement reposts array (don't block on this)
+              try {
+                await updateDoc(doc(db, 'announcements', postId), {
+                  reposts: arrayRemove(user.uid)
+                });
+              } catch (annErr) {
+                console.warn("Could not update announcement repost count (permission restricted):", annErr);
+              }
+
+              window.showToast("Repost removed.", "success");
+            } catch (err) {
+              console.error("Un-repost error:", err);
+              window.showToast("Failed to remove repost.", "error");
+            }
+          }
+        });
       }
       return;
     }
@@ -293,10 +332,10 @@ function listenForPinnedAnnouncement() {
     }
     const d = snapshot.docs[0];
     currentPinnedPost = { id: d.id, ...d.data() };
-    
+
     // Cache for flicker-free load next time
     localStorage.setItem('tup_pinned_cache', JSON.stringify(currentPinnedPost));
-    
+
     populatePinnedCard(currentPinnedPost);
   }, (err) => {
     console.error('homepage_pinned_sync: listener error', err);

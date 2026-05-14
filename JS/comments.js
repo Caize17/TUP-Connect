@@ -212,9 +212,11 @@ if (sendBtn) {
         createdAt: serverTimestamp()
     });
 
-    await updateDoc(doc(db, activeCollection, postId), {
-        comments: arrayUnion ? arrayUnion(currentUser.uid) : increment(1)
-    });
+    const updateObj = (activeCollection === 'announcements')
+        ? { comments: arrayUnion(currentUser.uid) }
+        : { comments: increment(1) };
+
+    await updateDoc(doc(db, activeCollection, postId), updateObj);
     
     // Special handling for announcements: they use arrayUnion for comments usually
     // But if activeCollection is 'announcements', we should use arrayUnion if that's the pattern
@@ -282,14 +284,20 @@ document.addEventListener('click', async (e) => {
         const idx = reportItem.dataset.post;
         const post = window.FEED_POSTS ? window.FEED_POSTS[idx] : null;
 
-        if (post && confirm("Report this post for community review?")) {
-            try {
-                await handleReportPost(post.id, post.userId);
-                alert("Thank you. The post has been reported.");
-            } catch (err) {
-                console.error("Report failed:", err);
-                alert("Could not submit report at this time.");
-            }
+        if (post) {
+            window.showConfirm({
+                title: "Report this post for community review?",
+                confirmText: "Report",
+                onConfirm: async () => {
+                    try {
+                        await handleReportPost(post.id, post.userId);
+                        window.showToast("Thank you. The post has been reported.", "success");
+                    } catch (err) {
+                        console.error("Report failed:", err);
+                        window.showToast("Could not submit report at this time.", "error");
+                    }
+                }
+            });
         }
 
         const dropdown = reportItem.closest('.post-menu-dropdown');
@@ -303,7 +311,7 @@ document.addEventListener('click', async (e) => {
 });
 
 async function handleReportPost(postId, userId) {
-    if (!auth.currentUser) return alert("Login to report.");
+    if (!auth.currentUser) { window.showToast("Login to report.", "warning"); return; }
     console.log("Reporting Post:", postId, "User:", userId);
 
     if (!postId || !userId) {

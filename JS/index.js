@@ -50,11 +50,11 @@ async function handleHomepage() {
           resendLink.textContent = "Sending...";
           resendLink.style.pointerEvents = "none";
           await sendEmailVerification(user);
-          alert("Verification email resent! Please check your TUP inbox (including spam).");
+          window.showToast("Verification email resent! Please check your TUP inbox.", "success");
           resendLink.textContent = "Sent!";
         } catch (err) {
           console.error("Resend error:", err);
-          alert("Failed to resend email: " + err.message);
+          window.showToast("Failed to resend email: " + err.message, "error");
           resendLink.textContent = "Resend verification email?";
           resendLink.style.pointerEvents = "auto";
         }
@@ -132,7 +132,7 @@ function showError(message) {
     errorEl.textContent = message;
     errorEl.style.display = 'block';
   } else {
-    alert(message);
+    window.showToast(message, "error");
   }
 }
 

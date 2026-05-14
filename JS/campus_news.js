@@ -92,14 +92,6 @@ function fmt(n) {
   return n >= 1000 ? (n / 1000).toFixed(1).replace(/\.0$/, '') + 'k' : String(n || 0);
 }
 
-function showToast(msg, dur = 2800) {
-  const t = document.getElementById('cn-toast');
-  if (!t) return;
-  t.textContent = msg;
-  t.classList.add('show');
-  clearTimeout(t._tid);
-  t._tid = setTimeout(() => t.classList.remove('show'), dur);
-}
 
 // Global hidden utility
 const style = document.createElement('style');
@@ -356,12 +348,6 @@ const REACTION_MESSAGES = {
 };
 
 function pickRandom(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
-let reactionPopEl = null;
-function showReactionPop(msg) {
-  if (!reactionPopEl) { reactionPopEl = document.createElement('div'); reactionPopEl.className = 'reaction-pop'; document.body.appendChild(reactionPopEl); }
-  reactionPopEl.textContent = msg; reactionPopEl.classList.add('show');
-  clearTimeout(reactionPopEl._tid); reactionPopEl._tid = setTimeout(() => reactionPopEl.classList.remove('show'), 2000);
-}
 
 function wireReactionButtons() {
   document.querySelectorAll('#bulletin-feed .reaction-item, #bulletin-feed .feed-reaction-btn:not(.cn-comment-trigger), #pinned-post-slot .reaction-item').forEach(el => {
@@ -371,7 +357,7 @@ function wireReactionButtons() {
 }
 
 async function handleReaction(el) {
-  if (!currentUser) { showToast('Sign in to react.'); return; }
+  if (!currentUser) { window.showToast('Sign in to react.', 'warning'); return; }
   const postId = el.dataset.id;
   const type = el.dataset.type;
   const isPinnedBar = el.classList.contains('reaction-item');
@@ -383,16 +369,27 @@ async function handleReaction(el) {
     countEl.textContent = fmt(already ? Math.max(0, current - 1) : current + 1);
   }
 
-  if (type === 'reposts' && currentUserRole === 'Student' && !already) {
-    console.log("[Bulletin] Opening repost modal for student");
-    openRepostModal(postId, 'announcements');
-    return;
+  if (type === 'reposts' && currentUserRole === 'Student') {
+    if (!already) {
+      console.log("[Bulletin] Opening repost modal for student");
+      openRepostModal(postId, 'announcements');
+      return;
+    } else {
+      console.log("[Bulletin] Removing announcement repost...");
+      try {
+        const q = query(collection(db, 'posts'), where('repostOf', '==', postId), where('userId', '==', currentUser.uid));
+        const snap = await getDocs(q);
+        const delPromises = snap.docs.map(d => deleteDoc(doc(db, 'posts', d.id)));
+        await Promise.all(delPromises);
+      } catch (err) { console.error('Error deleting announcement repost doc:', err); }
+    }
   }
 
   if (isPinnedBar) el.classList.toggle('reacted', !already);
   else el.classList.toggle(type === 'likes' ? 'heart-active' : 'repost-active', !already);
 
-  if (!already) showReactionPop(pickRandom(REACTION_MESSAGES[type].on));
+  if (!already) window.showToast(pickRandom(REACTION_MESSAGES[type].on), type);
+  else window.showToast(pickRandom(REACTION_MESSAGES[type].off), type === 'likes' ? 'heart' : 'repost');
   try {
     await updateDoc(doc(db, 'announcements', postId), { [type]: already ? arrayRemove(currentUser.uid) : arrayUnion(currentUser.uid) });
   } catch (err) { console.error('Reaction error:', err); }
@@ -514,7 +511,7 @@ function initCommentModal() {
 }
 
 async function submitComment() {
-  if (!currentUser) { showToast('Sign in to comment.'); return; }
+  if (!currentUser) { window.showToast('Sign in to comment.', 'warning'); return; }
   const inputField = document.getElementById('cn-comment-input-field');
   const text = inputField?.value.trim();
   if (!text || !activePostId) return;
@@ -540,7 +537,7 @@ async function submitComment() {
     } catch (e2) {
       console.warn("Could not update original post comment count. Continuing...", e2);
     }
-    inputField.value = ''; showToast('💬 Comment posted!');
+    inputField.value = ''; window.showToast('Comment posted!', 'comments');
   } catch (err) { console.error('Comment error:', err); }
 }
 
@@ -592,10 +589,10 @@ window.performDeleteComment = async function(collectionName, postId, commentId) 
     } else {
       await updateDoc(doc(db, 'announcements', postId), { comments: arrayRemove(currentUser.uid) });
     }
-    showToast('🗑️ Comment deleted');
+    window.showToast('Comment deleted', 'success');
   } catch (err) {
     console.error('Delete error:', err);
-    showToast('Error deleting comment.');
+    window.showToast('Error deleting comment.', 'error');
   }
 };
 
@@ -620,7 +617,7 @@ window.saveCommentEdit = async function(collectionName, postId, commentId) {
   try {
     const commentRef = doc(db, `${collectionName}/${postId}/comments`, commentId);
     await updateDoc(commentRef, { text: newText, updatedAt: serverTimestamp() });
-    showToast('📝 Comment updated');
+    window.showToast('Comment updated', 'success');
     cancelCommentEdit(commentId);
   } catch (err) {
     console.error('Edit comment error:', err);
@@ -1256,7 +1253,12 @@ function updateAnnouncementUI(id, data) {
   const commentBtn = card.querySelector('.cn-comment-trigger, .comment-trigger-pinned');
   if (commentBtn) {
     const countEl = commentBtn.querySelector('.comments-count');
-    if (countEl) countEl.textContent = fmt(comments.length || comments); // Announcements uses array, Org uses number
+    if (countEl) {
+      let count = 0;
+      if (Array.isArray(comments)) count = comments.length;
+      else if (typeof comments === 'number') count = comments;
+      countEl.textContent = fmt(count);
+    }
   }
 }
 

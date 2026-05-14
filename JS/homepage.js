@@ -392,13 +392,6 @@ let FEED_POSTS = [];
 
   let toastTimer = null;
 
-  function showToast(msg) {
-    const toast = document.getElementById('toast');
-    toast.textContent = msg;
-    toast.classList.add('show');
-    clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => toast.classList.remove('show'), 2800);
-  }
 
   /* ════════════════════════════════════════
      LOGO
@@ -788,10 +781,10 @@ let FEED_POSTS = [];
       overlay.classList.remove('show');
       try {
         await window.deleteComment(postId, commentId);
-        showToast("Deleted!");
+        window.showToast("Deleted!", "success");
       } catch (err) {
         console.error(err);
-        showToast("Error deleting comment.");
+        window.showToast("Error deleting comment.", "error");
       }
     };
 
@@ -858,10 +851,10 @@ let FEED_POSTS = [];
 
         try {
           await window.saveCommentEdit(post.id, commentId, newText);
-          showToast('Comment updated.');
+          window.showToast('Comment updated.', 'success');
         } catch (err) {
           console.error('Failed to save edit:', err);
-          showToast('Error updating comment.');
+          window.showToast('Error updating comment.', 'error');
         }
       }
     });
@@ -919,10 +912,10 @@ let FEED_POSTS = [];
           if (textEl) textEl.textContent = newText;
           if (bubble) bubble.style.display = '';
           if (editWrap) editWrap.style.display = 'none';
-          showToast('Comment updated.');
+          window.showToast('Comment updated.', 'success');
         } catch (err) {
           console.error(err);
-          showToast('Error updating comment.');
+          window.showToast('Error updating comment.', 'error');
         }
       }
     });

@@ -569,7 +569,7 @@ async function updateUserPhotosInFirebase(field, base64String) {
   if (!user) return;
   try {
     await updateDoc(doc(db, "users", user.uid), { [field]: base64String });
-    showToast("Photo updated successfully!");
+    window.showToast("Photo updated successfully!", "success");
 
     if (field === 'photoURL') {
       const imgSrc = base64String;
@@ -641,21 +641,13 @@ async function updateUserPhotosInFirebase(field, base64String) {
     }
   } catch (error) {
     console.error("Error updating photo:", error);
-    showToast("Failed to update photo.");
+    window.showToast("Failed to update photo.", "error");
   }
 }
 
 // ========================
 // TOAST
 // ========================
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  if (!t) { console.log("Toast:", msg); return; }
-  t.textContent = msg;
-  t.classList.add('show');
-  clearTimeout(t._timeout);
-  t._timeout = setTimeout(() => t.classList.remove('show'), 2200);
-}
 
 // ========================
 // HELPERS
@@ -979,7 +971,16 @@ function updatePostInPlace(postId, data) {
   }
 
   // 2. Update Comments
-  const commentsCount = data.commentsCount || 0;
+  const rawComments = data.comments;
+  let commentsCount = 0;
+  if (Array.isArray(rawComments)) {
+    commentsCount = rawComments.length;
+  } else if (typeof rawComments === 'number') {
+    commentsCount = rawComments;
+  } else {
+    commentsCount = 0;
+  }
+
   const commentBtn = card.querySelector('.feed-reaction-btn[data-type="comment"]');
   if (commentBtn) {
     const countSpan = commentBtn.querySelector('.comments-count');
@@ -1041,7 +1042,7 @@ function handleRepostClick(btn) {
     if (countSpan) countSpan.textContent = fmt(Math.max(0, parseInt(countSpan.textContent) - 1));
     btn.lastChild.textContent = ' Repost';
     updateRepostInfo(originalCard);
-    showToast('Repost removed!');
+    window.showToast('Repost removed!', 'repost');
   }
 }
 
@@ -1062,47 +1063,52 @@ document.addEventListener('click', () => {
 
 // ========================
 async function deletePost(e) {
-  if (!confirm('Are you sure you want to delete this post?')) return;
-
   const card = e.target.closest('.post-card');
   const postId = card.dataset.id;
   const user = auth.currentUser;
   if (!user) return;
 
-  try {
-    const postRef = doc(db, "posts", postId);
-    const snap = await getDoc(postRef);
-    if (snap.exists()) {
-      const data = snap.data();
-      if (data.repostOf) {
-        try {
-          const originalRef = doc(db, "posts", data.repostOf);
-          await updateDoc(originalRef, {
-            repostedBy: arrayRemove(user.uid)
-          });
-        } catch (e1) {
-          try {
-            const annRef = doc(db, "announcements", data.repostOf);
-            await updateDoc(annRef, {
-              reposts: arrayRemove(user.uid)
-            });
-          } catch (e2) {
-            console.warn("Could not update original post/announcement:", e2);
+  window.showConfirm({
+    title: '🗑️ Delete this post?',
+    confirmText: 'Delete',
+    onConfirm: async () => {
+      try {
+        const postRef = doc(db, "posts", postId);
+        const snap = await getDoc(postRef);
+        if (snap.exists()) {
+          const data = snap.data();
+          if (data.repostOf) {
+            try {
+              const originalRef = doc(db, "posts", data.repostOf);
+              await updateDoc(originalRef, {
+                repostedBy: arrayRemove(user.uid)
+              });
+            } catch (e1) {
+              try {
+                const annRef = doc(db, "announcements", data.repostOf);
+                await updateDoc(annRef, {
+                  reposts: arrayRemove(user.uid)
+                });
+              } catch (e2) {
+                console.warn("Could not sync original post/announcement count (likely permission restricted):", e2);
+              }
+            }
           }
         }
+
+        // Always attempt to delete the actual document regardless of sync results
+        await deleteDoc(postRef);
+        card.style.transition = 'opacity 0.28s, transform 0.28s';
+        card.style.opacity    = '0';
+        card.style.transform  = 'scale(0.93)';
+        setTimeout(() => card.remove(), 300);
+        window.showToast('Post deleted', 'success');
+      } catch (error) {
+        console.error('Delete error:', error);
+        window.showToast('Error deleting post.', 'error');
       }
     }
-
-    await deleteDoc(postRef);
-    card.style.transition = 'opacity 0.28s, transform 0.28s';
-    card.style.opacity    = '0';
-    card.style.transform  = 'scale(0.93)';
-    setTimeout(() => card.remove(), 300);
-    showToast('Post deleted.');
-  } catch (error) {
-    console.error('Delete error:', error);
-    showToast('Failed to delete post.');
-  }
+  });
 }
 // ========================
 // EDIT POST
@@ -1140,10 +1146,10 @@ async function editPost(e) {
       bodyEl.innerHTML = escapeHTML(newText).replace(/\n/g, '<br>');
       editWrap.remove();
       bodyEl.style.display = '';
-      showToast('Post updated.');
+      window.showToast('Post updated', 'success');
     } catch (error) {
       console.error('Edit post error:', error);
-      showToast('Failed to update post.');
+      window.showToast('Error updating post.', 'error');
     }
   });
 
@@ -1218,7 +1224,7 @@ window.submitPost = async function() {
   const attachWrap = document.getElementById('modal-attachments');
   const thumbs = Array.from(attachWrap.querySelectorAll('.modal-attach-thumb'));
 
-  if (!content && thumbs.length === 0) { showToast('Write something first!'); return; }
+  if (!content && thumbs.length === 0) { window.showToast('Write something first!', 'warning'); return; }
 
   const user = auth.currentUser;
   if (!user) return;
@@ -1258,10 +1264,10 @@ window.submitPost = async function() {
     document.getElementById('postContent').value = '';
     attachWrap.innerHTML = '';
     closePostModal();
-    showToast('Post shared!');
+    window.showToast('Post shared!', 'success');
   } catch (err) {
     console.error("Post Error:", err);
-    alert("Error submitting post: " + err.message);
+    window.showToast("Error submitting post: " + err.message, "error");
   } finally {
     if (btn) {
       btn.disabled = false;
@@ -1381,10 +1387,10 @@ function bindCommentActions() {
           document.getElementById(`comment-modal-edit-${c}`).classList.remove('open');
           if (cds[c]) cds[c].dataset.text = newText;
           updateFeedCommentPreview(_currentPostCard);
-          showToast('Comment updated.');
+          window.showToast('Comment updated.', 'success');
         } catch (error) {
           console.error('Edit comment error:', error);
-          showToast('Failed to update comment.');
+          window.showToast('Failed to update comment.', 'error');
         }
       }
     });
@@ -1413,10 +1419,10 @@ function bindCommentActions() {
           const countEl = _currentPostCard.querySelector('.comments-count');
           if (countEl) countEl.textContent = Math.max(0, parseInt(countEl.textContent) - 1);
           updateFeedCommentPreview(_currentPostCard);
-          showToast('Comment deleted.');
+          window.showToast('Comment deleted.', 'success');
         } catch (error) {
           console.error('Delete comment error:', error);
-          showToast('Failed to delete comment.');
+          window.showToast('Failed to delete comment.', 'error');
         }
       }
     });
@@ -1495,7 +1501,7 @@ async function submitModalComment() {
   updateFeedCommentPreview(_currentPostCard);
 
   input.value = '';
-  showToast('Comment posted!');
+  window.showToast('Comment posted!', 'success');
 }
 
 function updateFeedCommentPreview(card) {
@@ -1646,7 +1652,7 @@ async function submitRepost(skipQuote = false) {
   _repostSubmitted = true;
   if (_currentRepostBtn) {
     await createRepost(_currentRepostBtn, quote);
-    showToast('You Reposted!');
+    window.showToast('You Reposted!', 'repost');
   }
   closeRepostModal();
 }
@@ -1708,7 +1714,7 @@ async function createRepost(btn, quote = '') {
 
   } catch (error) {
     console.error('Repost error:', error);
-    showToast('Failed to repost.');
+    window.showToast('Failed to repost.', 'error');
   }
 }
 
@@ -2038,7 +2044,7 @@ document.getElementById('feed').addEventListener('click', async (e) => {
   const postId = btn.dataset.id;
   const type   = btn.dataset.type;
   const user   = auth.currentUser;
-  if (!user) { showToast('Login to interact!'); return; }
+  if (!user) { window.showToast('Login to interact!', 'warning'); return; }
 
   const postRef = doc(db, "posts", postId);
 
@@ -2059,7 +2065,7 @@ document.getElementById('feed').addEventListener('click', async (e) => {
     }
   } catch (error) {
     console.error('Reaction error:', error);
-    showToast('Failed to update reaction.');
+    window.showToast('Failed to update reaction.', 'error');
   }
 });
 

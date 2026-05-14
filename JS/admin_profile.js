@@ -173,7 +173,7 @@ async function updateUserPhotosInFirebase(field, base64String) {
   if (!user) return;
   try {
     await updateDoc(doc(db, "users", user.uid), { [field]: base64String });
-    showToast("Photo updated successfully!");
+    window.showToast("Photo updated successfully!", "success");
 
     if (field === 'photoURL') {
       USER.photoSrc = base64String;
@@ -191,7 +191,7 @@ async function updateUserPhotosInFirebase(field, base64String) {
     }
   } catch (error) {
     console.error("Error updating photo:", error);
-    showToast("Failed to update photo.");
+    window.showToast("Failed to update photo.", "error");
   }
 }
 
@@ -313,7 +313,7 @@ window.submitPost = async function () {
   const attachWrap = document.getElementById('modal-attachments');
   const thumbs = Array.from(attachWrap.querySelectorAll('.modal-attach-thumb'));
 
-  if (!title && !content && thumbs.length === 0) { showToast('Write something first!'); return; }
+  if (!title && !content && thumbs.length === 0) { window.showToast('Write something first!', 'warning'); return; }
 
   const user = auth.currentUser;
   if (!user) return;
@@ -354,10 +354,10 @@ window.submitPost = async function () {
     document.getElementById('postContent').value = '';
     attachWrap.innerHTML = '';
     closePostModal();
-    showToast('Announcement posted!');
+    window.showToast('Announcement posted!', 'success');
   } catch (err) {
     console.error("Post Error:", err);
-    alert("Error submitting post: " + err.message);
+    window.showToast("Error submitting post: " + err.message, "error");
   } finally {
     if (btn) {
       btn.disabled = false;
@@ -565,17 +565,21 @@ window.toggleMenu = function (e, id) {
 };
 
 window.deletePost = async function (postId) {
-  if (confirm("Delete this post?")) {
-    try {
-      await deleteDoc(doc(db, "announcements", postId));
-      const card = document.querySelector(`.post-card[data-id="${postId}"]`);
-      if (card) card.remove();
-      showToast("Post deleted.");
-    } catch (err) {
-      console.error("Delete error:", err);
-      showToast("Failed to delete.");
+  window.showConfirm({
+    title: '🗑️ Delete this post?',
+    confirmText: 'Delete',
+    onConfirm: async () => {
+      try {
+        await deleteDoc(doc(db, "announcements", postId));
+        const card = document.querySelector(`.post-card[data-id="${postId}"]`);
+        if (card) card.remove();
+        window.showToast("Post deleted.", "success");
+      } catch (err) {
+        console.error("Delete error:", err);
+        window.showToast("Failed to delete.", "error");
+      }
     }
-  }
+  });
 };
 
 window.togglePinPost = async function (postId, currentlyPinned) {
@@ -592,15 +596,15 @@ window.togglePinPost = async function (postId, currentlyPinned) {
       // 2. Pin the new one
       batch.update(doc(db, "announcements", postId), { pinned: true });
       await batch.commit();
-      showToast("Post pinned to homepage!");
+      window.showToast("Post pinned to homepage!", "success");
     } else {
       // Just unpin
       await updateDoc(doc(db, "announcements", postId), { pinned: false });
-      showToast("Post unpinned.");
+      window.showToast("Post unpinned.", "success");
     }
   } catch (err) {
     console.error("Pin error:", err);
-    showToast("Failed to update pin status.");
+    window.showToast("Failed to update pin status.", "error");
   }
 };
 
@@ -637,10 +641,10 @@ window.editPost = async function (e) {
       bodyEl.innerHTML = escapeHTML(newText).replace(/\n/g, '<br>');
       editWrap.remove();
       bodyEl.style.display = '';
-      showToast('Post updated.');
+      window.showToast('Post updated.', 'success');
     } catch (error) {
       console.error('Edit post error:', error);
-      showToast('Failed to update post.');
+      window.showToast('Failed to update post.', 'error');
     }
   });
 
@@ -656,7 +660,7 @@ window.editPost = async function (e) {
 window.toggleLike = async function (postId, e) {
   e.stopPropagation();
   const user = auth.currentUser;
-  if (!user) { showToast('Sign in to react.'); return; }
+  if (!user) { window.showToast('Sign in to react.', 'warning'); return; }
 
   const btn = e.currentTarget;
   const isLiked = btn.classList.contains('heart-active');
@@ -832,10 +836,10 @@ function bindCommentActions() {
           document.getElementById(`comment-modal-text-${c}`).textContent = newText;
           document.getElementById(`comment-modal-bubble-${c}`).style.display = '';
           document.getElementById(`comment-modal-edit-${c}`).classList.remove('open');
-          showToast('Comment updated.');
+          window.showToast('Comment updated.', 'success');
         } catch (error) {
           console.error('Edit comment error:', error);
-          showToast('Failed to update comment.');
+          window.showToast('Failed to update comment.', 'error');
         }
       }
     });
@@ -847,8 +851,12 @@ function bindCommentActions() {
       const item = document.getElementById(`comment-modal-item-${c}`);
       const commentId = item.dataset.commentId;
 
-      if (activePostId && confirm("Delete this comment?")) {
-        try {
+      if (activePostId) {
+        window.showConfirm({
+          title: '🗑️ Delete this comment?',
+          confirmText: 'Delete',
+          onConfirm: async () => {
+            try {
           await deleteDoc(doc(db, "announcements", activePostId, "comments", commentId));
           await updateDoc(doc(db, "announcements", activePostId), { comments: arrayRemove(auth.currentUser.uid) });
 
@@ -860,11 +868,13 @@ function bindCommentActions() {
           const countEl = _currentPostCard?.querySelector('.comments-count');
           if (countEl) countEl.textContent = Math.max(0, parseInt(countEl.textContent) - 1);
 
-          showToast('Comment deleted.');
+          window.showToast('Comment deleted.', 'success');
         } catch (error) {
           console.error('Delete comment error:', error);
-          showToast('Failed to delete comment.');
-        }
+          window.showToast('Failed to delete comment.', 'error');
+            }
+          }
+        });
       }
     });
   });
@@ -1027,7 +1037,7 @@ window.submitRepost = async function (skipQuote = false) {
 
     document.getElementById('repostContent').value = '';
     closeRepostModal();
-    showToast("Reposted!");
+    window.showToast("Reposted!", "repost");
   } catch (err) {
     console.error("Repost error:", err);
   }
@@ -1052,7 +1062,10 @@ function updatePostInPlace(postId, data) {
   // Update Comments
   const commentBtn = card.querySelector('.feed-reaction-btn:nth-child(2)');
   if (commentBtn) {
-    commentBtn.querySelector('.comments-count').textContent = (data.comments || []).length;
+    let count = 0;
+    if (Array.isArray(data.comments)) count = data.comments.length;
+    else if (typeof data.comments === 'number') count = data.comments;
+    commentBtn.querySelector('.comments-count').textContent = count;
   }
 
   // Update Reposts
@@ -1080,13 +1093,6 @@ function updatePostInPlace(postId, data) {
 // ========================
 // HELPERS
 // ========================
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  if (!t) return;
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2200);
-}
 
 function escapeHTML(str) {
   if (!str) return '';

@@ -681,7 +681,7 @@ body {
   height: 30px;
   flex-shrink: 0;             /* add this so the icon never squishes */
   margin-top: 1px;
-  stroke-color: var(--maroon);
+  stroke: var(--maroon);
 }
 
 /* Input */

@@ -220,12 +220,11 @@ if (submitBtn) {
       await uploadPostToFirestore(text, imageURLs, isAnon);
 
       setModalSelection(false);
-      if (typeof window.showToast === 'function') window.showToast('Post shared!');
-      else alert('Post shared!');
+      window.showToast('Post shared!', 'success');
 
     } catch (err) {
       console.error("❌ Post Error:", err);
-      alert("Failed to post: " + err.message);
+      window.showToast("Failed to post: " + err.message, "error");
     } finally {
       submitBtn.disabled = false;
       submitBtn.innerHTML = `<svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>`;
@@ -460,7 +459,7 @@ if (feedContainer) {
     const user = auth.currentUser;
 
     if (!user) {
-      alert("Login to like posts!");
+      window.showToast("Login to like posts!", "warning");
       return;
     }
 
@@ -471,9 +470,7 @@ if (feedContainer) {
     if (myRole === 'Organization' && postData && !postData.isOrg) {
       const toast = document.getElementById('toast');
       if (toast) {
-        toast.textContent = "Organizations cannot interact with student posts.";
-        toast.classList.add('show');
-        setTimeout(() => toast.classList.remove('show'), 2800);
+        window.showToast("Organizations cannot interact with student posts.", "warning");
       }
       return;
     }
@@ -507,7 +504,7 @@ feedContainer.addEventListener('click', async (e) => {
 
   const postId = btn.dataset.id;
   const user = auth.currentUser;
-  if (!user) return alert("Login to repost!");
+  if (!user) { window.showToast("Login to repost!", "warning"); return; }
 
   const cache = JSON.parse(localStorage.getItem('tup_user_meta') || '{}');
   const myRole = cache.role;
@@ -516,9 +513,7 @@ feedContainer.addEventListener('click', async (e) => {
   if (myRole === 'Organization' && postData && !postData.isOrg) {
     const toast = document.getElementById('toast');
     if (toast) {
-      toast.textContent = "Organizations cannot interact with student posts.";
-      toast.classList.add('show');
-      setTimeout(() => toast.classList.remove('show'), 2800);
+      window.showToast("Organizations cannot interact with student posts.", "warning");
     }
     return;
   }
@@ -537,9 +532,7 @@ feedContainer.addEventListener('click', async (e) => {
 
       const toast = document.getElementById('toast');
       if (toast) {
-        toast.textContent = 'Repost removed!';
-        toast.classList.add('show');
-        setTimeout(() => toast.classList.remove('show'), 2800);
+        window.showToast('Repost removed!', 'success');
       }
     } else {
       _currentRepostInfo = { btn, postId, postData };
@@ -551,43 +544,53 @@ feedContainer.addEventListener('click', async (e) => {
 });
 
 window.deletePost = async function (postId, e) {
-  if (!confirm('Are you sure you want to delete this post?')) return;
-
   const card = e.target.closest('.feed-post');
   const user = auth.currentUser;
   if (!user) return;
 
-  try {
-    const postRef = doc(db, "posts", postId);
-    const snap = await getDoc(postRef);
-    if (snap.exists()) {
-      const data = snap.data();
-      if (data.repostOf) {
-        const originalRef = doc(db, "posts", data.repostOf);
-        await updateDoc(originalRef, {
-          repostedBy: arrayRemove(user.uid)
-        });
+  window.showConfirm({
+    title: '🗑️ Delete this post?',
+    confirmText: 'Delete',
+    onConfirm: async () => {
+      try {
+        const postRef = doc(db, "posts", postId);
+        const snap = await getDoc(postRef);
+        if (snap.exists()) {
+          const data = snap.data();
+          if (data.repostOf) {
+            try {
+              const originalRef = doc(db, "posts", data.repostOf);
+              await updateDoc(originalRef, {
+                repostedBy: arrayRemove(user.uid)
+              });
+            } catch (e1) {
+              try {
+                const annRef = doc(db, "announcements", data.repostOf);
+                await updateDoc(annRef, {
+                  reposts: arrayRemove(user.uid)
+                });
+              } catch (e2) {
+                console.warn("Could not sync original post/announcement count (likely permission restricted):", e2);
+              }
+            }
+          }
+        }
+
+        // Always attempt to delete the actual document regardless of sync results
+        await deleteDoc(postRef);
+        if (card) {
+          card.style.transition = 'opacity 0.28s, transform 0.28s';
+          card.style.opacity = '0';
+          card.style.transform = 'scale(0.93)';
+          setTimeout(() => card.remove(), 300);
+        }
+        window.showToast('Post deleted.', 'success');
+      } catch (error) {
+        console.error('Delete error:', error);
+        window.showToast('Failed to delete post.', 'error');
       }
     }
-
-    await deleteDoc(postRef);
-    if (card) {
-      card.style.transition = 'opacity 0.28s, transform 0.28s';
-      card.style.opacity = '0';
-      card.style.transform = 'scale(0.93)';
-      setTimeout(() => card.remove(), 300);
-    }
-
-    const toast = document.getElementById('toast');
-    if (toast) {
-      toast.textContent = 'Post deleted.';
-      toast.classList.add('show');
-      setTimeout(() => toast.classList.remove('show'), 2800);
-    }
-  } catch (error) {
-    console.error('Delete error:', error);
-    alert('Failed to delete post.');
-  }
+  });
 };
 
 window.editPost = function (postId, e) {
@@ -784,9 +787,7 @@ window.submitRepost = async function (skipQuote = false) {
 
     const toast = document.getElementById('toast');
     if (toast) {
-      toast.textContent = '🔁 Reposted successfully!';
-      toast.classList.add('show');
-      setTimeout(() => toast.classList.remove('show'), 2800);
+      window.showToast('🔁 Reposted successfully!', 'repost');
     }
   } catch (err) {
     console.error("Repost submit failed:", err);

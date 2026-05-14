@@ -3,9 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=1280, initial-scale=1.0"/>
-  <title>TUP Connect — Create Account</title>
+  <title>Register — TUP Connect</title>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;1,500&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="../CSS/register.css"/>
+  <link rel="stylesheet" href="../CSS/navbar.css"/>
+  <script src="../JS/navbar.js" defer></script>
 </head>
 <body>
 
@@ -194,6 +196,10 @@
   var registerBtn = document.getElementById('btn-register');
   if (registerBtn) {
     registerBtn.addEventListener('click', function() {
+      if (!selectedRole) {
+        window.showToast("Please select a role first.", "error");
+        return;
+      }
       sessionStorage.removeItem('guestMode');
     });
   }

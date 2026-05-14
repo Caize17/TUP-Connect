@@ -82,7 +82,7 @@ window.togglePassword = function (btn) {
 // 4. MAIN REGISTER FUNCTION
 window.handleRegister = async function () {
   if (!selectedRole) {
-    alert("Please select a role first.");
+    window.showToast("Please select a role first.", "error");
     return;
   }
 
@@ -141,9 +141,7 @@ window.handleRegister = async function () {
 
       // 5. Send Verification Email
       await sendEmailVerification(user);
-
-      alert("Verification email sent! Please check your TUP inbox and verify your account before logging in.");
-
+      window.showToast("Verification email sent! Check your TUP inbox.", "success");
       window.location.href = "../index.html";
 
     } catch (error) {
@@ -159,7 +157,7 @@ window.handleRegister = async function () {
           usedEmailErr.classList.add('visible');
         }
       } else {
-        alert("Registration failed: " + error.message);
+        window.showToast("Registration failed: " + error.message, "error");
       }
     }
   }

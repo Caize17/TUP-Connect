@@ -6,6 +6,8 @@
   <title>TUP Konek — Set Up USG Account</title>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;1,500&family=Montserrat:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="../CSS/setup.css"/>
+  <link rel="stylesheet" href="../CSS/navbar.css"/>
+  <script src="../JS/navbar.js" defer></script>
 </head>
 <body>
 
@@ -250,7 +252,7 @@
 
       } catch (error) {
         console.error("Setup Error:", error);
-        alert("Failed to save profile: " + error.message);
+        window.showToast("Failed to save profile: " + error.message, "error");
         btnSubmit.disabled = false;
         btnSubmit.textContent = "Complete Setup";
       }
