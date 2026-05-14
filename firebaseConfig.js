@@ -4,7 +4,7 @@ import { getFirestore } from "https://www.gstatic.com/firebasejs/10.7.1/firebase
 import { getStorage } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyBpGOdMpx_Mws2EcCq6rbOWfZ-FFuhhfo0",
+  apiKey: "AIzaSyBrAH6mA-ko1rVi9d0mvJJzossOZkaUk5o",
   authDomain: "tup-connect-b162d.firebaseapp.com",
   projectId: "tup-connect-b162d",
   storageBucket: "tup-connect-b162d.firebasestorage.app",
