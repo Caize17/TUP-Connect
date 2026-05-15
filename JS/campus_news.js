@@ -340,6 +340,7 @@ const REACTION_MESSAGES = {
 function pickRandom(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
 
 function wireReactionButtons() {
+  if (sessionStorage.getItem('guestMode') === 'true') return; // guests: read-only
   document.querySelectorAll('#bulletin-feed .reaction-item, #bulletin-feed .feed-reaction-btn:not(.cn-comment-trigger), #pinned-post-slot .reaction-item').forEach(el => {
     const fresh = el.cloneNode(true); el.replaceWith(fresh);
     fresh.addEventListener('click', () => handleReaction(fresh));
@@ -386,6 +387,7 @@ async function handleReaction(el) {
 }
 
 function wireCommentButtons() {
+  if (sessionStorage.getItem('guestMode') === 'true') return; // guests: read-only
   document.querySelectorAll('.cn-comment-trigger, .comment-trigger-pinned').forEach(el => {
     const fresh = el.cloneNode(true); el.replaceWith(fresh);
     fresh.addEventListener('click', () => { const pid = fresh.dataset.id; if (pid) openCommentModal(pid); });
@@ -946,6 +948,7 @@ function renderOrgPostCard(post, uid) {
 }
 
 function wireOrgReactionButtons() {
+  if (sessionStorage.getItem('guestMode') === 'true') return; // guests: read-only
   console.log("Wiring Org Reaction Buttons...");
   document.querySelectorAll('#org-feed-list .feed-reaction-btn:not(.cn-comment-trigger)').forEach(el => {
     const fresh = el.cloneNode(true); el.replaceWith(fresh);
@@ -1225,7 +1228,15 @@ function initAuth() {
       if (myTab && currentUserCollege) myTab.textContent = `My College (${currentUserCollege})`;
       listenToOrgPosts();
     } else {
-      window.location.href = '../index.html';
+      // Allow guest mode — don't redirect, just load announcements as read-only
+      if (sessionStorage.getItem('guestMode') === 'true') {
+        listenToAnnouncements();
+        // Hide org tab (requires auth), show only bulletin
+        const orgTab = document.querySelector('.side-tab[data-section="org"]');
+        if (orgTab) orgTab.style.display = 'none';
+      } else {
+        window.location.href = '../index.html';
+      }
     }
   });
 }

@@ -402,3 +402,33 @@ body:has(.guest-top-banner) .right-panel {
   opacity: 1;
   transform: translateX(-50%) translateY(0);
 }
+
+/* ── Read-only interaction buttons (guest mode on feed pages) ── */
+.guest-readonly-btn {
+  cursor: not-allowed !important;
+  opacity: 0.55 !important;
+  pointer-events: auto !important; /* keep clicks so toast can fire */
+  position: relative;
+}
+
+.guest-readonly-btn:hover {
+  background: transparent !important;
+  color: inherit !important;
+  transform: none !important;
+}
+
+/* Subtle lock badge on hover */
+.guest-readonly-btn::after {
+  content: '🔒';
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  font-size: 9px;
+  opacity: 0;
+  transition: opacity 0.15s;
+  pointer-events: none;
+}
+
+.guest-readonly-btn:hover::after {
+  opacity: 1;
+}

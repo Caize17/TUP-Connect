@@ -4,8 +4,8 @@
  * How it works:
  *  - index.html "Browse as Guest" sets sessionStorage.guestMode = 'true'
  *  - Every page includes this script
- *  - On homepage: shows dummy posts, blurs posts after index 2, adds sign-in wall
- *  - On other pages: blurs entire main content, shows lock overlay
+ *  - Homepage & Campus News: real posts are visible but ALL interactions are disabled
+ *  - Profile / Campus Directory: blurs entire main content, shows lock overlay
  */
 
 (function () {
@@ -15,12 +15,56 @@
 
   if (!IS_GUEST) return; // signed-in users — do nothing
 
+  /* ── Sign in anonymously so Firestore reads are authenticated ── */
+  /* Wait for DOMContentLoaded so Firebase module scripts have run first */
+  function tryAnonymousSignIn() {
+    if (typeof firebase !== 'undefined' && firebase.auth) {
+      // Legacy Firebase SDK
+      firebase.auth().signInAnonymously().catch(function(){});
+    } else {
+      // Modular Firebase SDK v10 — dynamic import
+      import('https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js').then(function(appMod) {
+        var apps = appMod.getApps();
+        if (apps.length === 0) return; // App not yet initialized
+        return import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js').then(function(authMod) {
+          var auth = authMod.getAuth(apps[0]);
+          if (!auth.currentUser) {
+            authMod.signInAnonymously(auth).catch(function(){});
+          }
+        });
+      }).catch(function(){});
+    }
+  }
+
+  // Run after module scripts initialize Firebase
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function() {
+      setTimeout(tryAnonymousSignIn, 50);
+    });
+  } else {
+    setTimeout(tryAnonymousSignIn, 50);
+  }
+
+
   /* ── Detect which page we're on ── */
   var path     = window.location.pathname.toLowerCase();
   var isHome   = path.indexOf('homepage') !== -1;
   var isProfile = path.indexOf('profile') !== -1;
   var isCampusNews = path.indexOf('campus_news') !== -1 || path.indexOf('campus-news') !== -1;
   var isCampusDir  = path.indexOf('campus_directory') !== -1;
+
+  /* ── Selectors for every interactive element to disable ── */
+  var INTERACTION_SELECTORS = [
+    '.feed-reaction-btn',
+    '.feed-action-btn',
+    '.post-menu-btn',
+    '.reaction-item',
+    '.social-item',
+    '.cn-comment-trigger',
+    '.comment-trigger-pinned',
+    '.cn-repost-trigger',
+    '#btn-likes', '#btn-comments', '#btn-reposts'
+  ].join(', ');
 
   /* ════════════════════════════════════════
      DUMMY POSTS for homepage feed
@@ -154,27 +198,9 @@
   }
 
   /* ════════════════════════════════════════
-     HOMEPAGE LOGIC
+     HOMEPAGE LOGIC — real posts, read-only
   ════════════════════════════════════════ */
   function initHomepageGuest() {
-
-    /* ── Hijack renderFeedPosts IMMEDIATELY (before post.js calls it) ──
-       post.js sets window.FEED_POSTS from Firebase then calls
-       window.renderFeedPosts(). We replace that function right now
-       so when post.js calls it, our dummy feed runs instead.        */
-    window.renderFeedPosts = function () {
-      renderGuestFeed();
-    };
-
-    /* Also block window.FEED_POSTS from being overwritten by post.js */
-    try {
-      Object.defineProperty(window, 'FEED_POSTS', {
-        set: function () { /* swallow — don't let Firebase posts in */ },
-        get: function () { return []; },
-        configurable: true
-      });
-    } catch(e) {}
-
     document.addEventListener('DOMContentLoaded', function () {
 
       /* Hide the create-post bar — guests can't post */
@@ -200,54 +226,25 @@
           '</div>';
       }
 
-      /* Render guest dummy feed */
-      renderGuestFeed();
-    });
-  }
+      /* Disable all interaction buttons once posts have rendered */
+      lockInteractions();
 
-  function renderGuestFeed() {
-      var feed = document.getElementById('feed-posts');
-      if (!feed) return;
-      {
-        var html = '';
-        DUMMY_POSTS.forEach(function (fp, i) {
-          html += buildDummyPost(fp, i);
+      /* Also re-lock after any dynamic post render (post.js may call renderFeedPosts later) */
+      var origRender = window.renderFeedPosts;
+      window.renderFeedPosts = function () {
+        if (origRender) origRender.apply(this, arguments);
+        setTimeout(lockInteractions, 100);
+      };
+
+      /* MutationObserver to catch async Firebase renders */
+      var feedEl = document.getElementById('feed-posts');
+      if (feedEl) {
+        var feedObserver = new MutationObserver(function() {
+          lockInteractions();
         });
-        feed.innerHTML = html;
-
-        /* Show first 2 posts clearly, wrap the rest in a relative
-           container with the sign-in wall absolutely overlaying them */
-        var posts = feed.querySelectorAll('.guest-dummy-post');
-        var blurredPosts = [];
-        posts.forEach(function (p, i) {
-          if (i >= 2) blurredPosts.push(p);
-        });
-
-        if (blurredPosts.length > 0) {
-          /* Create a wrapper that holds blurred posts + overlay wall */
-          var blurWrap = document.createElement('div');
-          blurWrap.className = 'guest-blur-wrap';
-
-          /* Move blurred posts into wrapper */
-          blurredPosts.forEach(function (p) {
-            p.classList.add('guest-blurred');
-            feed.removeChild(p);
-            blurWrap.appendChild(p);
-          });
-
-          /* Add the sign-in wall INSIDE the wrapper so it overlays */
-          blurWrap.appendChild(buildSignInWall());
-          feed.appendChild(blurWrap);
-        }
+        feedObserver.observe(feedEl, { childList: true, subtree: true });
       }
-
-      /* Lock all interaction buttons */
-      document.querySelectorAll('.guest-locked-btn').forEach(function (btn) {
-        btn.addEventListener('click', function (e) {
-          e.preventDefault();
-          showGuestToast();
-        });
-      });
+    });
   }
 
   function initHomepageGuestUI() {
@@ -258,7 +255,63 @@
   }
 
   /* ════════════════════════════════════════
-     LOCKED PAGE LOGIC (Campus News, Profile, Directory)
+     CAMPUS NEWS LOGIC — real posts, read-only
+  ════════════════════════════════════════ */
+  function initCampusNewsGuest() {
+    document.addEventListener('DOMContentLoaded', function () {
+      showGuestBanner();
+
+      /* Observe ALL campus news content areas for dynamic renders:
+         - #pinned-post-slot  (pinned announcement)
+         - #bulletin-feed     (regular announcements)
+         - #org-feed-list     (org posts)
+         Use body as root so nothing is missed regardless of timing. */
+      var cnObserver = new MutationObserver(function () {
+        lockInteractions();
+      });
+      cnObserver.observe(document.body, { childList: true, subtree: true });
+
+      /* Initial lock pass */
+      lockInteractions();
+
+      /* Wrap render functions — retry until campus_news.js exposes them */
+      var patchAttempts = 0;
+      function patchCNRenders() {
+        var patched = 0;
+
+        if (window.renderBulletinPage && !window.renderBulletinPage._guestPatched) {
+          var origBulletin = window.renderBulletinPage;
+          window.renderBulletinPage = function () {
+            origBulletin.apply(this, arguments);
+            setTimeout(lockInteractions, 80);
+          };
+          window.renderBulletinPage._guestPatched = true;
+          patched++;
+        }
+
+        if (window.renderOrgFeed && !window.renderOrgFeed._guestPatched) {
+          var origOrg = window.renderOrgFeed;
+          window.renderOrgFeed = function () {
+            origOrg.apply(this, arguments);
+            setTimeout(lockInteractions, 80);
+          };
+          window.renderOrgFeed._guestPatched = true;
+          patched++;
+        }
+
+        patchAttempts++;
+        /* Keep retrying until both are patched or we give up after ~3s */
+        if (patched < 2 && patchAttempts < 30) {
+          setTimeout(patchCNRenders, 100);
+        }
+      }
+      patchCNRenders();
+    });
+  }
+
+
+  /* ════════════════════════════════════════
+     LOCKED PAGE LOGIC (Profile, Directory)
   ════════════════════════════════════════ */
   function initLockedPage(pageName) {
     document.addEventListener('DOMContentLoaded', function () {
@@ -273,6 +326,27 @@
       document.body.appendChild(overlay);
 
       showGuestBanner();
+    });
+  }
+
+  /* ════════════════════════════════════════
+     LOCK INTERACTIONS (shared helper)
+  ════════════════════════════════════════ */
+  function lockInteractions() {
+    document.querySelectorAll(INTERACTION_SELECTORS).forEach(function (el) {
+      if (el.dataset.guestLocked) return; // already locked
+      el.dataset.guestLocked = '1';
+      el.classList.add('guest-readonly-btn');
+      /* Replace with clone to nuke existing listeners */
+      var clone = el.cloneNode(true);
+      clone.dataset.guestLocked = '1';
+      clone.classList.add('guest-readonly-btn');
+      clone.addEventListener('click', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        showGuestToast();
+      });
+      el.replaceWith(clone);
     });
   }
 
@@ -315,9 +389,13 @@
   } else if (isProfile) {
     initLockedPage('Your Profile');
   } else if (isCampusNews) {
-    initLockedPage('Campus News');
+    initCampusNewsGuest();
+    initHomepageGuestUI();
   } else if (isCampusDir) {
-    initLockedPage('Campus Directory');
+    /* Campus Directory is mostly static — just show the guest banner */
+    document.addEventListener('DOMContentLoaded', function () {
+      showGuestBanner();
+    });
   }
 
 })();
