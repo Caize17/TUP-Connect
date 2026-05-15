@@ -951,7 +951,8 @@ body {
 }
 
 .modal-submit:disabled {
-  opacity: .35;
+  background: #cccccc;
+  opacity: 1;
   cursor: not-allowed;
 }
 
@@ -1555,6 +1556,10 @@ body {
 
 .comment-modal-submit:hover {
   background: var(--maroon);
+}
+.comment-modal-submit:disabled {
+  background: #cccccc;
+  cursor: not-allowed;
 }
 
 .comment-modal-submit svg {
@@ -2969,6 +2974,11 @@ body {
 
 .hp-rm-submit-btn:hover {
   background: var(--maroon);
+}
+.hp-rm-submit-btn:disabled {
+  background: #cccccc;
+  opacity: 1;
+  cursor: not-allowed;
 }
 
 .hp-rm-submit-btn svg {

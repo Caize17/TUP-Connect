@@ -526,7 +526,10 @@ function renderPost(data, postId) {
     const isDeleted = data.originalDeleted || false;
 
     bodyHtml = `
-      ${data.text ? `<div class="repost-quote-text">${escapeHTML(data.text).replace(/\n/g, '<br>')}</div>` : ''}
+      ${data.text ? `
+        <div class="repost-quote-text clamped" id="caption-${postId}">${escapeHTML(data.text).replace(/\n/g, '<br>')}</div>
+        <button class="view-more-btn" id="btn-vm-caption-${postId}">View more ▾</button>
+      ` : ''}
       <div class="repost-quote-card ${isDeleted ? 'original-deleted' : ''}" id="repost-card-${postId}">
         <div class="repost-quote-header">
           <div class="repost-quote-avatar">
@@ -641,6 +644,9 @@ function renderPost(data, postId) {
   `;
   feed.appendChild(postCard);
   wireViewMore(`body-${postId}`, `btn-vm-${postId}`);
+  if (data.repostOf && data.text) {
+    wireViewMore(`caption-${postId}`, `btn-vm-caption-${postId}`);
+  }
 }
 
 function wireViewMore(bodyId, btnId) {

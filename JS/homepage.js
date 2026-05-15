@@ -472,7 +472,8 @@ let FEED_POSTS = [];
           </div>
           <div class="repost-quote-content">
             ${fp.quote.repostTitle ? `<div class="repost-quote-title" style="font-weight: 800; font-size: 14px; margin-bottom: 4px; color: var(--text);">${fp.quote.repostTitle}</div>` : ''}
-            <div class="repost-quote-body clamped">${fp.quote.body ? fp.quote.body.replace(/\n/g, '<br>') : ''}</div>
+            <div class="repost-quote-body clamped" id="repost-body-${idx}">${fp.quote.body ? fp.quote.body.replace(/\n/g, '<br>') : ''}</div>
+            <button class="feed-view-more" id="repost-vm-${idx}" style="margin-top:4px; padding-bottom:6px;">View more ▾</button>
           </div>
           ${(fp.quote.repostImageURLs && fp.quote.repostImageURLs.length > 0)
           ? renderPhotoGrid(fp.quote.repostImageURLs)
@@ -546,6 +547,21 @@ let FEED_POSTS = [];
           vmBtn.onclick = () => {
             const isExpanded = bodyEl.classList.toggle('clamped');
             vmBtn.textContent = isExpanded ? 'View more ▾' : 'View less ▴';
+          };
+        }
+      }
+
+      // Clamping logic for repost quote body
+      if (fp.quote && fp.quote.body) {
+        const rBodyEl = document.getElementById(`repost-body-${idx}`);
+        const rVmBtn = document.getElementById(`repost-vm-${idx}`);
+        if (rBodyEl && rVmBtn) {
+          if (rBodyEl.scrollHeight > rBodyEl.clientHeight) {
+            rVmBtn.classList.add('visible');
+          }
+          rVmBtn.onclick = () => {
+            const isExpanded = rBodyEl.classList.toggle('clamped');
+            rVmBtn.textContent = isExpanded ? 'View more ▾' : 'View less ▴';
           };
         }
       }

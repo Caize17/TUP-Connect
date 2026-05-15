@@ -866,6 +866,10 @@ function renderOrgFeed(postsOverride) {
   filtered.forEach(post => {
     container.insertAdjacentHTML('beforeend', renderOrgPostCard(post, currentUser?.uid));
     wireViewMore(`op-body-${post.id}`, `op-viewmore-${post.id}`);
+    if (post.repostOf) {
+      if (post.text) wireViewMore(`op-caption-${post.id}`, `op-viewmore-caption-${post.id}`);
+      wireViewMore(`op-repost-${post.id}`, `op-viewmore-repost-${post.id}`);
+    }
   });
   wireOrgReactionButtons();
   wireLightboxTriggers();
@@ -895,7 +899,10 @@ function renderOrgPostCard(post, uid) {
 
   if (post.repostOf) {
     contentHTML = `
-      ${post.text ? `<div class="repost-quote-text" style="margin-bottom:12px; font-weight:600; color:var(--text);">${escapeHTML(post.text)}</div>` : ''}
+      ${post.text ? `
+        <div class="repost-quote-text clamped" id="op-caption-${post.id}" style="margin-bottom:12px; font-weight:600; color:var(--text);">${escapeHTML(post.text).replace(/\n/g, '<br>')}</div>
+        <button class="view-more-btn" id="op-viewmore-caption-${post.id}" style="margin-bottom:8px;">View more ▾</button>
+      ` : ''}
       <div class="repost-quote-card" style="border:1.5px solid var(--border); border-radius:12px; padding:12px; background:rgba(255,255,255,0.4); cursor:pointer;">
         <div class="repost-quote-header" style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
           <div class="repost-quote-avatar" style="width:24px; height:24px; border-radius:50%; overflow:hidden;">
@@ -906,10 +913,11 @@ function renderOrgPostCard(post, uid) {
             <div class="repost-quote-time" style="font-size:11px; color:var(--muted);">${post.repostTime || ''}</div>
           </div>
         </div>
-        <div class="repost-quote-body" style="font-size:13px; color:var(--text); line-height:1.4;">
+        <div class="repost-quote-body clamped" id="op-repost-${post.id}" style="font-size:13px; color:var(--text); line-height:1.4;">
           ${post.repostTitle ? `<div class="bulletin-card-title" style="font-size:14px; margin-bottom:4px;">${escapeHTML(post.repostTitle)}</div>` : ''}
-          ${escapeHTML(post.repostText || '')}
+          ${escapeHTML(post.repostText || '').replace(/\n/g, '<br>')}
         </div>
+        <button class="view-more-btn" id="op-viewmore-repost-${post.id}" style="margin-top:4px;">View more ▾</button>
         ${post.repostImage ? `<div class="post-images lightbox-trigger" data-src="${post.repostImage}" style="margin-top:8px; border-radius:8px; overflow:hidden; cursor:pointer;"><img src="${post.repostImage}" class="post-image" style="width:100%; max-height:300px; object-fit:cover;"></div>` : ''}
       </div>`;
   }
