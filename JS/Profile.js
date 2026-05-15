@@ -420,20 +420,19 @@ let allPosts = [];
         
         // Apply anonymity preference
         const isAnon = getAnonymityPreference();
-        ['anonToggle', 'repostAnonToggle', 'commentAnonToggle'].forEach(id => {
+        ['anonToggle', 'repostAnonToggle'].forEach(id => {
           const el = document.getElementById(id);
           if (el) el.checked = isAnon;
         });
         updateAnonUI(isAnon, 'modal-user-name', 'modal-avatar');
         updateAnonUI(isAnon, 'repost-user-name', 'repost-user-avatar');
-        updateCommentAnonUI(isAnon);
       });
     } catch (e) { }
   } else {
     // Even if no cache, apply anon pref if exists
     document.addEventListener('DOMContentLoaded', () => {
        const isAnon = getAnonymityPreference();
-       ['anonToggle', 'repostAnonToggle', 'commentAnonToggle'].forEach(id => {
+       ['anonToggle', 'repostAnonToggle'].forEach(id => {
          const el = document.getElementById(id);
          if (el) el.checked = isAnon;
        });
@@ -1248,15 +1247,10 @@ document.getElementById('repostAnonToggle')?.addEventListener('change', function
   updateAnonUI(this.checked, 'repost-user-name', 'repost-user-avatar');
 });
 
-document.getElementById('commentAnonToggle')?.addEventListener('change', function () {
-  setAnonymityPreference(this.checked);
-  updateCommentAnonUI(this.checked);
-});
-
 function setAnonymityPreference(isAnon) {
   localStorage.setItem('tup_anon_pref', isAnon);
   // Sync all other toggles
-  ['anonToggle', 'repostAnonToggle', 'commentAnonToggle'].forEach(id => {
+  ['anonToggle', 'repostAnonToggle'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.checked = isAnon;
   });
@@ -1272,14 +1266,6 @@ function updateAnonUI(isAnon, nameId, avatarId) {
   if (modalName) modalName.textContent = isAnon ? "Anonymous Puto" : USER.name;
   if (modalAvatar) {
     modalAvatar.innerHTML = `<img src="${isAnon ? '../assets/images/anon_avatar.jpg' : USER.photoSrc}" style="width:100%;height:100%;object-fit:cover;border-radius:50%; image-rendering: high-quality;">`;
-  }
-}
-
-function updateCommentAnonUI(isAnon) {
-  const modalAvatarWrap = document.querySelector('.comment-modal-avatar');
-  if (modalAvatarWrap) {
-    const img = modalAvatarWrap.querySelector('img');
-    if (img) img.src = isAnon ? "../assets/images/anon_avatar.jpg" : (USER.photoSrc || '../assets/images/anon_avatar.jpg');
   }
 }
 
@@ -1426,11 +1412,9 @@ async function openCommentModal(el) {
 
   bindCommentActions();
   
-  // Apply anonymity preference
-  const isAnon = getAnonymityPreference();
-  const cToggle = document.getElementById('commentAnonToggle');
-  if (cToggle) cToggle.checked = isAnon;
-  updateCommentAnonUI(isAnon);
+  // Set user avatar in comment input
+  const modalAvatarWrap = document.querySelector('.comment-modal-avatar img');
+  if (modalAvatarWrap) modalAvatarWrap.src = USER.photoSrc || '../assets/images/anon_avatar.jpg';
 
   document.getElementById('commentModal').classList.add('open');
   setTimeout(() => document.getElementById('commentModalInput')?.focus(), 120);
@@ -1574,8 +1558,6 @@ function handleModalCommentKey(e) {
 async function submitModalComment() {
   const input = document.getElementById('commentModalInput');
   const text = input.value.trim();
-  const cToggle = document.getElementById('commentAnonToggle');
-  const isAnonymous = cToggle ? cToggle.checked : false;
 
   if (!text) return;
 
@@ -1583,8 +1565,8 @@ async function submitModalComment() {
   const list = document.getElementById('commentModalList');
   const cIdx = list.querySelectorAll('.comment-modal-item').length;
 
-  const displayAuthor = isAnonymous ? "Anonymous Puto" : USER.name;
-  const displayAvatar = isAnonymous ? "../assets/images/anon_avatar.jpg" : (USER.photoSrc || '../assets/images/anon_avatar.jpg');
+  const displayAuthor = USER.name;
+  const displayAvatar = USER.photoSrc || '../assets/images/anon_avatar.jpg';
 
   list.appendChild(buildCommentModalItem(
     displayAuthor,
