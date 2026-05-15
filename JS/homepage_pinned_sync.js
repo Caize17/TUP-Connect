@@ -325,8 +325,10 @@ function initHomepageReactions() {
 // ─────────────────────────────────────────────
 
 function listenForPinnedAnnouncement() {
+  // Only show the loading skeleton if nothing has been rendered from cache yet
   const loadingState = document.getElementById('pinned-loading-state');
-  if (loadingState) loadingState.style.display = 'block';
+  const hasCache = !!localStorage.getItem('tup_pinned_cache');
+  if (loadingState && !hasCache) loadingState.style.display = 'block';
 
   const q = query(
     collection(db, 'announcements'),
