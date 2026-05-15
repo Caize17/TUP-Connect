@@ -250,7 +250,7 @@
         <textarea class="modal-textarea" id="postContent" placeholder="Hi ka-Puto! What's the news?"></textarea>
         <div class="modal-attachments" id="modal-attachments"></div>
         <div class="modal-footer">
-          <button class="modal-add-photo-btn">
+          <button class="modal-add-photo-btn" id="modal-add-photo-btn">
             <img src="../assets/images/add_photo.png" alt="Add Photo" style="width:68px;height:52px;object-fit:contain;margin-right:-18px;"/>
             Add Photo
           </button>
@@ -305,9 +305,18 @@
             <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
           </div>
           <div class="hp-rm-user-name" id="repost-user-name">User Name</div>
+          <div class="modal-anon-row" style="margin-left:auto; display:flex; align-items:center; gap:8px;">
+            <span class="modal-anon-label" style="font-size:12px; color:var(--muted);">Post Anonymously</span>
+            <label class="toggle-switch">
+              <input type="checkbox" id="repostAnonToggle">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
         </div>
         <textarea class="hp-rm-textarea" id="repostContent" placeholder="Add a quote (optional)..."></textarea>
         
+        <div class="modal-attachments" id="repost-modal-attachments"></div>
+
         <!-- Original Post Preview -->
         <div class="hp-rm-quote-card" id="repost-quote-preview">
           <div class="hp-rm-quote-header">
@@ -319,7 +328,7 @@
           <div class="hp-rm-quote-body" id="quote-preview-body"></div>
         </div>
 
-        <div class="hp-rm-actions">
+        <div class="hp-rm-actions" style="margin-top: 15px; display: flex; justify-content: flex-end; gap: 10px;">
           <button class="hp-rm-skip-btn" onclick="submitRepost(true)">Repost only</button>
           <button class="hp-rm-submit-btn" id="repost-submit-btn" onclick="submitRepost(false)">
             <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>

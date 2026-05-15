@@ -401,6 +401,8 @@ let USER = {
   photoSrc: "../assets/images/anon_avatar.jpg"
 };
 let allPosts = [];
+let lastPhotoClick = 0;
+const PHOTO_DEBOUNCE = 500; // ms
 
 // ========================
 // INSTANT UI PRE-FILL (STALE-WHILE-REVALIDATE)
@@ -417,8 +419,26 @@ let allPosts = [];
       // Pre-fill UI so it's instant
       document.addEventListener('DOMContentLoaded', () => {
         updateProfileUI(data, data.email || '');
+        
+        // Apply anonymity preference
+        const isAnon = getAnonymityPreference();
+        ['anonToggle', 'repostAnonToggle'].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.checked = isAnon;
+        });
+        updateAnonUI(isAnon, 'modal-user-name', 'modal-avatar');
+        updateAnonUI(isAnon, 'repost-user-name', 'repost-user-avatar');
       });
     } catch (e) { }
+  } else {
+    // Even if no cache, apply anon pref if exists
+    document.addEventListener('DOMContentLoaded', () => {
+       const isAnon = getAnonymityPreference();
+       ['anonToggle', 'repostAnonToggle'].forEach(id => {
+         const el = document.getElementById(id);
+         if (el) el.checked = isAnon;
+       });
+    });
   }
 })();
 
@@ -427,36 +447,44 @@ let allPosts = [];
 // ========================
 onAuthStateChanged(auth, async (user) => {
   if (user) {
-    // 1. Parallel: Load posts immediately (Don't wait for user doc)
-    loadUserPosts(user.uid);
+    const urlParams = new URLSearchParams(window.location.search);
+    const targetUid = urlParams.get('id') || user.uid;
+    const isOwnProfile = targetUid === user.uid;
 
-    // 2. Parallel: Fetch latest user doc to refresh cache & UI
-    const userDocRef = doc(db, "users", user.uid);
+    // 1. Parallel: Load posts immediately
+    loadUserPosts(targetUid);
+
+    // 2. Parallel: Fetch target user doc to refresh UI
+    const userDocRef = doc(db, "users", targetUid);
     try {
       const userSnap = await getDoc(userDocRef);
       if (userSnap.exists()) {
         const userData = userSnap.data();
 
-        // Redirect if Admin
-        if (userData.role === 'USG' || userData.role === 'Admin') {
+        // Redirect if Admin (only for own profile)
+        if (isOwnProfile && (userData.role === 'USG' || userData.role === 'Admin')) {
           window.location.href = '../pages/admin_profile.html';
           return;
         }
 
-        // Sync global USER object
-        USER.name = userData.fullName || user.displayName || "TUPian";
-        USER.photoSrc = userData.photoURL || user.photoURL || "../assets/images/anon_avatar.jpg";
+        // Sync global USER object (always own data)
+        if (isOwnProfile) {
+          USER.name = userData.fullName || user.displayName || "TUPian";
+          USER.photoSrc = userData.photoURL || user.photoURL || "../assets/images/anon_avatar.jpg";
 
-        // Update Cache
-        const cache = {
-          ...userData,
-          email: user.email,
-          uid: user.uid
-        };
-        localStorage.setItem('tup_user_meta', JSON.stringify(cache));
+          // Update Cache
+          const cache = {
+            ...userData,
+            email: user.email,
+            uid: user.uid,
+            photoURL: USER.photoSrc,
+            fullName: USER.name
+          };
+          localStorage.setItem('tup_user_meta', JSON.stringify(cache));
+        }
 
         // Update UI with fresh data
-        updateProfileUI(userData, user.email);
+        updateProfileUI(userData, isOwnProfile ? user.email : (userData.email || ''), isOwnProfile);
       }
     } catch (err) {
       console.error("Profile fetch error:", err);
@@ -469,13 +497,15 @@ onAuthStateChanged(auth, async (user) => {
 // ========================
 // PROFILE UI UPDATE
 // ========================
-function updateProfileUI(userData, email) {
-  const photoURL = userData.photoURL || userData.photoSrc || USER.photoSrc;
-  const fullName = userData.fullName || userData.name || USER.name;
+function updateProfileUI(userData, email, isOwnProfile = true) {
+  const photoURL = userData.photoURL || userData.photoSrc || (isOwnProfile ? USER.photoSrc : "../assets/images/anon_avatar.jpg");
+  const fullName = userData.fullName || userData.name || (isOwnProfile ? USER.name : "TUPian");
 
-  // 1. Update Global USER object for Firestore consistency
-  USER.name = fullName;
-  USER.photoSrc = photoURL;
+  // 1. Only update Global USER if it's our own profile
+  if (isOwnProfile) {
+    USER.name = fullName;
+    USER.photoSrc = photoURL;
+  }
 
   // 2. Profile & Banner
   const profileImg = document.querySelector('.profile-avatar-inner');
@@ -483,6 +513,7 @@ function updateProfileUI(userData, email) {
 
   const bannerImg = document.querySelector('.banner-img');
   if (bannerImg && userData.coverURL) bannerImg.src = userData.coverURL;
+  else if (bannerImg) bannerImg.src = "../assets/images/cover_photo.jpg"; // Default
 
   const nameEl = document.querySelector('.profile-name');
   const idEl = document.querySelector('.profile-id');
@@ -502,14 +533,36 @@ function updateProfileUI(userData, email) {
   const postInputImg = document.querySelector('.post-input-img');
   if (postInputImg) postInputImg.src = photoURL;
 
+  const isAnon = getAnonymityPreference();
+  const displayPhoto = isAnon ? "../assets/images/anon_avatar.jpg" : photoURL;
+  const displayName = isAnon ? "Anonymous Puto" : fullName;
+
   const modalAvatarEl = document.getElementById('modal-avatar');
   if (modalAvatarEl) {
-    modalAvatarEl.innerHTML = `<img src="${photoURL}" alt="Me" style="width:100%;height:100%;object-fit:cover;border-radius:50%;image-rendering:high-quality;">`;
+    modalAvatarEl.innerHTML = `<img src="${displayPhoto}" alt="Me" style="width:100%;height:100%;object-fit:cover;border-radius:50%;image-rendering:high-quality;">`;
   }
   const modalNameEl = document.getElementById('modal-user-name');
-  if (modalNameEl) modalNameEl.textContent = fullName;
+  if (modalNameEl) modalNameEl.textContent = displayName;
 
-  // 5. Comment Section (Modal & Input)
+  // Sync repost modal as well
+  const rAvatarEl = document.getElementById('repost-user-avatar');
+  if (rAvatarEl) {
+    rAvatarEl.innerHTML = `<img src="${displayPhoto}" style="width:100%; height:100%; object-fit:cover; border-radius:50%; image-rendering:high-quality;">`;
+  }
+  const rNameEl = document.getElementById('repost-user-name');
+  if (rNameEl) rNameEl.textContent = displayName;
+
+  // 5. Hide owner-only actions if viewing someone else
+  const changePhotoWrap = document.querySelector('.change-photo-wrap');
+  if (changePhotoWrap) changePhotoWrap.style.display = isOwnProfile ? 'block' : 'none';
+
+  const postInputWrap = document.querySelector('.post-input-wrap');
+  if (postInputWrap) postInputWrap.style.display = isOwnProfile ? 'flex' : 'none';
+
+  const logoutBtn = document.getElementById('btn-logout');
+  if (logoutBtn) logoutBtn.style.display = isOwnProfile ? 'flex' : 'none';
+
+  // 6. Comment Section (Modal & Input)
   const commentModalInputAv = document.querySelector('.comment-modal-avatar img');
   if (commentModalInputAv) commentModalInputAv.src = photoURL;
 
@@ -520,8 +573,8 @@ function updateProfileUI(userData, email) {
   // 6. Existing Feed Items
   document.querySelectorAll('.post-card').forEach(card => {
     const postData = card.dataset;
-    // Update my own posts' avatars if they are in the current feed
-    if (postData.userId === auth.currentUser?.uid) {
+    // Update my own posts' avatars ONLY if they are NOT anonymous
+    if (postData.userId === auth.currentUser?.uid && postData.isAnonymous !== 'true') {
       const av = card.querySelector('.post-avatar img');
       if (av) av.src = photoURL;
     }
@@ -677,8 +730,12 @@ function renderPost(data, postId) {
   const feed = document.getElementById('feed');
   const postCard = document.createElement('div');
   postCard.className = 'post-card';
+  const userId = data.userId || data.uid || data.authorId;
+  const isOwnPost = auth.currentUser && (userId === auth.currentUser.uid);
+  const isAnonymous = data.isAnonymous === true;
   postCard.dataset.id = postId;
-  postCard.dataset.userId = data.userId || data.uid || data.authorId;
+  postCard.dataset.userId = userId;
+  postCard.dataset.isAnonymous = isAnonymous;
 
   const likeCount = data.likedBy ? data.likedBy.length : 0;
   const commentCount = data.comments || 0;
@@ -711,7 +768,11 @@ function renderPost(data, postId) {
           </div>
           ${isDeleted ? '' : `<button class="view-more-btn" id="btn-vm-${postId}">View more ▾</button>`}
         </div>
-        ${!isDeleted && data.repostImage ? `<div class="post-images lightbox-trigger" data-src="${data.repostImage}" style="display:flex; justify-content:center; align-items:center; text-align: center; cursor:pointer;"><img src="${data.repostImage}" class="post-image" style="image-rendering: high-quality;"></div>` : ''}
+        ${!isDeleted ? (
+          (data.repostImageURLs && data.repostImageURLs.length > 0) 
+            ? renderPhotoGrid(data.repostImageURLs) 
+            : (data.repostImage ? `<div class="post-images lightbox-trigger" data-src="${data.repostImage}" style="display:flex; justify-content:center; align-items:center; text-align: center; cursor:pointer;"><img src="${data.repostImage}" class="post-image" style="image-rendering: high-quality;"></div>` : '')
+        ) : ''}
       </div>`;
 
     // Async check for original post existence
@@ -776,10 +837,11 @@ function renderPost(data, postId) {
         </div>
         <div class="post-time">${formatRelativeTime(data.createdAt)}</div>
       </div>
+      ${isOwnPost ? `
       <button class="post-menu" onclick="toggleMenu(event, '${menuId}')">
         <svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg>
         <div class="dropdown-menu" id="${menuId}">${getTemplate('menu-template')}</div>
-      </button>
+      </button>` : ''}
     </div>
     ${bodyHtml}
     <div class="comments-data" style="display:none;"></div>
@@ -1174,59 +1236,142 @@ const attachWrap = document.getElementById('modal-attachments');
 const submitBtn = document.getElementById('modal-submit-btn');
 const textarea = document.getElementById('postContent') || document.getElementById('post-textarea');
 
+const repostFileInput = document.getElementById('repost-file-input');
+const repostAttachWrap = document.getElementById('repost-modal-attachments');
+const repostTextarea = document.getElementById('repostContent');
+
 function updateSubmitButton() {
-  const hasContent = textarea && textarea.value.trim().length > 0;
-  const hasImages = attachWrap && attachWrap.querySelectorAll('.modal-attach-thumb').length > 0;
-  if (submitBtn) submitBtn.disabled = !hasContent && !hasImages;
+  // Main Post
+  if (textarea && submitBtn) {
+    const hasContent = textarea.value.trim().length > 0;
+    const hasImages = attachWrap && attachWrap.querySelectorAll('.modal-attach-thumb').length > 0;
+    submitBtn.disabled = !hasContent && !hasImages;
+  }
+  // Repost Quote
+  const rSubmitBtn = document.getElementById('repost-submit-btn');
+  if (repostTextarea && rSubmitBtn) {
+    const hasContent = repostTextarea.value.trim().length > 0;
+    const hasImages = repostAttachWrap && repostAttachWrap.querySelectorAll('.modal-attach-thumb').length > 0;
+    rSubmitBtn.disabled = !hasContent && !hasImages;
+  }
 }
 
 if (textarea) textarea.addEventListener('input', updateSubmitButton);
+if (repostTextarea) repostTextarea.addEventListener('input', updateSubmitButton);
 
 document.getElementById('btn-add-photo')?.addEventListener('click', e => {
+  e.preventDefault();
   e.stopPropagation();
+  
+  const now = Date.now();
+  if (now - lastPhotoClick < PHOTO_DEBOUNCE) return;
+  lastPhotoClick = now;
+
   openPostModal();
-  setTimeout(() => fileInput?.click(), 150);
+  setTimeout(() => {
+    if (fileInput) fileInput.click();
+  }, 250);
 });
 
-document.querySelector('.modal-add-photo-btn')?.addEventListener('click', e => {
+document.getElementById('modal-add-photo-btn')?.addEventListener('click', e => {
+  e.preventDefault();
   e.stopPropagation();
-  fileInput?.click();
+
+  const now = Date.now();
+  if (now - lastPhotoClick < PHOTO_DEBOUNCE) return;
+  lastPhotoClick = now;
+
+  if (fileInput) fileInput.click();
 });
+
+document.getElementById('anonToggle')?.addEventListener('change', function () {
+  setAnonymityPreference(this.checked);
+  updateAnonUI(this.checked, 'modal-user-name', 'modal-avatar');
+});
+
+document.getElementById('repostAnonToggle')?.addEventListener('change', function () {
+  setAnonymityPreference(this.checked);
+  updateAnonUI(this.checked, 'repost-user-name', 'repost-user-avatar');
+});
+
+function setAnonymityPreference(isAnon) {
+  localStorage.setItem('tup_anon_pref', isAnon);
+  // Sync all other toggles
+  ['anonToggle', 'repostAnonToggle'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.checked = isAnon;
+  });
+}
+
+function getAnonymityPreference() {
+  return localStorage.getItem('tup_anon_pref') === 'true';
+}
+
+function updateAnonUI(isAnon, nameId, avatarId) {
+  const modalName = document.getElementById(nameId);
+  const modalAvatar = document.getElementById(avatarId);
+  if (modalName) modalName.textContent = isAnon ? "Anonymous Puto" : USER.name;
+  if (modalAvatar) {
+    modalAvatar.innerHTML = `<img src="${isAnon ? '../assets/images/anon_avatar.jpg' : USER.photoSrc}" style="width:100%;height:100%;object-fit:cover;border-radius:50%; image-rendering: high-quality;">`;
+  }
+}
 
 fileInput?.addEventListener('change', async function () {
   const files = Array.from(this.files);
-  const compressionPromises = files.map(async (file) => {
+  for (const file of files) {
     try {
       const compressedBase64 = await compressImage(file, 1000, 1000);
-      const thumb = document.createElement('img');
-      thumb.src = compressedBase64;
-      thumb.className = 'modal-attach-thumb';
-      thumb.style.cssText = 'width:80px; height:80px; object-fit:cover; border-radius:8px; cursor:pointer; flex-shrink:0;';
-      thumb.addEventListener('click', () => { thumb.remove(); updateSubmitButton(); });
-      return thumb;
+      const wrapper = document.createElement('div');
+      wrapper.className = 'modal-attach-thumb-wrapper';
+      wrapper.style.cssText = 'position:relative; width:80px; height:80px; flex-shrink:0;';
+      
+      wrapper.innerHTML = `
+        <img src="${compressedBase64}" class="modal-attach-thumb" style="width:100%; height:100%; object-fit:cover; border-radius:8px;">
+        <button class="modal-attach-remove" style="position:absolute; top:-5px; right:-5px; background:rgba(0,0,0,0.6); color:white; border:none; border-radius:50%; width:20px; height:20px; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:12px; z-index:10;">✕</button>
+      `;
+
+      wrapper.querySelector('.modal-attach-remove').addEventListener('click', (e) => {
+        e.stopPropagation();
+        wrapper.remove();
+        updateSubmitButton();
+      });
+
+      attachWrap.appendChild(wrapper);
     } catch (err) {
       console.error("Compression error:", err);
-      return null;
     }
-  });
-
-  const thumbs = await Promise.all(compressionPromises);
-  thumbs.forEach(thumb => {
-    if (thumb) attachWrap.appendChild(thumb);
-  });
+  }
 
   updateSubmitButton();
   fileInput.value = '';
 });
 
+
+
 function openPostModal() {
-  document.getElementById('postModal').classList.add('open');
+  const overlay = document.getElementById('postModal');
+  const modalName = document.getElementById('modal-user-name');
+  const modalAvatar = document.getElementById('modal-avatar');
+  const anonToggle = document.getElementById('anonToggle');
+
+  if (overlay) overlay.classList.add('open');
+  
+  // Apply anonymity preference
+  const isAnon = getAnonymityPreference();
+  if (anonToggle) anonToggle.checked = isAnon;
+  updateAnonUI(isAnon, 'modal-user-name', 'modal-avatar');
+
   setTimeout(() => document.getElementById('postContent')?.focus(), 120);
   updateSubmitButton();
 }
 
 function closePostModal() {
-  document.getElementById('postModal').classList.remove('open');
+  const overlay = document.getElementById('postModal');
+  if (overlay) overlay.classList.remove('open');
+  const attachWrap = document.getElementById('modal-attachments');
+  if (attachWrap) attachWrap.innerHTML = '';
+  const fileInput = document.getElementById('modal-file-input');
+  if (fileInput) fileInput.value = '';
 }
 
 function closeModalOnOverlay(e) {
@@ -1237,6 +1382,8 @@ window.submitPost = async function () {
   const content = document.getElementById('postContent').value.trim();
   const attachWrap = document.getElementById('modal-attachments');
   const thumbs = Array.from(attachWrap.querySelectorAll('.modal-attach-thumb'));
+  const anonToggle = document.getElementById('anonToggle');
+  const isAnonymous = anonToggle ? anonToggle.checked : false;
 
   if (!content && thumbs.length === 0) { window.showToast('Write something first!', 'warning'); return; }
 
@@ -1258,11 +1405,12 @@ window.submitPost = async function () {
 
     const postData = {
       userId: user.uid,
-      author: USER.name,
-      photoURL: USER.photoSrc,
+      author: isAnonymous ? "Anonymous Puto" : USER.name,
+      photoURL: isAnonymous ? "../assets/images/anon_avatar.jpg" : USER.photoSrc,
       text: content,
       imageURL: imageURLs.length > 0 ? imageURLs[0] : "", // Legacy support
       imageURLs: imageURLs,
+      isAnonymous: isAnonymous,
       createdAt: serverTimestamp(),
       likedBy: [],
       comments: 0,
@@ -1277,6 +1425,7 @@ window.submitPost = async function () {
 
     document.getElementById('postContent').value = '';
     attachWrap.innerHTML = '';
+    // Persistence: Removed reset of anonToggle
     closePostModal();
     window.showToast('Post shared!', 'success');
   } catch (err) {
@@ -1320,6 +1469,11 @@ async function openCommentModal(el) {
   });
 
   bindCommentActions();
+  
+  // Set user avatar in comment input
+  const modalAvatarWrap = document.querySelector('.comment-modal-avatar img');
+  if (modalAvatarWrap) modalAvatarWrap.src = USER.photoSrc || '../assets/images/anon_avatar.jpg';
+
   document.getElementById('commentModal').classList.add('open');
   setTimeout(() => document.getElementById('commentModalInput')?.focus(), 120);
 }
@@ -1447,6 +1601,7 @@ function closeCommentModal() {
   document.getElementById('commentModal').classList.remove('open');
   const inp = document.getElementById('commentModalInput');
   if (inp) inp.value = '';
+  // Persistence: Removed reset of commentAnonToggle
   _currentPostCard = null;
 }
 
@@ -1461,15 +1616,19 @@ function handleModalCommentKey(e) {
 async function submitModalComment() {
   const input = document.getElementById('commentModalInput');
   const text = input.value.trim();
+
   if (!text) return;
 
   const now = new Date();
   const list = document.getElementById('commentModalList');
   const cIdx = list.querySelectorAll('.comment-modal-item').length;
 
+  const displayAuthor = USER.name;
+  const displayAvatar = USER.photoSrc || '../assets/images/anon_avatar.jpg';
+
   list.appendChild(buildCommentModalItem(
-    USER.name,
-    USER.photoSrc || '../assets/images/anon_avatar.jpg',
+    displayAuthor,
+    displayAvatar,
     text, now.toISOString(), true, cIdx,
     auth.currentUser?.uid || ''
   ));
@@ -1486,8 +1645,8 @@ async function submitModalComment() {
   cd.className = 'comment-data';
   cd.dataset.commentId = '';
   cd.dataset.userId = auth.currentUser?.uid || '';
-  cd.dataset.author = USER.name;
-  cd.dataset.avatar = USER.photoSrc || '../assets/images/anon_avatar.jpg';
+  cd.dataset.author = displayAuthor;
+  cd.dataset.avatar = displayAvatar;
   cd.dataset.text = text;
   cd.dataset.time = now.toISOString();
   cd.dataset.isOwn = 'true';
@@ -1496,9 +1655,10 @@ async function submitModalComment() {
   try {
     const commentRef = await addDoc(collection(db, "posts", postId, "comments"), {
       text: text,
-      author: USER.name,
+      author: displayAuthor,
       userId: auth.currentUser?.uid || null,
-      photoURL: USER.photoSrc || '../assets/images/anon_avatar.jpg',
+      photoURL: displayAvatar,
+      isAnonymous: isAnonymous,
       createdAt: serverTimestamp()
     });
     cd.dataset.commentId = commentRef.id;
@@ -1591,10 +1751,16 @@ async function openRepostModal(btn) {
 
   // 2. Clear previous data
   document.getElementById('repostContent').value = '';
-  document.getElementById('repost-user-name').textContent = USER.name || 'TUPian';
-  const userAvatar = document.getElementById('repost-user-avatar');
-  if (userAvatar && USER.photoSrc) {
-    userAvatar.innerHTML = `<img src="${USER.photoSrc}" style="width:100%; height:100%; object-fit:cover; border-radius:50%; image-rendering:high-quality;">`;
+  const isAnon = getAnonymityPreference();
+  const rToggle = document.getElementById('repostAnonToggle');
+  if (rToggle) rToggle.checked = isAnon;
+
+  const modalName = document.getElementById('repost-user-name');
+  const modalAvatar = document.getElementById('repost-user-avatar');
+
+  if (modalName) modalName.textContent = isAnon ? "Anonymous Puto" : (USER.name || 'TUPian');
+  if (modalAvatar) {
+    modalAvatar.innerHTML = `<img src="${isAnon ? '../assets/images/anon_avatar.jpg' : USER.photoSrc}" style="width:100%; height:100%; object-fit:cover; border-radius:50%; image-rendering:high-quality;">`;
   }
 
   // 3. Fetch original post for preview
@@ -1653,6 +1819,8 @@ function closeRepostModal() {
     overlay.style.display = 'none';
   }
   document.getElementById('repostContent').value = '';
+  if (repostAttachWrap) repostAttachWrap.innerHTML = '';
+  // Persistence: Removed reset of repostAnonToggle
   _currentRepostBtn = null;
   _repostSubmitted = false;
 }
@@ -1662,16 +1830,19 @@ function closeRepostModalOnOverlay(e) {
 }
 
 async function submitRepost(skipQuote = false) {
-  const quote = skipQuote ? "" : document.getElementById('repostContent').value.trim();
+  const rToggle = document.getElementById('repostAnonToggle');
+  const isAnonymous = rToggle ? rToggle.checked : false;
+  const quote = document.getElementById('repostContent').value.trim();
+
   _repostSubmitted = true;
   if (_currentRepostBtn) {
-    await createRepost(_currentRepostBtn, quote);
+    await createRepost(_currentRepostBtn, quote, isAnonymous);
     window.showToast('You Reposted!', 'repost');
   }
   closeRepostModal();
 }
 
-async function createRepost(btn, quote = '') {
+async function createRepost(btn, quote = '', isAnonymous = false) {
   const user = auth.currentUser;
   if (!user) return;
 
@@ -1690,14 +1861,17 @@ async function createRepost(btn, quote = '') {
     const originalAuthor = rawData.author || rawData.name || 'Unknown';
     const originalText = rawData.text || rawData.body || '';
     const originalTitle = rawData.title || '';
-    const originalImage = rawData.repostImage || rawData.imageURL || (rawData.imageURLs && rawData.imageURLs[0]) || null;
+    const originalImage = rawData.repostImage || (rawData.imageURLs && rawData.imageURLs[0]) || rawData.imageURL || null;
+    const originalImages = rawData.repostImageURLs || rawData.imageURLs || (rawData.imageURL ? [rawData.imageURL] : []);
     const originalAuthorPhoto = rawData.photoURL || rawData.photoSrc || '../assets/images/anon_avatar.jpg';
     const repostRef = await addDoc(collection(db, "posts"), {
       userId: user.uid,
-      author: USER.name,
-      photoURL: USER.photoSrc,
+      author: isAnonymous ? "Anonymous Puto" : USER.name,
+      photoURL: isAnonymous ? "../assets/images/anon_avatar.jpg" : USER.photoSrc,
+      isAnonymous: isAnonymous,
       text: quote,
       imageURL: null,
+      imageURLs: [],
       createdAt: serverTimestamp(),
       likedBy: [],
       comments: 0,
@@ -1706,6 +1880,7 @@ async function createRepost(btn, quote = '') {
       repostTitle: originalTitle,
       repostText: originalText,
       repostImage: originalImage,
+      repostImageURLs: originalImages,
       repostAuthorPhoto: originalAuthorPhoto,
       repostTime: document.getElementById('quote-preview-time').textContent || ""
     });

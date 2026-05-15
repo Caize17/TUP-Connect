@@ -371,6 +371,8 @@ let POST = null;
 let FEED_POSTS = [];
 
 (function () {
+  let lastPhotoClick = 0;
+  const PHOTO_DEBOUNCE = 500;
 
   /* ════════════════════════════════════════
      HELPERS
@@ -472,7 +474,10 @@ let FEED_POSTS = [];
             ${fp.quote.repostTitle ? `<div class="repost-quote-title" style="font-weight: 800; font-size: 14px; margin-bottom: 4px; color: var(--text);">${fp.quote.repostTitle}</div>` : ''}
             <div class="repost-quote-body clamped">${fp.quote.body ? fp.quote.body.replace(/\n/g, '<br>') : ''}</div>
           </div>
-          ${fp.quote.repostImage ? `<div class="lightbox-trigger" data-src="${fp.quote.repostImage}" style="cursor:pointer; margin-top:10px; border-radius:8px; overflow:hidden;"><img src="${fp.quote.repostImage}" style="width:100%; display:block; object-fit:cover; max-height:350px; image-rendering: high-quality;"></div>` : ''}
+          ${(fp.quote.repostImageURLs && fp.quote.repostImageURLs.length > 0) 
+            ? renderPhotoGrid(fp.quote.repostImageURLs) 
+            : (fp.quote.repostImage ? `<div class="lightbox-trigger" data-src="${fp.quote.repostImage}" style="cursor:pointer; margin-top:10px; border-radius:8px; overflow:hidden;"><img src="${fp.quote.repostImage}" style="width:100%; display:block; object-fit:cover; max-height:350px; image-rendering: high-quality;"></div>` : '')
+          }
         </div>` : '';
 
       const imageGrid = (fp.imageURLs && fp.imageURLs.length > 0)
@@ -1021,7 +1026,11 @@ let FEED_POSTS = [];
   document.getElementById('open-create-post').addEventListener('click', openModal);
 
   document.getElementById('btn-add-photo').addEventListener('click', e => {
+    e.preventDefault();
     e.stopPropagation();
+    const now = Date.now();
+    if (now - lastPhotoClick < PHOTO_DEBOUNCE) return;
+    lastPhotoClick = now;
     openModal();
     setTimeout(() => fileInput.click(), 150);
   });
@@ -1033,36 +1042,11 @@ let FEED_POSTS = [];
     submitBtn.disabled = this.value.trim().length === 0;
   });
 
-  anonToggle.addEventListener('change', function () {
-    const nameEl = document.getElementById('modal-user-name');
-    const avatarEl = document.getElementById('modal-avatar');
-    if (this.checked) {
-      nameEl.textContent = 'Anonymous Puto';
-      avatarEl.innerHTML = `<img src="../assets/images/anon_avatar.jpg" alt="Anonymous" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
-    } else {
-      nameEl.textContent = USER.name;
-      avatarEl.innerHTML = USER.photoSrc
-        ? `<img src="${USER.photoSrc}" alt="Me" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`
-        : `<svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`;
-    }
-  });
 
-  document.getElementById('modal-photo-btn').addEventListener('click', () => fileInput.click());
 
-  fileInput.addEventListener('change', function () {
-    Array.from(this.files).forEach(file => {
-      const reader = new FileReader();
-      reader.onload = e => {
-        const thumb = document.createElement('img');
-        thumb.src = e.target.result;
-        thumb.className = 'modal-attach-thumb';
-        thumb.title = 'Click to remove';
-        thumb.addEventListener('click', () => thumb.remove());
-        attachWrap.appendChild(thumb);
-      };
-      reader.readAsDataURL(file);
-    });
-  });
+
+
+
 
   /* ════════════════════════════════════════
      QUICK ACTION BUTTONS
@@ -1194,4 +1178,44 @@ let FEED_POSTS = [];
   }
   window.renderFeedPosts = renderFeedPosts;
   window.FEED_POSTS = FEED_POSTS;
+
+  function renderPhotoGrid(imgs) {
+    const count = imgs.length;
+    const clampedCount = Math.min(count, 5);
+    const extra = count > 5 ? count - 5 : 0;
+    const borderRadius = '18px';
+    const gap = '8px';
+
+    if (clampedCount === 1) {
+      return `<div class="lightbox-trigger" data-src="${imgs[0]}" style="cursor:pointer; margin-top:12px; border-radius:${borderRadius}; overflow:hidden; display:block;">
+                <img src="${imgs[0]}" loading="lazy" style="width:100%; display:block; object-fit:cover; max-height:500px;" />
+              </div>`;
+    }
+
+    let style = `display: grid !important; height: 340px !important; gap: ${gap} !important; width: 100% !important; margin-top:12px; border-radius:${borderRadius}; overflow:hidden;`;
+    if (clampedCount === 2) style += ` grid-template-columns: 1fr 1fr !important; grid-template-rows: 1fr !important;`;
+    else if (clampedCount === 3) style += ` grid-template-columns: 1fr 1fr !important; grid-template-rows: 1fr 1fr !important;`;
+    else if (clampedCount === 4) style += ` grid-template-columns: 1fr 1fr !important; grid-template-rows: 1fr 1fr !important;`;
+    else style += ` grid-template-columns: 2fr 1fr 1fr !important; grid-template-rows: 1fr 1fr !important;`;
+
+    let gridHtml = `<div class="photo-grid collage-${clampedCount}" style="${style}">`;
+
+    const cellsHtml = imgs.slice(0, 5).map((src, i) => {
+      let cellStyle = "position: relative !important; overflow: hidden !important; min-width: 0 !important; min-height: 0 !important; width: 100% !important; height: 100% !important; cursor:pointer;";
+      if (clampedCount === 3 && i === 0) cellStyle += " grid-row: 1 / 3 !important;";
+      else if (clampedCount === 5 && i === 0) cellStyle += " grid-column: 1 / 2 !important; grid-row: 1 / 3 !important;";
+
+      const overlayHtml = (i === 4 && extra > 0)
+        ? `<div class="photo-more-overlay" style="position: absolute !important; inset: 0 !important; background: rgba(0,0,0,0.5) !important; display: flex !important; align-items: center !important; justify-content: center !important; color: #fff !important; font-size: 24px !important; font-weight: 700 !important; z-index: 2 !important; pointer-events: none !important; font-family: 'Montserrat', sans-serif;">+${extra}</div>`
+        : '';
+
+      return `
+        <div class="collage-cell lightbox-trigger" data-src="${src}" style="${cellStyle}">
+          <img src="${src}" loading="lazy" style="position: absolute !important; top: 0 !important; left: 0 !important; width: 100% !important; height: 100% !important; object-fit: cover !important; display: block !important;" />
+          ${overlayHtml}
+        </div>`;
+    }).join('');
+
+    return gridHtml + cellsHtml + `</div>`;
+  }
 })();

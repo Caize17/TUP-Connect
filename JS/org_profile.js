@@ -327,7 +327,12 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 window.closePostModal = function() {
-  document.getElementById('postModal').classList.remove('open');
+  const overlay = document.getElementById('postModal');
+  if (overlay) overlay.classList.remove('open');
+  const attachWrap = document.getElementById('modal-attachments');
+  if (attachWrap) attachWrap.innerHTML = '';
+  const fileInput = document.getElementById('modal-file-input');
+  if (fileInput) fileInput.value = '';
 };
 
 window.closeModalOnOverlay = function(e) {
@@ -414,25 +419,28 @@ if (modalAddPhotoBtn) {
 
   fileInput.addEventListener('change', async function () {
     const files = Array.from(this.files);
-    const compressionPromises = files.map(async (file) => {
+    for (const file of files) {
       try {
         const compressedBase64 = await compressImage(file, 1000, 1000);
-        const thumb = document.createElement('img');
-        thumb.src = compressedBase64;
-        thumb.className = 'modal-attach-thumb';
-        thumb.style.cssText = 'width:80px; height:80px; object-fit:cover; border-radius:8px; cursor:pointer; flex-shrink:0;';
-        thumb.addEventListener('click', () => thumb.remove());
-        return thumb;
+        const wrapper = document.createElement('div');
+        wrapper.className = 'modal-attach-thumb-wrapper';
+        wrapper.style.cssText = 'position:relative; width:80px; height:80px; flex-shrink:0;';
+        
+        wrapper.innerHTML = `
+          <img src="${compressedBase64}" class="modal-attach-thumb" style="width:100%; height:100%; object-fit:cover; border-radius:8px;">
+          <button class="modal-attach-remove" style="position:absolute; top:-5px; right:-5px; background:rgba(0,0,0,0.6); color:white; border:none; border-radius:50%; width:20px; height:20px; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:12px; z-index:10;">✕</button>
+        `;
+
+        wrapper.querySelector('.modal-attach-remove').addEventListener('click', (e) => {
+          e.stopPropagation();
+          wrapper.remove();
+        });
+
+        attachWrap.appendChild(wrapper);
       } catch (err) {
         console.error("Compression error:", err);
-        return null;
       }
-    });
-
-    const thumbs = await Promise.all(compressionPromises);
-    thumbs.forEach(thumb => {
-      if (thumb) attachWrap.appendChild(thumb);
-    });
+    }
     fileInput.value = '';
   });
 
@@ -542,7 +550,11 @@ function renderPost(data, postId) {
           </div>
           ${isDeleted ? '' : `<button class="view-more-btn" id="btn-vm-${postId}">View more ▾</button>`}
         </div>
-        ${!isDeleted && data.repostImage ? `<div class="post-images lightbox-trigger" data-src="${data.repostImage}" style="display:flex; justify-content:center; align-items:center; text-align: center; cursor:pointer;"><img src="${data.repostImage}" class="post-image" style="image-rendering: high-quality;"></div>` : ''}
+        ${!isDeleted ? (
+          (data.repostImageURLs && data.repostImageURLs.length > 0) 
+            ? renderPhotoGrid(data.repostImageURLs) 
+            : (data.repostImage ? `<div class="post-images lightbox-trigger" data-src="${data.repostImage}" style="display:flex; justify-content:center; align-items:center; text-align: center; cursor:pointer;"><img src="${data.repostImage}" class="post-image" style="image-rendering: high-quality;"></div>` : '')
+        ) : ''}
       </div>`;
 
     // Async check for original post existence
@@ -1040,13 +1052,26 @@ window.openRepostModal = async function(postId, e) {
       // Add image preview if exists
       const existingImg = modal.querySelector('.cn-rm-quote-image');
       if (existingImg) existingImg.remove();
-      const imageURL = data.imageURL || (data.imageURLs && data.imageURLs[0]) || null;
-      if (imageURL) {
-        const imgEl = document.createElement('img');
-        imgEl.className = 'cn-rm-quote-image';
-        imgEl.src = imageURL;
-        imgEl.style.cssText = 'width:100%; max-height:200px; object-fit:cover; border-radius:8px; margin-top:8px; image-rendering:high-quality;';
-        document.getElementById('repost-quote-preview').appendChild(imgEl);
+      const existingGrid = modal.querySelector('.photo-grid');
+      if (existingGrid) existingGrid.remove();
+
+      const imagesToPreview = data.imageURLs || (data.imageURL ? [data.imageURL] : []);
+      if (imagesToPreview && imagesToPreview.length > 0) {
+        const previewContainer = document.getElementById('repost-quote-preview');
+        if (imagesToPreview.length === 1) {
+          const imgEl = document.createElement('img');
+          imgEl.className = 'cn-rm-quote-image';
+          imgEl.src = imagesToPreview[0];
+          imgEl.style.cssText = 'width:100%; max-height:200px; object-fit:cover; border-radius:8px; margin-top:8px; image-rendering:high-quality;';
+          previewContainer.appendChild(imgEl);
+        } else {
+          const gridHtml = renderPhotoGrid(imagesToPreview);
+          const gridWrap = document.createElement('div');
+          gridWrap.innerHTML = gridHtml;
+          const gridEl = gridWrap.firstElementChild;
+          gridEl.style.height = '200px';
+          previewContainer.appendChild(gridEl);
+        }
       }
     }
   } catch (err) {
@@ -1093,7 +1118,8 @@ window.submitRepost = async function(skipQuote = false) {
       repostAuthorPhoto: original.photoURL || original.photoSrc || '../assets/images/anon_avatar.jpg',
       repostTitle: original.title || "",
       repostText: original.text || original.body || "",
-      repostImage: original.repostImage || original.imageURL || (original.imageURLs && original.imageURLs[0]) || null,
+      repostImage: original.imageURL || (original.imageURLs && original.imageURLs[0]) || null,
+      repostImageURLs: original.imageURLs || (original.imageURL ? [original.imageURL] : []),
       repostTime: document.getElementById('quote-preview-time').textContent || "",
       createdAt: serverTimestamp(),
       isOrg: true,
