@@ -116,10 +116,23 @@
         '<h3 class="guest-wall-title">You\'re viewing as a guest</h3>' +
         '<p class="guest-wall-sub">Sign in with your TUP email to see all posts, react, and join the conversation.</p>' +
         '<a href="../index.html" class="guest-wall-btn">Sign In</a>' +
-        '<button class="guest-wall-dismiss" onclick="this.closest(\'.guest-signin-wall\').remove()">Keep browsing as guest</button>' +
+        '<button class="guest-wall-dismiss" onclick="continueGuestBrowsing(this)">Keep browsing as guest</button>' +
       '</div>';
     return wall;
   }
+
+  window.continueGuestBrowsing = function(btn) {
+
+  // remove popup only after clicking continue
+  const wall = btn.closest('.guest-signin-wall');
+  if (wall) wall.remove();
+
+  // remove blur from hidden posts
+  document.querySelectorAll('.guest-blurred').forEach(function(post) {
+    post.classList.remove('guest-blurred');
+  });
+
+};
 
   /* ════════════════════════════════════════
      LOCKED PAGE OVERLAY
