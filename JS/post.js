@@ -8,6 +8,52 @@ let updatePostBox = null;
 let lastPhotoClick = 0;
 const PHOTO_DEBOUNCE = 500;
 
+window.renderPhotoGrid = function(imgs) {
+  if (!imgs || imgs.length === 0) return '';
+  const count = imgs.length;
+  const clampedCount = Math.min(count, 5);
+  const extra = count > 5 ? count - 5 : 0;
+  const borderRadius = '18px';
+  const gap = '8px';
+
+  if (clampedCount === 1) {
+    return `<div class="lightbox-trigger" data-src="${imgs[0]}" style="cursor:pointer; margin-top:12px; border-radius:${borderRadius}; overflow:hidden; display:block;">
+              <img src="${imgs[0]}" loading="lazy" style="width:100%; display:block; object-fit:cover; max-height:500px;" />
+            </div>`;
+  }
+
+  let style = `display: grid !important; height: 340px !important; gap: ${gap} !important; width: 100% !important; margin-top:12px; border-radius:${borderRadius}; overflow:hidden;`;
+  if (clampedCount === 2) style += ` grid-template-columns: 1fr 1fr !important; grid-template-rows: 1fr !important;`;
+  else if (clampedCount === 3) style += ` grid-template-columns: 1fr 1fr !important; grid-template-rows: 1fr 1fr !important;`;
+  else if (clampedCount === 4) style += ` grid-template-columns: 1fr 1fr !important; grid-template-rows: 1fr 1fr !important;`;
+  else style += ` grid-template-columns: 2fr 1fr 1fr !important; grid-template-rows: 1fr 1fr !important;`;
+
+  let gridHtml = `<div class="photo-grid collage-${clampedCount}" style="${style}">`;
+
+  const cellsHtml = imgs.slice(0, 5).map((src, i) => {
+    let cellStyle = "position: relative !important; overflow: hidden !important; min-width: 0 !important; min-height: 0 !important; width: 100% !important; height: 100% !important; cursor:pointer;";
+    if (clampedCount === 3 && i === 0) cellStyle += " grid-row: 1 / 3 !important;";
+    else if (clampedCount === 5 && i === 0) cellStyle += " grid-column: 1 / 2 !important; grid-row: 1 / 3 !important;";
+
+    const overlayHtml = (i === 4 && extra > 0)
+      ? `<div class="photo-more-overlay" style="position: absolute !important; inset: 0 !important; background: rgba(0,0,0,0.5) !important; display: flex !important; align-items: center !important; justify-content: center !important; color: #fff !important; font-size: 24px !important; font-weight: 700 !important; z-index: 2 !important; pointer-events: none !important; font-family: 'Montserrat', sans-serif;">+${extra}</div>`
+      : '';
+
+    return `
+      <div class="collage-cell lightbox-trigger" data-src="${src}" style="${cellStyle}">
+        <img src="${src}" loading="lazy" style="position: absolute !important; top: 0 !important; left: 0 !important; width: 100% !important; height: 100% !important; object-fit: cover !important; display: block !important;" />
+        ${overlayHtml}
+      </div>`;
+  }).join('');
+
+  return gridHtml + cellsHtml + `</div>`;
+}
+
+// Local wrapper
+function renderPhotoGrid(imgs) {
+  return window.renderPhotoGrid(imgs);
+}
+
 const imageInput = document.getElementById('modal-file-input');
 const imagePreview = document.getElementById('post-image-preview');
 const addImageBtn = document.getElementById('modal-add-photo-btn');
@@ -443,7 +489,8 @@ function formatFirebaseData(snapshot) {
         body: data.repostText,
         name: data.repostAuthor,
         photoSrc: data.repostAuthorPhoto,
-        repostImage: data.repostImage,
+        repostImage: data.repostImage || (data.imageURLs && data.imageURLs[0]) || data.imageURL || null,
+        repostImageURLs: data.repostImageURLs || data.imageURLs || (data.imageURL ? [data.imageURL] : []),
         repostTitle: data.repostTitle || "",
         time: data.repostTime || ""
       } : null,
@@ -758,16 +805,28 @@ function openRepostModalHP(postData, collectionName = 'posts') {
   // Add image preview if exists
   const existingImg = modal.querySelector('.hp-rm-quote-image');
   if (existingImg) existingImg.remove();
+  const existingGrid = modal.querySelector('.photo-grid');
+  if (existingGrid) existingGrid.remove();
   
-  // Robust image identification
-  const imgToPreview = postData.repostImage || postData.postImage || (postData.imageURLs && postData.imageURLs[0]) || postData.imageURL;
+  const imagesToPreview = postData.repostImageURLs || postData.imageURLs || (postData.repostImage ? [postData.repostImage] : (postData.imageURL ? [postData.imageURL] : []));
   
-  if (imgToPreview) {
-    const imgEl = document.createElement('img');
-    imgEl.className = 'hp-rm-quote-image';
-    imgEl.src = imgToPreview;
-    imgEl.style.cssText = 'width:100%; max-height:200px; object-fit:cover; border-radius:8px; margin-top:8px;';
-    document.getElementById('repost-quote-preview').appendChild(imgEl);
+  if (imagesToPreview && imagesToPreview.length > 0) {
+    const previewContainer = document.getElementById('repost-quote-preview');
+    if (imagesToPreview.length === 1) {
+      const imgEl = document.createElement('img');
+      imgEl.className = 'hp-rm-quote-image';
+      imgEl.src = imagesToPreview[0];
+      imgEl.style.cssText = 'width:100%; max-height:200px; object-fit:cover; border-radius:8px; margin-top:8px;';
+      previewContainer.appendChild(imgEl);
+    } else {
+      // Use a simplified grid for preview or just call renderPhotoGrid if available
+      const gridHtml = renderPhotoGrid(imagesToPreview);
+      const gridWrap = document.createElement('div');
+      gridWrap.innerHTML = gridHtml;
+      const gridEl = gridWrap.firstElementChild;
+      gridEl.style.height = '200px'; // Limit height in preview
+      previewContainer.appendChild(gridEl);
+    }
   }
 
   document.getElementById('repostContent').value = '';
@@ -833,7 +892,8 @@ window.submitRepost = async function (skipQuote = false) {
       repostOf: postId,
       repostAuthor: rawData.author || rawData.name || "Anonymous",
       repostText: rawData.text || rawData.body || "",
-      repostImage: rawData.repostImage || rawData.imageURL || (rawData.imageURLs && rawData.imageURLs[0]) || null,
+      repostImage: rawData.repostImage || (rawData.imageURLs && rawData.imageURLs[0]) || rawData.imageURL || null,
+      repostImageURLs: rawData.repostImageURLs || rawData.imageURLs || (rawData.imageURL ? [rawData.imageURL] : []),
       repostAuthorPhoto: rawData.photoURL || rawData.photoSrc || '../assets/images/anon_avatar.jpg',
       repostTitle: rawData.title || "",
       repostTime: document.getElementById('quote-preview-time').textContent || "JUST NOW",

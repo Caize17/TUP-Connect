@@ -550,7 +550,11 @@ function renderPost(data, postId) {
           </div>
           ${isDeleted ? '' : `<button class="view-more-btn" id="btn-vm-${postId}">View more ▾</button>`}
         </div>
-        ${!isDeleted && data.repostImage ? `<div class="post-images lightbox-trigger" data-src="${data.repostImage}" style="display:flex; justify-content:center; align-items:center; text-align: center; cursor:pointer;"><img src="${data.repostImage}" class="post-image" style="image-rendering: high-quality;"></div>` : ''}
+        ${!isDeleted ? (
+          (data.repostImageURLs && data.repostImageURLs.length > 0) 
+            ? renderPhotoGrid(data.repostImageURLs) 
+            : (data.repostImage ? `<div class="post-images lightbox-trigger" data-src="${data.repostImage}" style="display:flex; justify-content:center; align-items:center; text-align: center; cursor:pointer;"><img src="${data.repostImage}" class="post-image" style="image-rendering: high-quality;"></div>` : '')
+        ) : ''}
       </div>`;
 
     // Async check for original post existence
@@ -1048,13 +1052,26 @@ window.openRepostModal = async function(postId, e) {
       // Add image preview if exists
       const existingImg = modal.querySelector('.cn-rm-quote-image');
       if (existingImg) existingImg.remove();
-      const imageURL = data.imageURL || (data.imageURLs && data.imageURLs[0]) || null;
-      if (imageURL) {
-        const imgEl = document.createElement('img');
-        imgEl.className = 'cn-rm-quote-image';
-        imgEl.src = imageURL;
-        imgEl.style.cssText = 'width:100%; max-height:200px; object-fit:cover; border-radius:8px; margin-top:8px; image-rendering:high-quality;';
-        document.getElementById('repost-quote-preview').appendChild(imgEl);
+      const existingGrid = modal.querySelector('.photo-grid');
+      if (existingGrid) existingGrid.remove();
+
+      const imagesToPreview = data.imageURLs || (data.imageURL ? [data.imageURL] : []);
+      if (imagesToPreview && imagesToPreview.length > 0) {
+        const previewContainer = document.getElementById('repost-quote-preview');
+        if (imagesToPreview.length === 1) {
+          const imgEl = document.createElement('img');
+          imgEl.className = 'cn-rm-quote-image';
+          imgEl.src = imagesToPreview[0];
+          imgEl.style.cssText = 'width:100%; max-height:200px; object-fit:cover; border-radius:8px; margin-top:8px; image-rendering:high-quality;';
+          previewContainer.appendChild(imgEl);
+        } else {
+          const gridHtml = renderPhotoGrid(imagesToPreview);
+          const gridWrap = document.createElement('div');
+          gridWrap.innerHTML = gridHtml;
+          const gridEl = gridWrap.firstElementChild;
+          gridEl.style.height = '200px';
+          previewContainer.appendChild(gridEl);
+        }
       }
     }
   } catch (err) {
@@ -1101,7 +1118,8 @@ window.submitRepost = async function(skipQuote = false) {
       repostAuthorPhoto: original.photoURL || original.photoSrc || '../assets/images/anon_avatar.jpg',
       repostTitle: original.title || "",
       repostText: original.text || original.body || "",
-      repostImage: original.repostImage || original.imageURL || (original.imageURLs && original.imageURLs[0]) || null,
+      repostImage: original.imageURL || (original.imageURLs && original.imageURLs[0]) || null,
+      repostImageURLs: original.imageURLs || (original.imageURL ? [original.imageURL] : []),
       repostTime: document.getElementById('quote-preview-time').textContent || "",
       createdAt: serverTimestamp(),
       isOrg: true,

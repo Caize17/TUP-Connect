@@ -768,7 +768,11 @@ function renderPost(data, postId) {
           </div>
           ${isDeleted ? '' : `<button class="view-more-btn" id="btn-vm-${postId}">View more ▾</button>`}
         </div>
-        ${!isDeleted && data.repostImage ? `<div class="post-images lightbox-trigger" data-src="${data.repostImage}" style="display:flex; justify-content:center; align-items:center; text-align: center; cursor:pointer;"><img src="${data.repostImage}" class="post-image" style="image-rendering: high-quality;"></div>` : ''}
+        ${!isDeleted ? (
+          (data.repostImageURLs && data.repostImageURLs.length > 0) 
+            ? renderPhotoGrid(data.repostImageURLs) 
+            : (data.repostImage ? `<div class="post-images lightbox-trigger" data-src="${data.repostImage}" style="display:flex; justify-content:center; align-items:center; text-align: center; cursor:pointer;"><img src="${data.repostImage}" class="post-image" style="image-rendering: high-quality;"></div>` : '')
+        ) : ''}
       </div>`;
 
     // Async check for original post existence
@@ -1857,7 +1861,8 @@ async function createRepost(btn, quote = '', isAnonymous = false) {
     const originalAuthor = rawData.author || rawData.name || 'Unknown';
     const originalText = rawData.text || rawData.body || '';
     const originalTitle = rawData.title || '';
-    const originalImage = rawData.repostImage || rawData.imageURL || (rawData.imageURLs && rawData.imageURLs[0]) || null;
+    const originalImage = rawData.repostImage || (rawData.imageURLs && rawData.imageURLs[0]) || rawData.imageURL || null;
+    const originalImages = rawData.repostImageURLs || rawData.imageURLs || (rawData.imageURL ? [rawData.imageURL] : []);
     const originalAuthorPhoto = rawData.photoURL || rawData.photoSrc || '../assets/images/anon_avatar.jpg';
     const repostRef = await addDoc(collection(db, "posts"), {
       userId: user.uid,
@@ -1875,6 +1880,7 @@ async function createRepost(btn, quote = '', isAnonymous = false) {
       repostTitle: originalTitle,
       repostText: originalText,
       repostImage: originalImage,
+      repostImageURLs: originalImages,
       repostAuthorPhoto: originalAuthorPhoto,
       repostTime: document.getElementById('quote-preview-time').textContent || ""
     });
