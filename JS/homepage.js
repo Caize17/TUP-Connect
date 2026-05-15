@@ -474,10 +474,10 @@ let FEED_POSTS = [];
             ${fp.quote.repostTitle ? `<div class="repost-quote-title" style="font-weight: 800; font-size: 14px; margin-bottom: 4px; color: var(--text);">${fp.quote.repostTitle}</div>` : ''}
             <div class="repost-quote-body clamped">${fp.quote.body ? fp.quote.body.replace(/\n/g, '<br>') : ''}</div>
           </div>
-          ${(fp.quote.repostImageURLs && fp.quote.repostImageURLs.length > 0) 
-            ? renderPhotoGrid(fp.quote.repostImageURLs) 
-            : (fp.quote.repostImage ? `<div class="lightbox-trigger" data-src="${fp.quote.repostImage}" style="cursor:pointer; margin-top:10px; border-radius:8px; overflow:hidden;"><img src="${fp.quote.repostImage}" style="width:100%; display:block; object-fit:cover; max-height:350px; image-rendering: high-quality;"></div>` : '')
-          }
+          ${(fp.quote.repostImageURLs && fp.quote.repostImageURLs.length > 0)
+          ? renderPhotoGrid(fp.quote.repostImageURLs)
+          : (fp.quote.repostImage ? `<div class="lightbox-trigger" data-src="${fp.quote.repostImage}" style="cursor:pointer; margin-top:10px; border-radius:8px; overflow:hidden;"><img src="${fp.quote.repostImage}" style="width:100%; display:block; object-fit:cover; max-height:350px; image-rendering: high-quality;"></div>` : '')
+        }
         </div>` : '';
 
       const imageGrid = (fp.imageURLs && fp.imageURLs.length > 0)
@@ -560,23 +560,23 @@ let FEED_POSTS = [];
             ]);
             const exists = results.some(r => r.status === 'fulfilled' && r.value.exists());
             if (!exists) {
-               const card = document.getElementById(`repost-card-${fp.id}`);
-               if (card) {
-                  card.classList.add('original-deleted');
-                  const authorEl = card.querySelector('.repost-quote-author');
-                  if (authorEl) authorEl.textContent = 'Original post deleted';
-                  const timeEl = card.querySelector('.repost-quote-time');
-                  if (timeEl) timeEl.textContent = '';
-                  const titleEl = card.querySelector('.repost-quote-title');
-                  if (titleEl) titleEl.remove();
-                  const bodyEl = card.querySelector('.repost-quote-body');
-                  if (bodyEl) {
-                    bodyEl.innerHTML = 'This content is no longer available.';
-                    bodyEl.classList.remove('clamped');
-                  }
-                  const imgEl = card.querySelector('.feed-post-img');
-                  if (imgEl) imgEl.remove();
-               }
+              const card = document.getElementById(`repost-card-${fp.id}`);
+              if (card) {
+                card.classList.add('original-deleted');
+                const authorEl = card.querySelector('.repost-quote-author');
+                if (authorEl) authorEl.textContent = 'Original post deleted';
+                const timeEl = card.querySelector('.repost-quote-time');
+                if (timeEl) timeEl.textContent = '';
+                const titleEl = card.querySelector('.repost-quote-title');
+                if (titleEl) titleEl.remove();
+                const bodyEl = card.querySelector('.repost-quote-body');
+                if (bodyEl) {
+                  bodyEl.innerHTML = 'This content is no longer available.';
+                  bodyEl.classList.remove('clamped');
+                }
+                const imgEl = card.querySelector('.feed-post-img');
+                if (imgEl) imgEl.remove();
+              }
             }
           } catch (err) { console.warn("Original check failed:", err); }
         }, 1000);
@@ -596,7 +596,7 @@ let FEED_POSTS = [];
         const card = fresh.closest('.feed-post');
         const pIdx = card?.querySelector('.post-menu-btn')?.dataset.post;
         const post = window.FEED_POSTS[pIdx];
-        
+
         if (post && post.imageURLs && post.imageURLs.length > 0) {
           window.openGallery(post.imageURLs, src);
         } else if (post && post.postImage) {
@@ -634,8 +634,8 @@ let FEED_POSTS = [];
       if (clampedCount === 3 && i === 0) cellStyle += " grid-row: 1 / 3 !important;";
       else if (clampedCount === 5 && i === 0) cellStyle += " grid-column: 1 / 2 !important; grid-row: 1 / 3 !important;";
 
-      const overlayHtml = (i === 4 && extra > 0) 
-        ? `<div class="photo-more-overlay" style="position: absolute !important; inset: 0 !important; background: rgba(0,0,0,0.5) !important; display: flex !important; align-items: center !important; justify-content: center !important; color: #fff !important; font-size: 24px !important; font-weight: 700 !important; z-index: 2 !important; pointer-events: none !important; font-family: 'Montserrat', sans-serif;">+${extra}</div>` 
+      const overlayHtml = (i === 4 && extra > 0)
+        ? `<div class="photo-more-overlay" style="position: absolute !important; inset: 0 !important; background: rgba(0,0,0,0.5) !important; display: flex !important; align-items: center !important; justify-content: center !important; color: #fff !important; font-size: 24px !important; font-weight: 700 !important; z-index: 2 !important; pointer-events: none !important; font-family: 'Montserrat', sans-serif;">+${extra}</div>`
         : '';
 
       return `
@@ -654,10 +654,10 @@ let FEED_POSTS = [];
      LIGHTBOX (WITH GALLERY)
   ════════════════════════════════════════ */
   const lightbox = document.getElementById('lightbox');
-  
+
   // 1. Inject navigation arrows dynamically if they don't exist
   if (lightbox && !document.getElementById('lb-prev')) {
-      lightbox.insertAdjacentHTML('beforeend', `
+    lightbox.insertAdjacentHTML('beforeend', `
         <button id="lb-prev" class="lb-nav">❮</button>
         <button id="lb-next" class="lb-nav">❯</button>
         <div id="lb-counter"></div>
@@ -668,40 +668,40 @@ let FEED_POSTS = [];
   window.currentIndex = 0;
 
   // 2. Global gallery function so any script can open it
-  window.openGallery = function(images, clickedSrc) {
-      if (!images || images.length === 0) return;
-      window.currentGallery = images;
-      window.currentIndex = images.indexOf(clickedSrc);
-      if (window.currentIndex === -1) window.currentIndex = 0;
-      
-      const lb = document.getElementById('lightbox');
-      const img = document.getElementById('lightbox-img');
-      const counter = document.getElementById('lb-counter');
-      
-      if (lb && img) {
-          img.src = window.currentGallery[window.currentIndex];
-          lb.classList.add('open');
-          if (counter) counter.textContent = `${window.currentIndex + 1} / ${window.currentGallery.length}`;
-      }
+  window.openGallery = function (images, clickedSrc) {
+    if (!images || images.length === 0) return;
+    window.currentGallery = images;
+    window.currentIndex = images.indexOf(clickedSrc);
+    if (window.currentIndex === -1) window.currentIndex = 0;
+
+    const lb = document.getElementById('lightbox');
+    const img = document.getElementById('lightbox-img');
+    const counter = document.getElementById('lb-counter');
+
+    if (lb && img) {
+      img.src = window.currentGallery[window.currentIndex];
+      lb.classList.add('open');
+      if (counter) counter.textContent = `${window.currentIndex + 1} / ${window.currentGallery.length}`;
+    }
   };
 
-  const closeLB = () => { 
-      if(lightbox) lightbox.classList.remove('open'); 
+  const closeLB = () => {
+    if (lightbox) lightbox.classList.remove('open');
   };
 
   document.getElementById('lightbox-close')?.addEventListener('click', closeLB);
   lightbox?.addEventListener('click', e => { if (e.target === lightbox) closeLB(); });
 
   document.getElementById('lb-prev')?.addEventListener('click', (e) => {
-      e.stopPropagation();
-      window.currentIndex = (window.currentIndex > 0) ? window.currentIndex - 1 : window.currentGallery.length - 1;
-      window.openGallery(window.currentGallery, window.currentGallery[window.currentIndex]);
+    e.stopPropagation();
+    window.currentIndex = (window.currentIndex > 0) ? window.currentIndex - 1 : window.currentGallery.length - 1;
+    window.openGallery(window.currentGallery, window.currentGallery[window.currentIndex]);
   });
 
   document.getElementById('lb-next')?.addEventListener('click', (e) => {
-      e.stopPropagation();
-      window.currentIndex = (window.currentIndex < window.currentGallery.length - 1) ? window.currentIndex + 1 : 0;
-      window.openGallery(window.currentGallery, window.currentGallery[window.currentIndex]);
+    e.stopPropagation();
+    window.currentIndex = (window.currentIndex < window.currentGallery.length - 1) ? window.currentIndex + 1 : 0;
+    window.openGallery(window.currentGallery, window.currentGallery[window.currentIndex]);
   });
   /* ════════════════════════════════════════
      COMMENT MODAL
@@ -948,7 +948,7 @@ let FEED_POSTS = [];
         const textEl = document.getElementById(`comment-text-pinned-${cIdx}`);
         const bubble = document.getElementById(`comment-bubble-pinned-${cIdx}`);
         const editWrap = document.getElementById(`comment-edit-pinned-${cIdx}`);
-        
+
         try {
           await window.saveCommentEdit(postId, commentId, newText);
           if (textEl) textEl.textContent = newText;
@@ -1012,7 +1012,11 @@ let FEED_POSTS = [];
   const fileInput = document.getElementById('modal-file-input');
   const anonToggle = document.getElementById('modal-anon-toggle');
 
-  function openModal() { overlay.classList.add('open'); setTimeout(() => textarea.focus(), 100); }
+  function openModal() { 
+    overlay.classList.add('open'); 
+    if (typeof updateHomepageSubmitButton === 'function') updateHomepageSubmitButton();
+    setTimeout(() => textarea.focus(), 100); 
+  }
   function closeModal() {
     if (overlay) overlay.classList.remove('open');
 

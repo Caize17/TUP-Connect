@@ -1,16 +1,31 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TUP Konek</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TUP Konek</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,400;0,600;0,700;0,800;0,900;1,700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../CSS/Profile.css">
-<link rel="stylesheet" href="../CSS/navbar.css">
-<link rel="stylesheet" href="../CSS/guest.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="../CSS/Profile.css?v=1.1">
+  <link rel="stylesheet" href="../CSS/navbar.css">
+  <link rel="stylesheet" href="../CSS/guest.css" />
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
 
-<script type="importmap">
+    html,
+    body,
+    *,
+    .post-card,
+    .post-author,
+    .post-body,
+    .post-time {
+      font-family: 'Montserrat', sans-serif !important;
+    }
+  </style>
+
+  <script type="importmap">
   {
     "imports": {
       "@google/generative-ai": "https://esm.run/@google/generative-ai"
@@ -18,46 +33,51 @@
   }
 </script>
 </head>
+
 <body>
 
   <!-- SIDEBAR -->
-      <aside class="sidebar">
+  <aside class="sidebar">
 
-        <div class="sidebar-logo">
-          <img src="../assets/images/logo.png" class="TUP-Konek-logo">
+    <div class="sidebar-logo">
+      <img src="../assets/images/logo.png" class="TUP-Konek-logo">
+    </div>
+
+    <div class="sidebar-nav" id="sidebar-nav" style="position:relative;">
+      <div class="nav-teardrop" id="nav-teardrop"></div>
+
+      <button class="nav-btn" data-index="0" data-route="home" title="Home">
+        <div class="nav-icon-wrap">
+          <img src="../assets/images/community_feed.png" alt="Home">
         </div>
+      </button>
 
-        <div class="sidebar-nav" id="sidebar-nav" style="position:relative;">
-            <div class="nav-teardrop" id="nav-teardrop"></div>
-
-            <button class="nav-btn" data-index="0" data-route="home" title="Home">
-              <div class="nav-icon-wrap">
-                <img src="../assets/images/community_feed.png" alt="Home">
-              </div>
-            </button>
-
-            <button class="nav-btn" data-index="2" data-route="campus news" title="Campus News">
-              <div class="nav-icon-wrap">
-                <img src="../assets/images/campusnews.png" alt="Campus News">
-              </div>
-            </button>
-
-            <button class="nav-btn" data-index="3" data-route="campus" title="Campus">
-              <div class="nav-icon-wrap">
-                <img src="../assets/images/campus_directory.png" alt="Campus" style="margin-left:6px;">
-              </div>
-            </button>
-
-            <div class="nav-spacer"></div>
-
-            <button class="nav-btn-profile active" data-index="4" data-route="profile" title="My Profile" id="sidebar-avatar-wrap">
-              <div class="nav-profile-avatar" id="nav-profile-avatar">
-                <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-              </div>
-            </button>
+      <button class="nav-btn" data-index="2" data-route="campus news" title="Campus News">
+        <div class="nav-icon-wrap">
+          <img src="../assets/images/campusnews.png" alt="Campus News">
         </div>
+      </button>
 
-      </aside>
+      <button class="nav-btn" data-index="3" data-route="campus" title="Campus">
+        <div class="nav-icon-wrap">
+          <img src="../assets/images/campus_directory.png" alt="Campus" style="margin-left:6px;">
+        </div>
+      </button>
+
+      <div class="nav-spacer"></div>
+
+      <button class="nav-btn-profile active" data-index="4" data-route="profile" title="My Profile"
+        id="sidebar-avatar-wrap">
+        <div class="nav-profile-avatar" id="nav-profile-avatar">
+          <svg viewBox="0 0 24 24">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+            <circle cx="12" cy="7" r="4" />
+          </svg>
+        </div>
+      </button>
+    </div>
+
+  </aside>
 
   <!-- MAIN -->
   <main class="main">
@@ -98,11 +118,15 @@
         <div class="profile-email-logo skeleton">✉ <span class="profile-email">student.email@tup.edu.ph</span></div>
       </div>
       <button class="logout-btn" id="btn-logout">
-      <span class="quick-btn-icon">
-        <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-      </span>
-      <span class="quick-btn-label">Logout</span>
-    </button>
+        <span class="quick-btn-icon">
+          <svg viewBox="0 0 24 24">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+            <polyline points="16 17 21 12 16 7" />
+            <line x1="21" y1="12" x2="9" y2="12" />
+          </svg>
+        </span>
+        <span class="quick-btn-label">Logout</span>
+      </button>
     </div>
 
     <!-- POST INPUT -->
@@ -149,7 +173,8 @@
         <div class="suggestions">
           <button class="suggestion-btn" onclick="askSuggestion('Office hours of TUP')">
             <svg viewBox="0 0 24 24">
-              <path fill-rule="evenodd" clip-rule="evenodd" d="M22 12C22 17.5228 17.5228 22 12 22C6.47715 
+              <path fill-rule="evenodd" clip-rule="evenodd"
+                d="M22 12C22 17.5228 17.5228 22 12 22C6.47715 
               22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12ZM12 7.75C11.3787 7.75 10.875 
               8.25368 10.875 8.875C10.875 9.28921 10.5392 9.625 10.125 9.625C9.71079 9.625 9.375 9.28921 9.375 8.875C9.375 
               7.42525 10.5503 6.25 12 6.25C13.4497 6.25 14.625 7.42525 14.625 8.875C14.625 9.58584 14.3415 10.232 13.883 
@@ -157,13 +182,14 @@
               11.8699 12.75 12.0768 12.75 12.25V13C12.75 13.4142 12.4142 13.75 12 13.75C11.5858 13.75 11.25 13.4142 11.25 
               13V12.25C11.25 11.5948 11.555 11.0644 11.8642 10.6672C12.0929 10.3733 12.3804 10.0863 12.6138 9.85346C12.6842 9.78321 
               12.7496 9.71789 12.807 9.65877C13.0046 9.45543 13.125 9.18004 13.125 8.875C13.125 8.25368 12.6213 7.75 12 7.75ZM12 
-              17C12.5523 17 13 16.5523 13 16C13 15.4477 12.5523 15 12 15C11.4477 15 11 15.4477 11 16C11 16.5523 11.4477 17 12 17Z" 
-              fill="currentColor"></path></svg>
+              17C12.5523 17 13 16.5523 13 16C13 15.4477 12.5523 15 12 15C11.4477 15 11 15.4477 11 16C11 16.5523 11.4477 17 12 17Z" fill="currentColor"></path>
+            </svg>
             Office hours of TUP
           </button>
           <button class="suggestion-btn" onclick="askSuggestion('What is the mission of TUP?')">
             <svg viewBox="0 0 24 24">
-              <path fill-rule="evenodd" clip-rule="evenodd" d="M22 12C22 17.5228 17.5228 22 12 22C6.47715 
+              <path fill-rule="evenodd" clip-rule="evenodd"
+                d="M22 12C22 17.5228 17.5228 22 12 22C6.47715 
               22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12ZM12 7.75C11.3787 7.75 10.875 
               8.25368 10.875 8.875C10.875 9.28921 10.5392 9.625 10.125 9.625C9.71079 9.625 9.375 9.28921 9.375 8.875C9.375 
               7.42525 10.5503 6.25 12 6.25C13.4497 6.25 14.625 7.42525 14.625 8.875C14.625 9.58584 14.3415 10.232 13.883 
@@ -171,19 +197,22 @@
               11.8699 12.75 12.0768 12.75 12.25V13C12.75 13.4142 12.4142 13.75 12 13.75C11.5858 13.75 11.25 13.4142 11.25 
               13V12.25C11.25 11.5948 11.555 11.0644 11.8642 10.6672C12.0929 10.3733 12.3804 10.0863 12.6138 9.85346C12.6842 9.78321 
               12.7496 9.71789 12.807 9.65877C13.0046 9.45543 13.125 9.18004 13.125 8.875C13.125 8.25368 12.6213 7.75 12 7.75ZM12 
-              17C12.5523 17 13 16.5523 13 16C13 15.4477 12.5523 15 12 15C11.4477 15 11 15.4477 11 16C11 16.5523 11.4477 17 12 17Z" 
-              fill="currentColor"></path></svg>
-              What is the mission of TUP?
+              17C12.5523 17 13 16.5523 13 16C13 15.4477 12.5523 15 12 15C11.4477 15 11 15.4477 11 16C11 16.5523 11.4477 17 12 17Z" fill="currentColor"></path>
+            </svg>
+            What is the mission of TUP?
           </button>
         </div>
       </div>
 
       <!-- Input -->
       <div class="chat-input">
-        <input type="text" id="userInput" placeholder="Type your message..." 
-              onkeypress="if(event.key==='Enter') sendMessage()"/>
+        <input type="text" id="userInput" placeholder="Type your message..."
+          onkeypress="if(event.key==='Enter') sendMessage()" />
         <button onclick="sendMessage()">
-          <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          <svg viewBox="0 0 24 24">
+            <line x1="22" y1="2" x2="11" y2="13" />
+            <polygon points="22 2 15 22 11 13 2 9 22 2" />
+          </svg>
         </button>
       </div>
     </div>
@@ -193,15 +222,25 @@
   <template id="post-template">
     <div class="feed-reactions">
       <button class="feed-reaction-btn" data-type="like">
-        <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+        <svg viewBox="0 0 24 24">
+          <path
+            d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+        </svg>
         <span class="reaction-likes-count">0</span> Heart
       </button>
       <button class="feed-reaction-btn" data-type="comment">
-        <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <svg viewBox="0 0 24 24">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+        </svg>
         <span class="reaction-comments-count">0</span> Comment
       </button>
       <button class="feed-reaction-btn" data-type="repost">
-        <svg viewBox="0 0 24 24"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+        <svg viewBox="0 0 24 24">
+          <polyline points="17 1 21 5 17 9" />
+          <path d="M3 11V9a4 4 0 0 1 4-4h14" />
+          <polyline points="7 23 3 19 7 15" />
+          <path d="M21 13v2a4 4 0 0 1-4 4H3" />
+        </svg>
         <span class="reaction-reposts-count">0</span> Repost
       </button>
     </div>
@@ -210,10 +249,19 @@
   <!-- POST MENU TEMPLATE (edit menu items here) -->
   <template id="menu-template">
     <div class="dropdown-item" onclick="editPost(event)">
-        <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Edit Post
+      <svg viewBox="0 0 24 24">
+        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+      </svg> Edit Post
     </div>
     <div class="dropdown-item danger" onclick="deletePost(event)">
-        <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg> Delete
+      <svg viewBox="0 0 24 24">
+        <polyline points="3 6 5 6 21 6" />
+        <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+        <path d="M10 11v6" />
+        <path d="M14 11v6" />
+        <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+      </svg> Delete
     </div>
   </template>
 
@@ -231,7 +279,8 @@
 
           <!-- ✅ id="modal-avatar" added — wrapping div so JS can swap img or svg inside -->
           <div id="modal-avatar" class="modal-user-avatar">
-            <img src="../assets/images/anon_avatar.jpg" alt="Me" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">
+            <img src="../assets/images/anon_avatar.jpg" alt="Me"
+              style="width:100%;height:100%;object-fit:cover;border-radius:50%;">
           </div>
 
           <div class="modal-user-info">
@@ -251,46 +300,50 @@
         <div class="modal-attachments" id="modal-attachments"></div>
         <div class="modal-footer">
           <button class="modal-add-photo-btn" id="modal-add-photo-btn">
-            <img src="../assets/images/add_photo.png" alt="Add Photo" style="width:68px;height:52px;object-fit:contain;margin-right:-18px;"/>
+            <img src="../assets/images/add_photo.png" alt="Add Photo"
+              style="width:68px;height:52px;object-fit:contain;margin-right:-18px;" />
             Add Photo
           </button>
-          <input type="file" id="modal-file-input" accept="image/*" multiple/>
+          <input type="file" id="modal-file-input" accept="image/*" multiple />
           <button class="modal-submit-btn" id="modal-submit-btn" onclick="submitPost()" aria-label="Post">
-              <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            <svg viewBox="0 0 24 24">
+              <line x1="22" y1="2" x2="11" y2="13" />
+              <polygon points="22 2 15 22 11 13 2 9 22 2" />
+            </svg>
           </button>
         </div>
       </div>
     </div>
   </div>
 
-    <!-- COMMENT MODAL -->
-    <div class="comment-modal-overlay" id="commentModal" onclick="closeCommentModalOnOverlay(event)">
-        <div class="comment-modal">
-            <div class="comment-modal-header">
-                <div class="comment-modal-title">Comments</div>
-                <button class="comment-modal-close" onclick="closeCommentModal()">✕</button>
-            </div>
+  <!-- COMMENT MODAL -->
+  <div class="comment-modal-overlay" id="commentModal" onclick="closeCommentModalOnOverlay(event)">
+    <div class="comment-modal">
+      <div class="comment-modal-header">
+        <div class="comment-modal-title">Comments</div>
+        <button class="comment-modal-close" onclick="closeCommentModal()">✕</button>
+      </div>
 
-            <div class="comment-modal-list" id="commentModalList"></div>
+      <div class="comment-modal-list" id="commentModalList"></div>
 
-            <div class="comment-modal-input-row">
-                <div class="comment-modal-avatar">
-                    <img src="../assets/images/anon_avatar.jpg" alt="You"
-                        onerror="this.style.display='none'; this.parentElement.innerHTML='👩';">
-                </div>
-                <div class="comment-modal-bubble-input">
-                    <input
-                        class="comment-modal-input"
-                        id="commentModalInput"
-                        placeholder="Share your thoughts..." maxlength="500"
-                        onkeydown="handleModalCommentKey(event)">
-                    <button class="comment-modal-submit" onclick="submitModalComment()">
-                        <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-                    </button>
-                </div>
-            </div>
+      <div class="comment-modal-input-row">
+        <div class="comment-modal-avatar">
+          <img src="../assets/images/anon_avatar.jpg" alt="You"
+            onerror="this.style.display='none'; this.parentElement.innerHTML='👩';">
         </div>
+        <div class="comment-modal-bubble-input">
+          <input class="comment-modal-input" id="commentModalInput" placeholder="Share your thoughts..." maxlength="500"
+            onkeydown="handleModalCommentKey(event)">
+          <button class="comment-modal-submit" onclick="submitModalComment()">
+            <svg viewBox="0 0 24 24">
+              <line x1="22" y1="2" x2="11" y2="13" />
+              <polygon points="22 2 15 22 11 13 2 9 22 2" />
+            </svg>
+          </button>
+        </div>
+      </div>
     </div>
+  </div>
 
   <!-- REPOST MODAL -->
   <div id="hp-repost-modal-overlay" onclick="closeRepostModalOnOverlay(event)">
@@ -302,7 +355,10 @@
       <div class="hp-rm-body">
         <div class="hp-rm-user-row">
           <div class="hp-rm-avatar" id="repost-user-avatar">
-            <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <svg viewBox="0 0 24 24">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+              <circle cx="12" cy="7" r="4" />
+            </svg>
           </div>
           <div class="hp-rm-user-name" id="repost-user-name">User Name</div>
           <div class="modal-anon-row" style="margin-left:auto; display:flex; align-items:center; gap:8px;">
@@ -314,7 +370,7 @@
           </div>
         </div>
         <textarea class="hp-rm-textarea" id="repostContent" placeholder="Add a quote (optional)..."></textarea>
-        
+
         <div class="modal-attachments" id="repost-modal-attachments"></div>
 
         <!-- Original Post Preview -->
@@ -331,7 +387,10 @@
         <div class="hp-rm-actions" style="margin-top: 15px; display: flex; justify-content: flex-end; gap: 10px;">
           <button class="hp-rm-skip-btn" onclick="submitRepost(true)">Repost only</button>
           <button class="hp-rm-submit-btn" id="repost-submit-btn" onclick="submitRepost(false)">
-            <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            <svg viewBox="0 0 24 24">
+              <line x1="22" y1="2" x2="11" y2="13" />
+              <polygon points="22 2 15 22 11 13 2 9 22 2" />
+            </svg>
             Post
           </button>
         </div>
@@ -354,9 +413,10 @@
 
   <script src="../JS/navbar.js"></script>
   <script type="module" src="../JS/Profile.js"></script>
-  <script type="module" src="../JS/navbar_profile.js" ></script>
+  <script type="module" src="../JS/navbar_profile.js"></script>
   <script src="../JS/chatbot.js"></script>
 
   <script src="../JS/guest.js"></script>
 </body>
+
 </html>

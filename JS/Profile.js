@@ -419,7 +419,7 @@ const PHOTO_DEBOUNCE = 500; // ms
       // Pre-fill UI so it's instant
       document.addEventListener('DOMContentLoaded', () => {
         updateProfileUI(data, data.email || '');
-        
+
         // Apply anonymity preference
         const isAnon = getAnonymityPreference();
         ['anonToggle', 'repostAnonToggle'].forEach(id => {
@@ -433,11 +433,11 @@ const PHOTO_DEBOUNCE = 500; // ms
   } else {
     // Even if no cache, apply anon pref if exists
     document.addEventListener('DOMContentLoaded', () => {
-       const isAnon = getAnonymityPreference();
-       ['anonToggle', 'repostAnonToggle'].forEach(id => {
-         const el = document.getElementById(id);
-         if (el) el.checked = isAnon;
-       });
+      const isAnon = getAnonymityPreference();
+      ['anonToggle', 'repostAnonToggle'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.checked = isAnon;
+      });
     });
   }
 })();
@@ -769,10 +769,10 @@ function renderPost(data, postId) {
           ${isDeleted ? '' : `<button class="view-more-btn" id="btn-vm-${postId}">View more ▾</button>`}
         </div>
         ${!isDeleted ? (
-          (data.repostImageURLs && data.repostImageURLs.length > 0) 
-            ? renderPhotoGrid(data.repostImageURLs) 
-            : (data.repostImage ? `<div class="post-images lightbox-trigger" data-src="${data.repostImage}" style="display:flex; justify-content:center; align-items:center; text-align: center; cursor:pointer;"><img src="${data.repostImage}" class="post-image" style="image-rendering: high-quality;"></div>` : '')
-        ) : ''}
+        (data.repostImageURLs && data.repostImageURLs.length > 0)
+          ? renderPhotoGrid(data.repostImageURLs)
+          : (data.repostImage ? `<div class="post-images lightbox-trigger" data-src="${data.repostImage}" style="display:flex; justify-content:center; align-items:center; text-align: center; cursor:pointer;"><img src="${data.repostImage}" class="post-image" style="image-rendering: high-quality;"></div>` : '')
+      ) : ''}
       </div>`;
 
     // Async check for original post existence
@@ -1244,15 +1244,14 @@ function updateSubmitButton() {
   // Main Post
   if (textarea && submitBtn) {
     const hasContent = textarea.value.trim().length > 0;
-    const hasImages = attachWrap && attachWrap.querySelectorAll('.modal-attach-thumb').length > 0;
-    submitBtn.disabled = !hasContent && !hasImages;
+    // Text is mandatory as per user request
+    submitBtn.disabled = !hasContent;
   }
   // Repost Quote
   const rSubmitBtn = document.getElementById('repost-submit-btn');
   if (repostTextarea && rSubmitBtn) {
     const hasContent = repostTextarea.value.trim().length > 0;
-    const hasImages = repostAttachWrap && repostAttachWrap.querySelectorAll('.modal-attach-thumb').length > 0;
-    rSubmitBtn.disabled = !hasContent && !hasImages;
+    rSubmitBtn.disabled = !hasContent;
   }
 }
 
@@ -1262,7 +1261,7 @@ if (repostTextarea) repostTextarea.addEventListener('input', updateSubmitButton)
 document.getElementById('btn-add-photo')?.addEventListener('click', e => {
   e.preventDefault();
   e.stopPropagation();
-  
+
   const now = Date.now();
   if (now - lastPhotoClick < PHOTO_DEBOUNCE) return;
   lastPhotoClick = now;
@@ -1324,7 +1323,7 @@ fileInput?.addEventListener('change', async function () {
       const wrapper = document.createElement('div');
       wrapper.className = 'modal-attach-thumb-wrapper';
       wrapper.style.cssText = 'position:relative; width:80px; height:80px; flex-shrink:0;';
-      
+
       wrapper.innerHTML = `
         <img src="${compressedBase64}" class="modal-attach-thumb" style="width:100%; height:100%; object-fit:cover; border-radius:8px;">
         <button class="modal-attach-remove" style="position:absolute; top:-5px; right:-5px; background:rgba(0,0,0,0.6); color:white; border:none; border-radius:50%; width:20px; height:20px; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:12px; z-index:10;">✕</button>
@@ -1355,7 +1354,7 @@ function openPostModal() {
   const anonToggle = document.getElementById('anonToggle');
 
   if (overlay) overlay.classList.add('open');
-  
+
   // Apply anonymity preference
   const isAnon = getAnonymityPreference();
   if (anonToggle) anonToggle.checked = isAnon;
@@ -1469,7 +1468,7 @@ async function openCommentModal(el) {
   });
 
   bindCommentActions();
-  
+
   // Set user avatar in comment input
   const modalAvatarWrap = document.querySelector('.comment-modal-avatar img');
   if (modalAvatarWrap) modalAvatarWrap.src = USER.photoSrc || '../assets/images/anon_avatar.jpg';
@@ -1848,7 +1847,7 @@ async function createRepost(btn, quote = '', isAnonymous = false) {
 
   const originalCard = btn.closest('.post-card');
   const originalPostId = originalCard.dataset.id;
-  
+
   try {
     // Fetch fresh data to ensure we have all fields
     const postSnap = await getDoc(doc(db, "posts", originalPostId));

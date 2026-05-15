@@ -8,7 +8,7 @@ let updatePostBox = null;
 let lastPhotoClick = 0;
 const PHOTO_DEBOUNCE = 500;
 
-window.renderPhotoGrid = function(imgs) {
+window.renderPhotoGrid = function (imgs) {
   if (!imgs || imgs.length === 0) return '';
   const count = imgs.length;
   const clampedCount = Math.min(count, 5);
@@ -68,7 +68,7 @@ if (addImageBtn && imageInput) {
     lastPhotoClick = now;
     imageInput.click();
   });
-  
+
   imageInput.addEventListener('change', async function () {
     const attachments = document.getElementById('modal-attachments');
     if (!attachments) return;
@@ -81,7 +81,7 @@ if (addImageBtn && imageInput) {
         const thumb = document.createElement('div');
         thumb.className = 'modal-attach-thumb-wrapper';
         thumb.style.cssText = 'position:relative; width:80px; height:80px; flex-shrink:0;';
-        
+
         thumb.innerHTML = `
           <img src="${compressedBase64}" class="modal-attach-thumb" style="width:100%; height:100%; object-fit:cover; border-radius:8px;">
           <button class="modal-attach-remove" style="position:absolute; top:-5px; right:-5px; background:rgba(0,0,0,0.6); color:white; border:none; border-radius:50%; width:20px; height:20px; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:12px;">✕</button>
@@ -100,8 +100,31 @@ if (addImageBtn && imageInput) {
       }
     }
     imageInput.value = ''; // Reset for same-file re-upload
+    updateHomepageSubmitButton();
   });
 }
+
+function updateHomepageSubmitButton() {
+  const textarea = document.getElementById('post-textarea');
+  const submitBtn = document.getElementById('modal-submit-btn');
+  if (textarea && submitBtn) {
+    const hasText = textarea.value.trim().length > 0;
+    // Text is mandatory as per user request
+    submitBtn.disabled = !hasText;
+  }
+}
+
+function updateRepostSubmitButton() {
+  const textarea = document.getElementById('repostContent');
+  const submitBtn = document.getElementById('repost-submit-btn');
+  if (textarea && submitBtn) {
+    const hasText = textarea.value.trim().length > 0;
+    submitBtn.disabled = !hasText;
+  }
+}
+
+document.getElementById('post-textarea')?.addEventListener('input', updateHomepageSubmitButton);
+document.getElementById('repostContent')?.addEventListener('input', updateRepostSubmitButton);
 
 
 
@@ -340,16 +363,16 @@ onAuthStateChanged(auth, async (user) => {
 
     anonToggle.replaceWith(anonToggle.cloneNode(true));
     const newToggle = document.getElementById('modal-anon-toggle');
-    
+
     // Sync with localStorage
     const savedAnonPref = localStorage.getItem('tup_anon_pref') === 'true';
     if (newToggle) {
-        newToggle.checked = savedAnonPref;
-        // Trigger the visual update
-        setTimeout(() => {
-            const event = new Event('change');
-            newToggle.dispatchEvent(event);
-        }, 100);
+      newToggle.checked = savedAnonPref;
+      // Trigger the visual update
+      setTimeout(() => {
+        const event = new Event('change');
+        newToggle.dispatchEvent(event);
+      }, 100);
     }
 
     newToggle.addEventListener('change', (e) => {
@@ -461,7 +484,7 @@ window.formatSmartDate = function (dateObj) {
 function formatFirebaseData(snapshot) {
   return snapshot.docs.map(doc => {
     const data = doc.data();
-    
+
     // Filter out Org posts from Homepage unless they are reposts
     if (data.isOrg === true && !data.repostOf) return null;
 
@@ -719,7 +742,7 @@ feedContainer.addEventListener('click', async (e) => {
     const bodyEl = card.querySelector('.feed-body');
     const titleEl = card.querySelector('.post-title');
     const titleInput = wrap.querySelector('.post-edit-title');
-    
+
     const newTitle = titleInput ? titleInput.value.trim() : null;
     const newText = wrap.querySelector('textarea').value.trim();
 
@@ -768,9 +791,9 @@ function openRepostModalHP(postData, collectionName = 'posts') {
   if (!overlay || !modal) return;
 
   _currentRepostInfo = {
-      postId: postData.id,
-      postData: postData,
-      collection: collectionName
+    postId: postData.id,
+    postData: postData,
+    collection: collectionName
   };
 
   overlay.classList.add('open');
@@ -807,9 +830,9 @@ function openRepostModalHP(postData, collectionName = 'posts') {
   if (existingImg) existingImg.remove();
   const existingGrid = modal.querySelector('.photo-grid');
   if (existingGrid) existingGrid.remove();
-  
+
   const imagesToPreview = postData.repostImageURLs || postData.imageURLs || (postData.repostImage ? [postData.repostImage] : (postData.imageURL ? [postData.imageURL] : []));
-  
+
   if (imagesToPreview && imagesToPreview.length > 0) {
     const previewContainer = document.getElementById('repost-quote-preview');
     if (imagesToPreview.length === 1) {
@@ -868,7 +891,7 @@ window.submitRepost = async function (skipQuote = false) {
 
     const collectionName = collectionNameArg || 'posts';
     const isAnnouncement = collectionName === 'announcements';
-    
+
 
 
     // Fetch fresh data to ensure we have all fields (especially for nested reposts or announcements)
@@ -906,7 +929,7 @@ window.submitRepost = async function (skipQuote = false) {
 
     const postRef = doc(db, collectionName, postId);
     const repostField = isAnnouncement ? 'reposts' : 'repostedBy';
-    
+
     await updateDoc(postRef, {
       [repostField]: arrayUnion(user.uid)
     });

@@ -1,21 +1,21 @@
 import { auth, db } from "../firebaseConfig.js";
-import { 
-  doc, getDoc, collection, addDoc, query, orderBy, deleteDoc,
-  onSnapshot, serverTimestamp, updateDoc, increment, arrayUnion, arrayRemove 
+import {
+    doc, getDoc, collection, addDoc, query, orderBy, deleteDoc,
+    onSnapshot, serverTimestamp, updateDoc, increment, arrayUnion, arrayRemove
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-import { 
-  onAuthStateChanged
+import {
+    onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 
 const firebaseConfig = {
-  apiKey: "AIzaSyBpGOdMpx_Mws2EcCq6rbOWfZ-FFuhhfo0",
-  authDomain: "tup-connect-b162d.firebaseapp.com",
-  projectId: "tup-connect-b162d",
-  storageBucket: "tup-connect-b162d.firebasestorage.app",
-  messagingSenderId: "193141013544",
-  appId: "1:193141013544:web:72b403e84aa4d3313f091d"
+    apiKey: "AIzaSyBpGOdMpx_Mws2EcCq6rbOWfZ-FFuhhfo0",
+    authDomain: "tup-connect-b162d.firebaseapp.com",
+    projectId: "tup-connect-b162d",
+    storageBucket: "tup-connect-b162d.firebasestorage.app",
+    messagingSenderId: "193141013544",
+    appId: "1:193141013544:web:72b403e84aa4d3313f091d"
 };
 
 let unsubscribeComments = null;
@@ -29,8 +29,8 @@ const overlay = document.getElementById('comment-modal-overlay');
 
 function getAvatar(photo, name) {
     const initials = name ? name.charAt(0).toUpperCase() : '?';
-    const hasPhoto = photo && typeof photo === 'string' && 
-                    (photo.startsWith('http') || photo.startsWith('data:image'));
+    const hasPhoto = photo && typeof photo === 'string' &&
+        (photo.startsWith('http') || photo.startsWith('data:image'));
 
     if (hasPhoto) {
         return `
@@ -41,7 +41,7 @@ function getAvatar(photo, name) {
                 <div class="default-avatar" style="display:none; background:#7a1a1a; color:white; width:100%; height:100%; border-radius:50%; align-items:center; justify-content:center; position:absolute; top:0; left:0;">${initials}</div>
             </div>`;
     }
-    
+
     return `<div class="default-avatar" style="background:#7a1a1a; color:white; width:100%; height:100%; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold;">${initials}</div>`;
 }
 
@@ -68,15 +68,15 @@ async function updateModalInputAvatar() {
     }
 }
 
-window.openCommentModal = async function(postIdx) {
+window.openCommentModal = async function (postIdx) {
     const overlay = document.getElementById('comment-modal-overlay');
-    
+
     await updateModalInputAvatar();
 
     if (overlay) {
         overlay.dataset.post = postIdx;
         overlay.classList.add('open');
-        
+
         const inputField = document.getElementById('comment-input-field');
         if (inputField) inputField.value = '';
 
@@ -91,33 +91,33 @@ window.openCommentModal = async function(postIdx) {
 const feedContainer = document.getElementById('feed-posts');
 
 if (feedContainer) {
-  feedContainer.addEventListener('click', (e) => {
-    const btn = e.target.closest('[data-type="comment"]');
-    if (!btn) return;
+    feedContainer.addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-type="comment"]');
+        if (!btn) return;
 
-    if (inputField) inputField.value = ''; 
+        if (inputField) inputField.value = '';
 
-    const postId = btn.dataset.id;
-    const postIdx = window.FEED_POSTS.findIndex(p => p.id === postId);
+        const postId = btn.dataset.id;
+        const postIdx = window.FEED_POSTS.findIndex(p => p.id === postId);
 
-    if (postIdx !== -1 && window.FEED_POSTS[postIdx]) {
-      activeCollection = 'posts';
-      listenForComments(postId); 
-      
-      if (typeof window.openCommentModal === 'function') {
-          window.openCommentModal(postIdx);
-      }
-    }
-  });
+        if (postIdx !== -1 && window.FEED_POSTS[postIdx]) {
+            activeCollection = 'posts';
+            listenForComments(postId);
+
+            if (typeof window.openCommentModal === 'function') {
+                window.openCommentModal(postIdx);
+            }
+        }
+    });
 }
 
 
-window.openCommentModalPinned = function(postId) {
+window.openCommentModalPinned = function (postId) {
     activeCollection = 'announcements';
     // We need to create a dummy post in window.FEED_POSTS or handle it separately
     // Actually, let's just make sure listenForComments can handle a post that isn't in FEED_POSTS
     listenForComments(postId, 'announcements');
-    
+
     // Open the modal
     const overlay = document.getElementById('comment-modal-overlay');
     updateModalInputAvatar();
@@ -132,119 +132,119 @@ window.openCommentModalPinned = function(postId) {
 };
 
 function listenForComments(postId, collectionName = 'posts') {
-  activeCollection = collectionName;
-  if (unsubscribeComments) unsubscribeComments();
-    
-  const q = query(
-    collection(db, collectionName, postId, "comments"),
-    orderBy("createdAt", "asc")
-  );
+    activeCollection = collectionName;
+    if (unsubscribeComments) unsubscribeComments();
 
-  unsubscribeComments = onSnapshot(q, (snapshot) => {
-    const comments = snapshot.docs.map(doc => {
-      const data = doc.data();
-      const user = auth.currentUser;
-      const isOwn = user && data.userId === user.uid;
+    const q = query(
+        collection(db, collectionName, postId, "comments"),
+        orderBy("createdAt", "asc")
+    );
 
-      const rawPhoto = data.photoURL;
-      const cache = JSON.parse(localStorage.getItem('tup_user_meta') || '{}');
-      const photoURL = (isOwn && cache.photoURL) ? cache.photoURL : (rawPhoto === 'anon' || !rawPhoto ? '../assets/images/anon_avatar.jpg' : rawPhoto);
+    unsubscribeComments = onSnapshot(q, (snapshot) => {
+        const comments = snapshot.docs.map(doc => {
+            const data = doc.data();
+            const user = auth.currentUser;
+            const isOwn = user && data.userId === user.uid;
 
-      return {
-        id: doc.id,
-        author: data.author || 'Anonymous',
-        userId: data.userId,
-        text: data.text || '',
-        photoURL: photoURL,
-        isOwn: isOwn,
-        time: data.createdAt ? (window.formatSmartDate ? window.formatSmartDate(data.createdAt.toDate()) : data.createdAt.toDate().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})) : 'Just now'
-      };
-    });
+            const rawPhoto = data.photoURL;
+            const cache = JSON.parse(localStorage.getItem('tup_user_meta') || '{}');
+            const photoURL = (isOwn && cache.photoURL) ? cache.photoURL : (rawPhoto === 'anon' || !rawPhoto ? '../assets/images/anon_avatar.jpg' : rawPhoto);
 
-    const postIdx = window.FEED_POSTS.findIndex(p => p.id === postId);
-    if (postIdx !== -1) {
-      window.FEED_POSTS[postIdx].commentList = comments;
-      window.FEED_POSTS[postIdx].comments = comments.length;
-      if (window.renderComments) window.renderComments(postIdx);
-      if (window.renderFeed) window.renderFeed(); 
-    } else {
-       // Post not in feed (likely pinned or direct link)
-       if (window.renderCommentsPinned) {
-           window.renderCommentsPinned(comments, postId);
-       }
-    }
-  }, (error) => {
-    console.error(`[Comments] Snapshot error for ${collectionName}/${postId}:`, error);
-    const listElement = document.getElementById('comment-list');
-    if (listElement) {
-        listElement.innerHTML = `<div class="error-state" style="padding: 20px; text-align: center; color: var(--maroon);">
+            return {
+                id: doc.id,
+                author: data.author || 'Anonymous',
+                userId: data.userId,
+                text: data.text || '',
+                photoURL: photoURL,
+                isOwn: isOwn,
+                time: data.createdAt ? (window.formatSmartDate ? window.formatSmartDate(data.createdAt.toDate()) : data.createdAt.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })) : 'Just now'
+            };
+        });
+
+        const postIdx = window.FEED_POSTS.findIndex(p => p.id === postId);
+        if (postIdx !== -1) {
+            window.FEED_POSTS[postIdx].commentList = comments;
+            window.FEED_POSTS[postIdx].comments = comments.length;
+            if (window.renderComments) window.renderComments(postIdx);
+            if (window.renderFeed) window.renderFeed();
+        } else {
+            // Post not in feed (likely pinned or direct link)
+            if (window.renderCommentsPinned) {
+                window.renderCommentsPinned(comments, postId);
+            }
+        }
+    }, (error) => {
+        console.error(`[Comments] Snapshot error for ${collectionName}/${postId}:`, error);
+        const listElement = document.getElementById('comment-list');
+        if (listElement) {
+            listElement.innerHTML = `<div class="error-state" style="padding: 20px; text-align: center; color: var(--maroon);">
             <p>Unable to load comments. ${error.code === 'permission-denied' ? 'Access denied.' : 'Please try again later.'}</p>
         </div>`;
-    }
-  });
+        }
+    });
 }
 
 if (sendBtn) {
-  sendBtn.addEventListener('click', async () => {
-    const overlay = document.getElementById('comment-modal-overlay');
-    const postIdx = overlay.dataset.post;
-    const isPinned = postIdx === 'pinned';
-    const postId = isPinned ? overlay.dataset.postId : (window.FEED_POSTS[postIdx] ? window.FEED_POSTS[postIdx].id : null);
-    
-    const text = inputField.value.trim();
-    if (!text || !postId || !auth.currentUser) {
-        console.error("Missing data:", { text, postId, user: auth.currentUser });
-        return;
-    }
+    sendBtn.addEventListener('click', async () => {
+        const overlay = document.getElementById('comment-modal-overlay');
+        const postIdx = overlay.dataset.post;
+        const isPinned = postIdx === 'pinned';
+        const postId = isPinned ? overlay.dataset.postId : (window.FEED_POSTS[postIdx] ? window.FEED_POSTS[postIdx].id : null);
 
-    const cache = JSON.parse(localStorage.getItem('tup_user_meta') || '{}');
-    const myRole = cache.role;
-    // For pinned announcements (not in FEED_POSTS), we might need to check if it's an org post
-    // But usually pinned announcements are admin posts.
-    
-    try {
-    const currentUser = auth.currentUser;
-    const photoToUpload = window.cachedPhoto || currentUser.photoURL || null;
+        const text = inputField.value.trim();
+        if (!text || !postId || !auth.currentUser) {
+            console.error("Missing data:", { text, postId, user: auth.currentUser });
+            return;
+        }
 
-    await addDoc(collection(db, activeCollection, postId, "comments"), {
-        text: text,
-        author: currentUser.displayName || "Anonymous User",
-        userId: currentUser.uid,
-        photoURL: photoToUpload,
-        createdAt: serverTimestamp()
+        const cache = JSON.parse(localStorage.getItem('tup_user_meta') || '{}');
+        const myRole = cache.role;
+        // For pinned announcements (not in FEED_POSTS), we might need to check if it's an org post
+        // But usually pinned announcements are admin posts.
+
+        try {
+            const currentUser = auth.currentUser;
+            const photoToUpload = window.cachedPhoto || currentUser.photoURL || null;
+
+            await addDoc(collection(db, activeCollection, postId, "comments"), {
+                text: text,
+                author: currentUser.displayName || "Anonymous User",
+                userId: currentUser.uid,
+                photoURL: photoToUpload,
+                createdAt: serverTimestamp()
+            });
+
+            const updateObj = (activeCollection === 'announcements')
+                ? { comments: arrayUnion(currentUser.uid) }
+                : { comments: increment(1) };
+
+            await updateDoc(doc(db, activeCollection, postId), updateObj);
+
+            // Special handling for announcements: they use arrayUnion for comments usually
+            // But if activeCollection is 'announcements', we should use arrayUnion if that's the pattern
+            // In campus_news.js it uses arrayUnion for announcements.
+            if (activeCollection === 'announcements') {
+                await updateDoc(doc(db, "announcements", postId), {
+                    comments: arrayUnion(currentUser.uid)
+                });
+            }
+
+            inputField.value = '';
+            console.log("Input cleared. Waiting for Snapshot to render...");
+
+        } catch (err) {
+            console.error("Failed to add comment:", err);
+        }
     });
-
-    const updateObj = (activeCollection === 'announcements')
-        ? { comments: arrayUnion(currentUser.uid) }
-        : { comments: increment(1) };
-
-    await updateDoc(doc(db, activeCollection, postId), updateObj);
-    
-    // Special handling for announcements: they use arrayUnion for comments usually
-    // But if activeCollection is 'announcements', we should use arrayUnion if that's the pattern
-    // In campus_news.js it uses arrayUnion for announcements.
-    if (activeCollection === 'announcements') {
-        await updateDoc(doc(db, "announcements", postId), {
-            comments: arrayUnion(currentUser.uid)
-        });
-    }
-
-    inputField.value = '';
-    console.log("Input cleared. Waiting for Snapshot to render...");
-
-} catch (err) {
-    console.error("Failed to add comment:", err);
-}
-  });
 }
 
 async function saveCommentEdit(postId, commentId, newText) {
-  const commentRef = doc(db, activeCollection, postId, "comments", commentId);
-  return await updateDoc(commentRef, {
-    text: newText,
-    isEdited: true,
-    editedAt: serverTimestamp()
-  });
+    const commentRef = doc(db, activeCollection, postId, "comments", commentId);
+    return await updateDoc(commentRef, {
+        text: newText,
+        isEdited: true,
+        editedAt: serverTimestamp()
+    });
 }
 window.saveCommentEdit = saveCommentEdit;
 
@@ -269,7 +269,7 @@ document.addEventListener('click', async (e) => {
     const menuBtn = e.target.closest('.post-menu-btn');
 
     if (menuBtn) {
-        e.stopPropagation(); 
+        e.stopPropagation();
         const idx = menuBtn.dataset.post;
         const dropdown = document.getElementById(`post-menu-${idx}`);
 
@@ -334,11 +334,11 @@ onAuthStateChanged(auth, async (user) => {
     if (user) {
         const userRef = doc(db, "users", user.uid);
         const userSnap = await getDoc(userRef);
-        
+
         if (userSnap.exists()) {
             const userData = userSnap.data();
             cachedPhoto = userData.photoURL || userData.photoSrc || null;
-            window.cachedPhoto = cachedPhoto; 
+            window.cachedPhoto = cachedPhoto;
             console.log("Global Cache filled!");
         }
         updateModalInputAvatar();
