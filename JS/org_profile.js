@@ -1089,7 +1089,7 @@ window.submitRepost = async function(skipQuote = false) {
       photoURL: USER.photoSrc,
       text: quote,
       repostOf: repostPostId,
-      repostAuthor: original.author || original.name || "Anonymous",
+      repostAuthor: original.author || original.name,
       repostAuthorPhoto: original.photoURL || original.photoSrc || '../assets/images/anon_avatar.jpg',
       repostTitle: original.title || "",
       repostText: original.text || original.body || "",

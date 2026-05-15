@@ -357,6 +357,11 @@ body {
 
 .input-wrapper { position: relative; }
 .input-wrapper .tup-input { padding-right: 44px; }
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear,
+input[type="password"]::-webkit-textfield-decoration-container {
+  display: none;
+}
 .toggle-pw {
   position: absolute;
   right: 13px;
