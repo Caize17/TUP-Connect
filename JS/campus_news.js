@@ -1,3 +1,4 @@
+import { auth, db } from "../firebaseConfig.js";
 import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
@@ -48,18 +49,7 @@ const model = genAI.getGenerativeModel({
   ])}`
 });
 
-const firebaseConfig = {
-  apiKey: "AIzaSyBpGOdMpx_Mws2EcCq6rbOWfZ-FFuhhfo0",
-  authDomain: "tup-connect-b162d.firebaseapp.com",
-  projectId: "tup-connect-b162d",
-  storageBucket: "tup-connect-b162d.firebasestorage.app",
-  messagingSenderId: "193141013544",
-  appId: "1:193141013544:web:72b403e84aa4d3313f091d"
-};
-
-const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
+// Standardized Firebase initialization moved to top
 
 let currentUser = null;
 let currentUserRole = 'Student';
@@ -493,6 +483,11 @@ function renderCommentList(postId) {
         </div>`;
     }).join('');
     list.scrollTop = list.scrollHeight;
+  }, (error) => {
+    console.error(`[CampusNews] Snapshot error for ${collectionName}/${postId}/comments:`, error);
+    list.innerHTML = `<div style="text-align:center; padding:20px; color:var(--maroon);">
+      Unable to load comments. ${error.code === 'permission-denied' ? 'Access denied.' : 'Please try again later.'}
+    </div>`;
   });
 }
 

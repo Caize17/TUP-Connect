@@ -1,14 +1,12 @@
+import { auth, db } from "../firebaseConfig.js";
 import { 
-  getFirestore, doc, getDoc, collection, addDoc, query, orderBy, deleteDoc,
+  doc, getDoc, collection, addDoc, query, orderBy, deleteDoc,
   onSnapshot, serverTimestamp, updateDoc, increment, arrayUnion, arrayRemove 
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 import { 
-  getAuth, onAuthStateChanged
+  onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-
-const db = getFirestore();
-const auth = getAuth();
 
 
 const firebaseConfig = {
@@ -146,21 +144,18 @@ function listenForComments(postId, collectionName = 'posts') {
     const comments = snapshot.docs.map(doc => {
       const data = doc.data();
       const user = auth.currentUser;
-
-      // Global cache or Auth data
-      const livePhoto = window.cachedPhoto || user?.photoURL || "../assets/images/anon_avatar.jpg";
-      const liveName  = user?.displayName || "TUPian";
-
       const isOwn = user && data.userId === user.uid;
-      
-      const finalPhoto = isOwn ? livePhoto : (data.photoURL || data.photoSrc || "../assets/images/anon_avatar.jpg");
-      const finalAuthor = isOwn ? liveName : (data.author || "Anonymous");
+
+      const rawPhoto = data.photoURL;
+      const cache = JSON.parse(localStorage.getItem('tup_user_meta') || '{}');
+      const photoURL = (isOwn && cache.photoURL) ? cache.photoURL : (rawPhoto === 'anon' || !rawPhoto ? '../assets/images/anon_avatar.jpg' : rawPhoto);
 
       return {
         id: doc.id,
-        ...data,
-        author: finalAuthor,
-        photoURL: finalPhoto,
+        author: data.author || 'Anonymous',
+        userId: data.userId,
+        text: data.text || '',
+        photoURL: photoURL,
         isOwn: isOwn,
         time: data.createdAt ? (window.formatSmartDate ? window.formatSmartDate(data.createdAt.toDate()) : data.createdAt.toDate().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})) : 'Just now'
       };
@@ -173,11 +168,18 @@ function listenForComments(postId, collectionName = 'posts') {
       if (window.renderComments) window.renderComments(postIdx);
       if (window.renderFeed) window.renderFeed(); 
     } else {
-      // Handle pinned or other posts not in feed
-      const overlay = document.getElementById('comment-modal-overlay');
-      if (overlay && overlay.dataset.post === 'pinned' && overlay.dataset.postId === postId) {
-          window.renderCommentsPinned(comments, postId);
-      }
+       // Post not in feed (likely pinned or direct link)
+       if (window.renderCommentsPinned) {
+           window.renderCommentsPinned(comments, postId);
+       }
+    }
+  }, (error) => {
+    console.error(`[Comments] Snapshot error for ${collectionName}/${postId}:`, error);
+    const listElement = document.getElementById('comment-list');
+    if (listElement) {
+        listElement.innerHTML = `<div class="error-state" style="padding: 20px; text-align: center; color: var(--maroon);">
+            <p>Unable to load comments. ${error.code === 'permission-denied' ? 'Access denied.' : 'Please try again later.'}</p>
+        </div>`;
     }
   });
 }

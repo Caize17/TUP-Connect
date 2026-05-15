@@ -139,7 +139,7 @@ function renderCollegeBreakdown(stats, total) {
 // ════════════════════════════════════════
 function startVerificationSync() {
     const list = document.getElementById('pending-users-list');
-    const q = query(collection(db, "users"), where("status", "==", "pending"));
+    const q = query(collection(db, "users"), where("status", "==", "pending"), where("emailVerified", "==", true));
 
     onSnapshot(q, (snapshot) => {
         if (snapshot.empty) {

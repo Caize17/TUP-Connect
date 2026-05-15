@@ -824,6 +824,9 @@ async function loadComments(postId) {
       });
       bindCommentActions();
       list.scrollTop = list.scrollHeight;
+    }, (error) => {
+        console.error("Snapshot error for comments:", error);
+        list.innerHTML = '<div class="no-comments">Error loading comments.</div>';
     });
   } catch (err) {
     console.error("Load comments error:", err);

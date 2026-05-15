@@ -446,6 +446,14 @@ onSnapshot(q, (snapshot) => {
     window.FEED_POSTS = formatFirebaseData(snapshot);
     if (window.renderFeedPosts) window.renderFeedPosts();
   }
+}, (error) => {
+  console.error("[Post] Feed snapshot error:", error);
+  const feed = document.getElementById('feed-posts');
+  if (feed) {
+    feed.innerHTML = `<div class="error-state" style="text-align:center; padding:40px; color:var(--maroon);">
+      <p>Unable to load feed. ${error.code === 'permission-denied' ? 'Access denied.' : 'Please try again later.'}</p>
+    </div>`;
+  }
 });
 
 const feedContainer = document.getElementById('feed-posts');

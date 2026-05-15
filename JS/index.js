@@ -1,6 +1,6 @@
 import { auth, db } from '../firebaseConfig.js';
 import { signInWithEmailAndPassword, signOut, sendEmailVerification } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 async function handleHomepage() {
   const emailField = document.getElementById('login-email');
@@ -83,6 +83,11 @@ async function handleHomepage() {
       const role = userData.role;
       const isSetupComplete = userData.isSetupComplete;
       const status = userData.status || 'approved'; // Default for legacy users
+
+      // Passive Sync: Update emailVerified in Firestore if it's not already true
+      if (user.emailVerified && !userData.emailVerified) {
+        await updateDoc(userDocRef, { emailVerified: true });
+      }
 
       // 1. Check Verification Status
       if (status === 'pending') {
