@@ -5,13 +5,23 @@ import { collection, onSnapshot, serverTimestamp, query, orderBy, increment, whe
 let currentProfile = { name: "TUPian", photo: null };
 let updatePostBox = null;
 
+let lastPhotoClick = 0;
+const PHOTO_DEBOUNCE = 500;
+
 const imageInput = document.getElementById('modal-file-input');
 const imagePreview = document.getElementById('post-image-preview');
-const addImageBtn = document.getElementById('modal-photo-btn');
+const addImageBtn = document.getElementById('modal-add-photo-btn');
 const closeBtn = document.getElementById('modal-close-btn');
 
 if (addImageBtn && imageInput) {
-  addImageBtn.addEventListener('click', () => imageInput.click());
+  addImageBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const now = Date.now();
+    if (now - lastPhotoClick < PHOTO_DEBOUNCE) return;
+    lastPhotoClick = now;
+    imageInput.click();
+  });
   
   imageInput.addEventListener('change', async function () {
     const attachments = document.getElementById('modal-attachments');
@@ -46,6 +56,8 @@ if (addImageBtn && imageInput) {
     imageInput.value = ''; // Reset for same-file re-upload
   });
 }
+
+
 
 async function compressImage(file, maxWidth = 1200, maxHeight = 1200) {
   return new Promise((resolve) => {
@@ -282,8 +294,21 @@ onAuthStateChanged(auth, async (user) => {
 
     anonToggle.replaceWith(anonToggle.cloneNode(true));
     const newToggle = document.getElementById('modal-anon-toggle');
+    
+    // Sync with localStorage
+    const savedAnonPref = localStorage.getItem('tup_anon_pref') === 'true';
+    if (newToggle) {
+        newToggle.checked = savedAnonPref;
+        // Trigger the visual update
+        setTimeout(() => {
+            const event = new Event('change');
+            newToggle.dispatchEvent(event);
+        }, 100);
+    }
 
     newToggle.addEventListener('change', (e) => {
+      const isAnon = e.target.checked;
+      localStorage.setItem('tup_anon_pref', isAnon);
       const modalName = document.getElementById('modal-user-name');
       const modalAvatar = document.getElementById('modal-avatar');
 
@@ -784,6 +809,8 @@ window.submitRepost = async function (skipQuote = false) {
 
     const collectionName = collectionNameArg || 'posts';
     const isAnnouncement = collectionName === 'announcements';
+    
+
 
     // Fetch fresh data to ensure we have all fields (especially for nested reposts or announcements)
     const postSnap = await getDoc(doc(db, collectionName, postId));
@@ -799,6 +826,7 @@ window.submitRepost = async function (skipQuote = false) {
       photoURL: (typeof currentProfile !== 'undefined' ? currentProfile.photo : null) || user.photoURL || null,
       text: quote,
       imageURL: null,
+      imageURLs: [],
       createdAt: serverTimestamp(),
       likedBy: [],
       comments: 0,

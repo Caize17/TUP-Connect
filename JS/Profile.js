@@ -401,6 +401,8 @@ let USER = {
   photoSrc: "../assets/images/anon_avatar.jpg"
 };
 let allPosts = [];
+let lastPhotoClick = 0;
+const PHOTO_DEBOUNCE = 500; // ms
 
 // ========================
 // INSTANT UI PRE-FILL (STALE-WHILE-REVALIDATE)
@@ -531,12 +533,24 @@ function updateProfileUI(userData, email, isOwnProfile = true) {
   const postInputImg = document.querySelector('.post-input-img');
   if (postInputImg) postInputImg.src = photoURL;
 
+  const isAnon = getAnonymityPreference();
+  const displayPhoto = isAnon ? "../assets/images/anon_avatar.jpg" : photoURL;
+  const displayName = isAnon ? "Anonymous Puto" : fullName;
+
   const modalAvatarEl = document.getElementById('modal-avatar');
   if (modalAvatarEl) {
-    modalAvatarEl.innerHTML = `<img src="${photoURL}" alt="Me" style="width:100%;height:100%;object-fit:cover;border-radius:50%;image-rendering:high-quality;">`;
+    modalAvatarEl.innerHTML = `<img src="${displayPhoto}" alt="Me" style="width:100%;height:100%;object-fit:cover;border-radius:50%;image-rendering:high-quality;">`;
   }
   const modalNameEl = document.getElementById('modal-user-name');
-  if (modalNameEl) modalNameEl.textContent = fullName;
+  if (modalNameEl) modalNameEl.textContent = displayName;
+
+  // Sync repost modal as well
+  const rAvatarEl = document.getElementById('repost-user-avatar');
+  if (rAvatarEl) {
+    rAvatarEl.innerHTML = `<img src="${displayPhoto}" style="width:100%; height:100%; object-fit:cover; border-radius:50%; image-rendering:high-quality;">`;
+  }
+  const rNameEl = document.getElementById('repost-user-name');
+  if (rNameEl) rNameEl.textContent = displayName;
 
   // 5. Hide owner-only actions if viewing someone else
   const changePhotoWrap = document.querySelector('.change-photo-wrap');
@@ -1218,23 +1232,52 @@ const attachWrap = document.getElementById('modal-attachments');
 const submitBtn = document.getElementById('modal-submit-btn');
 const textarea = document.getElementById('postContent') || document.getElementById('post-textarea');
 
+const repostFileInput = document.getElementById('repost-file-input');
+const repostAttachWrap = document.getElementById('repost-modal-attachments');
+const repostTextarea = document.getElementById('repostContent');
+
 function updateSubmitButton() {
-  const hasContent = textarea && textarea.value.trim().length > 0;
-  const hasImages = attachWrap && attachWrap.querySelectorAll('.modal-attach-thumb').length > 0;
-  if (submitBtn) submitBtn.disabled = !hasContent && !hasImages;
+  // Main Post
+  if (textarea && submitBtn) {
+    const hasContent = textarea.value.trim().length > 0;
+    const hasImages = attachWrap && attachWrap.querySelectorAll('.modal-attach-thumb').length > 0;
+    submitBtn.disabled = !hasContent && !hasImages;
+  }
+  // Repost Quote
+  const rSubmitBtn = document.getElementById('repost-submit-btn');
+  if (repostTextarea && rSubmitBtn) {
+    const hasContent = repostTextarea.value.trim().length > 0;
+    const hasImages = repostAttachWrap && repostAttachWrap.querySelectorAll('.modal-attach-thumb').length > 0;
+    rSubmitBtn.disabled = !hasContent && !hasImages;
+  }
 }
 
 if (textarea) textarea.addEventListener('input', updateSubmitButton);
+if (repostTextarea) repostTextarea.addEventListener('input', updateSubmitButton);
 
 document.getElementById('btn-add-photo')?.addEventListener('click', e => {
+  e.preventDefault();
   e.stopPropagation();
+  
+  const now = Date.now();
+  if (now - lastPhotoClick < PHOTO_DEBOUNCE) return;
+  lastPhotoClick = now;
+
   openPostModal();
-  setTimeout(() => fileInput?.click(), 150);
+  setTimeout(() => {
+    if (fileInput) fileInput.click();
+  }, 250);
 });
 
-document.querySelector('.modal-add-photo-btn')?.addEventListener('click', e => {
+document.getElementById('modal-add-photo-btn')?.addEventListener('click', e => {
+  e.preventDefault();
   e.stopPropagation();
-  fileInput?.click();
+
+  const now = Date.now();
+  if (now - lastPhotoClick < PHOTO_DEBOUNCE) return;
+  lastPhotoClick = now;
+
+  if (fileInput) fileInput.click();
 });
 
 document.getElementById('anonToggle')?.addEventListener('change', function () {
@@ -1271,29 +1314,35 @@ function updateAnonUI(isAnon, nameId, avatarId) {
 
 fileInput?.addEventListener('change', async function () {
   const files = Array.from(this.files);
-  const compressionPromises = files.map(async (file) => {
+  for (const file of files) {
     try {
       const compressedBase64 = await compressImage(file, 1000, 1000);
-      const thumb = document.createElement('img');
-      thumb.src = compressedBase64;
-      thumb.className = 'modal-attach-thumb';
-      thumb.style.cssText = 'width:80px; height:80px; object-fit:cover; border-radius:8px; cursor:pointer; flex-shrink:0;';
-      thumb.addEventListener('click', () => { thumb.remove(); updateSubmitButton(); });
-      return thumb;
+      const wrapper = document.createElement('div');
+      wrapper.className = 'modal-attach-thumb-wrapper';
+      wrapper.style.cssText = 'position:relative; width:80px; height:80px; flex-shrink:0;';
+      
+      wrapper.innerHTML = `
+        <img src="${compressedBase64}" class="modal-attach-thumb" style="width:100%; height:100%; object-fit:cover; border-radius:8px;">
+        <button class="modal-attach-remove" style="position:absolute; top:-5px; right:-5px; background:rgba(0,0,0,0.6); color:white; border:none; border-radius:50%; width:20px; height:20px; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:12px; z-index:10;">✕</button>
+      `;
+
+      wrapper.querySelector('.modal-attach-remove').addEventListener('click', (e) => {
+        e.stopPropagation();
+        wrapper.remove();
+        updateSubmitButton();
+      });
+
+      attachWrap.appendChild(wrapper);
     } catch (err) {
       console.error("Compression error:", err);
-      return null;
     }
-  });
-
-  const thumbs = await Promise.all(compressionPromises);
-  thumbs.forEach(thumb => {
-    if (thumb) attachWrap.appendChild(thumb);
-  });
+  }
 
   updateSubmitButton();
   fileInput.value = '';
 });
+
+
 
 function openPostModal() {
   const overlay = document.getElementById('postModal');
@@ -1313,7 +1362,12 @@ function openPostModal() {
 }
 
 function closePostModal() {
-  document.getElementById('postModal').classList.remove('open');
+  const overlay = document.getElementById('postModal');
+  if (overlay) overlay.classList.remove('open');
+  const attachWrap = document.getElementById('modal-attachments');
+  if (attachWrap) attachWrap.innerHTML = '';
+  const fileInput = document.getElementById('modal-file-input');
+  if (fileInput) fileInput.value = '';
 }
 
 function closeModalOnOverlay(e) {
@@ -1761,6 +1815,7 @@ function closeRepostModal() {
     overlay.style.display = 'none';
   }
   document.getElementById('repostContent').value = '';
+  if (repostAttachWrap) repostAttachWrap.innerHTML = '';
   // Persistence: Removed reset of repostAnonToggle
   _currentRepostBtn = null;
   _repostSubmitted = false;
@@ -1771,9 +1826,9 @@ function closeRepostModalOnOverlay(e) {
 }
 
 async function submitRepost(skipQuote = false) {
-  const quote = skipQuote ? "" : document.getElementById('repostContent').value.trim();
   const rToggle = document.getElementById('repostAnonToggle');
   const isAnonymous = rToggle ? rToggle.checked : false;
+  const quote = document.getElementById('repostContent').value.trim();
 
   _repostSubmitted = true;
   if (_currentRepostBtn) {
@@ -1811,6 +1866,7 @@ async function createRepost(btn, quote = '', isAnonymous = false) {
       isAnonymous: isAnonymous,
       text: quote,
       imageURL: null,
+      imageURLs: [],
       createdAt: serverTimestamp(),
       likedBy: [],
       comments: 0,

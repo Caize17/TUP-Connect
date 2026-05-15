@@ -371,6 +371,8 @@ let POST = null;
 let FEED_POSTS = [];
 
 (function () {
+  let lastPhotoClick = 0;
+  const PHOTO_DEBOUNCE = 500;
 
   /* ════════════════════════════════════════
      HELPERS
@@ -1021,7 +1023,11 @@ let FEED_POSTS = [];
   document.getElementById('open-create-post').addEventListener('click', openModal);
 
   document.getElementById('btn-add-photo').addEventListener('click', e => {
+    e.preventDefault();
     e.stopPropagation();
+    const now = Date.now();
+    if (now - lastPhotoClick < PHOTO_DEBOUNCE) return;
+    lastPhotoClick = now;
     openModal();
     setTimeout(() => fileInput.click(), 150);
   });
@@ -1033,36 +1039,11 @@ let FEED_POSTS = [];
     submitBtn.disabled = this.value.trim().length === 0;
   });
 
-  anonToggle.addEventListener('change', function () {
-    const nameEl = document.getElementById('modal-user-name');
-    const avatarEl = document.getElementById('modal-avatar');
-    if (this.checked) {
-      nameEl.textContent = 'Anonymous Puto';
-      avatarEl.innerHTML = `<img src="../assets/images/anon_avatar.jpg" alt="Anonymous" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
-    } else {
-      nameEl.textContent = USER.name;
-      avatarEl.innerHTML = USER.photoSrc
-        ? `<img src="${USER.photoSrc}" alt="Me" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`
-        : `<svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`;
-    }
-  });
 
-  document.getElementById('modal-photo-btn').addEventListener('click', () => fileInput.click());
 
-  fileInput.addEventListener('change', function () {
-    Array.from(this.files).forEach(file => {
-      const reader = new FileReader();
-      reader.onload = e => {
-        const thumb = document.createElement('img');
-        thumb.src = e.target.result;
-        thumb.className = 'modal-attach-thumb';
-        thumb.title = 'Click to remove';
-        thumb.addEventListener('click', () => thumb.remove());
-        attachWrap.appendChild(thumb);
-      };
-      reader.readAsDataURL(file);
-    });
-  });
+
+
+
 
   /* ════════════════════════════════════════
      QUICK ACTION BUTTONS

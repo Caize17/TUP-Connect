@@ -313,7 +313,12 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 window.closePostModal = function () {
-  document.getElementById('postModal').classList.remove('open');
+  const overlay = document.getElementById('postModal');
+  if (overlay) overlay.classList.remove('open');
+  const attachWrap = document.getElementById('modal-attachments');
+  if (attachWrap) attachWrap.innerHTML = '';
+  const fileInput = document.getElementById('modal-file-input');
+  if (fileInput) fileInput.value = '';
 };
 
 window.closeModalOnOverlay = function (e) {
@@ -401,25 +406,28 @@ if (modalAddPhotoBtn) {
 
   fileInput.addEventListener('change', async function () {
     const files = Array.from(this.files);
-    const compressionPromises = files.map(async (file) => {
+    for (const file of files) {
       try {
         const compressedBase64 = await compressImage(file, 1200, 1200);
-        const thumb = document.createElement('img');
-        thumb.src = compressedBase64;
-        thumb.className = 'modal-attach-thumb';
-        thumb.style.cssText = 'width:80px; height:80px; object-fit:cover; border-radius:8px; cursor:pointer; flex-shrink:0;';
-        thumb.addEventListener('click', () => thumb.remove());
-        return thumb;
+        const wrapper = document.createElement('div');
+        wrapper.className = 'modal-attach-thumb-wrapper';
+        wrapper.style.cssText = 'position:relative; width:80px; height:80px; flex-shrink:0;';
+        
+        wrapper.innerHTML = `
+          <img src="${compressedBase64}" class="modal-attach-thumb" style="width:100%; height:100%; object-fit:cover; border-radius:8px;">
+          <button class="modal-attach-remove" style="position:absolute; top:-5px; right:-5px; background:rgba(0,0,0,0.6); color:white; border:none; border-radius:50%; width:20px; height:20px; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:12px; z-index:10;">✕</button>
+        `;
+
+        wrapper.querySelector('.modal-attach-remove').addEventListener('click', (e) => {
+          e.stopPropagation();
+          wrapper.remove();
+        });
+
+        attachWrap.appendChild(wrapper);
       } catch (err) {
         console.error("Compression error:", err);
-        return null;
       }
-    });
-
-    const thumbs = await Promise.all(compressionPromises);
-    thumbs.forEach(thumb => {
-      if (thumb) attachWrap.appendChild(thumb);
-    });
+    }
     fileInput.value = '';
   });
 
