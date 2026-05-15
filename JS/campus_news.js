@@ -1104,7 +1104,7 @@ window.submitRepost = async function(skipQuote = false) {
       repostAuthorPhoto: original.photoURL || null,
       repostTitle: original.title || "",
       repostText: original.text || original.body || "",
-      repostImage: original.imageURL || (original.imageURLs && original.imageURLs[0]) || null,
+      repostImage: original.repostImage || original.imageURL || (original.imageURLs && original.imageURLs[0]) || null,
       createdAt: serverTimestamp(),
       likedBy: [],
       comments: 0,

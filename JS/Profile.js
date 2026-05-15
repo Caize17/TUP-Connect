@@ -1677,13 +1677,21 @@ async function createRepost(btn, quote = '') {
 
   const originalCard = btn.closest('.post-card');
   const originalPostId = originalCard.dataset.id;
-  const originalAuthor = originalCard.querySelector('.post-author')?.textContent || 'Unknown';
-  const originalText = originalCard.querySelector('.post-body')?.innerHTML || originalCard.querySelector('.repost-quote-body')?.innerHTML || '';
-  const originalTitle = originalCard.querySelector('.post-title')?.textContent || originalCard.querySelector('.repost-quote-title')?.textContent || '';
-  const originalImage = originalCard.querySelector('.post-images img')?.src || null;
-  const originalAuthorPhoto = originalCard.querySelector('.post-avatar img')?.src || originalCard.querySelector('.repost-quote-avatar img')?.src || '../assets/images/anon_avatar.jpg';
-
+  
   try {
+    // Fetch fresh data to ensure we have all fields
+    const postSnap = await getDoc(doc(db, "posts", originalPostId));
+    if (!postSnap.exists()) {
+      window.showToast("Original post not found.", "error");
+      return;
+    }
+    const rawData = postSnap.data();
+
+    const originalAuthor = rawData.author || rawData.name || 'Unknown';
+    const originalText = rawData.text || rawData.body || '';
+    const originalTitle = rawData.title || '';
+    const originalImage = rawData.repostImage || rawData.imageURL || (rawData.imageURLs && rawData.imageURLs[0]) || null;
+    const originalAuthorPhoto = rawData.photoURL || rawData.photoSrc || '../assets/images/anon_avatar.jpg';
     const repostRef = await addDoc(collection(db, "posts"), {
       userId: user.uid,
       author: USER.name,

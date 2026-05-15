@@ -472,7 +472,7 @@ let FEED_POSTS = [];
             ${fp.quote.repostTitle ? `<div class="repost-quote-title" style="font-weight: 800; font-size: 14px; margin-bottom: 4px; color: var(--text);">${fp.quote.repostTitle}</div>` : ''}
             <div class="repost-quote-body clamped">${fp.quote.body ? fp.quote.body.replace(/\n/g, '<br>') : ''}</div>
           </div>
-          ${fp.quote.repostImage ? `<div class="lightbox-trigger" data-src="${fp.quote.repostImage}" style="cursor:pointer;"><img src="${fp.quote.repostImage}" class="feed-post-img" style="width:100%; border-radius:8px; margin-top:10px; display:block; image-rendering: high-quality;"></div>` : ''}
+          ${fp.quote.repostImage ? `<div class="lightbox-trigger" data-src="${fp.quote.repostImage}" style="cursor:pointer; margin-top:10px; border-radius:8px; overflow:hidden;"><img src="${fp.quote.repostImage}" style="width:100%; display:block; object-fit:cover; max-height:350px; image-rendering: high-quality;"></div>` : ''}
         </div>` : '';
 
       const imageGrid = (fp.imageURLs && fp.imageURLs.length > 0)

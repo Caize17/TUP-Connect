@@ -734,7 +734,9 @@ function openRepostModalHP(postData, collectionName = 'posts') {
   const existingImg = modal.querySelector('.hp-rm-quote-image');
   if (existingImg) existingImg.remove();
   
-  const imgToPreview = postData.postImage || (postData.imageURLs && postData.imageURLs[0]);
+  // Robust image identification
+  const imgToPreview = postData.repostImage || postData.postImage || (postData.imageURLs && postData.imageURLs[0]) || postData.imageURL;
+  
   if (imgToPreview) {
     const imgEl = document.createElement('img');
     imgEl.className = 'hp-rm-quote-image';
@@ -783,7 +785,15 @@ window.submitRepost = async function (skipQuote = false) {
     const collectionName = collectionNameArg || 'posts';
     const isAnnouncement = collectionName === 'announcements';
 
-    await addDoc(collection(db, "posts"), {
+    // Fetch fresh data to ensure we have all fields (especially for nested reposts or announcements)
+    const postSnap = await getDoc(doc(db, collectionName, postId));
+    if (!postSnap.exists()) {
+      window.showToast("Original post not found.", "error");
+      return;
+    }
+    const rawData = postSnap.data();
+
+    const repostData = {
       userId: user.uid,
       author: (typeof currentProfile !== 'undefined' ? currentProfile.name : null) || user.displayName || "TUPian",
       photoURL: (typeof currentProfile !== 'undefined' ? currentProfile.photo : null) || user.photoURL || null,
@@ -793,16 +803,18 @@ window.submitRepost = async function (skipQuote = false) {
       likedBy: [],
       comments: 0,
       repostOf: postId,
-      repostAuthor: postData.author || postData.name || "Anonymous",
-      repostText: postData.body || "",
-      repostImage: postData.postImage || (postData.imageURLs && postData.imageURLs[0]) || null,
-      repostAuthorPhoto: postData.photoSrc || postData.photoURL || '../assets/images/anon_avatar.jpg',
-      repostTitle: postData.title || "",
-      repostTime: postData.time || "JUST NOW",
+      repostAuthor: rawData.author || rawData.name || "Anonymous",
+      repostText: rawData.text || rawData.body || "",
+      repostImage: rawData.repostImage || rawData.imageURL || (rawData.imageURLs && rawData.imageURLs[0]) || null,
+      repostAuthorPhoto: rawData.photoURL || rawData.photoSrc || '../assets/images/anon_avatar.jpg',
+      repostTitle: rawData.title || "",
+      repostTime: document.getElementById('quote-preview-time').textContent || "JUST NOW",
       isOrg: isOrg,
       college: college,
       repostCollection: collectionName
-    });
+    };
+
+    await addDoc(collection(db, "posts"), repostData);
 
     const postRef = doc(db, collectionName, postId);
     const repostField = isAnnouncement ? 'reposts' : 'repostedBy';
